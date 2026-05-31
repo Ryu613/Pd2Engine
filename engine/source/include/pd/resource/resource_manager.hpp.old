@@ -1,0 +1,102 @@
+#pragma once
+
+#include "pd/resource/resource.hpp"
+
+namespace pd {
+class ResourceManager {
+ public:
+  template <typename T>
+  ResourceHandle<T> load(const std::string& resourceId) {
+    static_assert(std::is_base_of<Resource, T>::value, "T must derive from Resource");
+
+    // 检查此类型的资源是否已缓存，避免重复加载
+    auto& typeResources = mResources[std::type_index(typeid(T))];
+    auto it = typeResources.find(resourceId);
+
+    // 若存在，此类型的引用计数加1
+    if (it != typeResources.end()) {
+      mRefCounts[std::type_index(typeid(T))][resourceId].refCount++;
+      return ResourceHandle<T>(resourceId, this);
+    }
+
+    // 若没有，则创建此资源的实例，并尝试加载。若加载失败，则返回空句柄
+    auto resource = std::make_shared<T>(resourceId);
+    if (!resource->load()) {
+      return ResourceHandle<T>();
+    }
+
+    // 缓存成功加载的资源，并初始化引用计数
+    typeResources[resourceId] = std::move(resource);
+    mRefCounts[resourceId] = 1;
+
+    return ResourceHandle<T>(resourceId, this);
+  }
+
+  template <typename T>
+  T* getResource(const std::string& resourceId) {
+    auto& typeResources = mResources[std::type_index(typeid(T))];
+    auto it = typeResources.find(resourceId);
+
+    if (it != typeResources.end()) {
+      return static_cast<T*>(it->second.get());
+    }
+
+    return nullptr;
+  }
+
+  template <typename T>
+  bool hasResource(const std::string& resourceId) {
+    auto resourceIt = mResources.find(std::type_index(typeid(T)));
+    return resourceIt != mResources.end();
+  }
+
+  void release(const std::string& resourceId) {
+    // 若此资源存在，则引用计数-1，若计算后小于等于0，则在资源列表里这个资源，找到后将其卸载，并从清单里移除
+    // FIXME: 此函数实现有问题！
+    auto it = mRefCounts.find(resourceId);
+    if (it != mRefCounts.end()) {
+      it->second--;
+      if (it->second <= 0) {
+        for (auto& [type, typeResources] : mResources) {
+          auto resourceIt = typeResources.find(resourceId);
+          if (resourceIt != typeResources.end()) {
+            resourceIt->second->unload();
+            typeResources.erase(resourceIt);
+            break;
+          }
+        }
+        // 资源清除后，引用计数也清除
+        mRefCounts.erase(it);
+      }
+    }
+  }
+
+  // 用于系统里有大的状态改变或者关闭时
+  void unloadAll() {
+    for (auto& [type, typeResources] : mResources) {
+      for (auto& [id, resource] : typeResources) {
+        resource->unload();
+      }
+      typeResources.clear();
+    }
+    mRefCounts.clear();
+  }
+
+ private:
+  // 两阶段存储，先按类型，再按id(名字),这样做能保证类型安全，并且查询更高效
+  std::unordered_map<std::type_index,
+                     std::unordered_map<std::string, std::shared_ptr<Resource>>>
+      mResources;
+
+  // convenient for providing flexibility of resource management
+  struct ResourceData {
+    std::shared_ptr<Resource> resource;
+    int refCount;
+  };
+
+  // 两阶段引用计数，用于自动管理资源的生命周期
+  // 第一阶段代表资源的类型，第二阶段代表资源id及其资源
+  std::unordered_map<std::type_index, std::unordered_map<std::string, ResourceData>>
+      mRefCounts;
+};
+}  // namespace pd

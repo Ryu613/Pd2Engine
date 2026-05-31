@@ -1,0 +1,32 @@
+{
+    "version": 9,
+    "configurePresets": [
+        {
+            "name": "user-base",
+            "inherits": "base",
+            "hidden": true,
+            "environment": {
+                "VCPKG_ROOT": "your vcpkg root",
+                "compiler_clang_path": "your clang compiler path"
+            }
+        },
+        {
+            "name": "build-debug-msvc-x64",
+            "inherits": [
+                "user-base",
+                "x64",
+                "msvc",
+                "debug"
+            ],
+            "displayName": "win-x64-Debug"
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug-msvc-x64",
+            "displayName": "x64-debug-msvc",
+            "configurePreset": "build-debug-msvc-x64"
+        }
+    ],
+    "testPresets": []
+}

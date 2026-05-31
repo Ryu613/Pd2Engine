@@ -1,0 +1,14 @@
+# 基于哪种代码风格: google
+BasedOnStyle: Google
+
+# 代码一行最多多少个字符:90
+ColumnLimit: 90
+
+# 对#include头文件在哪行自动排序: 从不
+SortIncludes: Never
+
+# 构造函数的初始化成员要不要放一起: 从不
+PackConstructorInitializers: Never
+
+# 构造函数如何分行：逗号前算一行
+BreakConstructorInitializers: BeforeColon

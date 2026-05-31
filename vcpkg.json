@@ -1,0 +1,21 @@
+{
+  "dependencies": [
+    "catch2",
+    "entt",
+    "fastgltf",
+    "glm",
+    {
+      "name": "sdl3",
+      "features": [
+        "vulkan"
+      ]
+    },
+    "spdlog",
+    "vk-bootstrap",
+    "volk",
+    "vulkan-headers",
+    "vulkan-memory-allocator",
+    "vulkan-utility-libraries",
+    "stb"
+  ]
+}

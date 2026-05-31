@@ -1,0 +1,76 @@
+#pragma once
+
+#include <typeindex>
+
+namespace pd {
+template <typename T>
+class ResourceHandle {
+ public:
+
+  ResourceHandle() : mResourceManager(nullptr) {}
+  ResourceHandle(const std::string& id, ResourceManager* manager)
+      : mResourceId(id), mResourceManager(manager) {}
+
+  T* get() const {
+    if (!mResourceManager) return nullptr;
+    return mResourceManager->GetResource<T>(mResourceId);
+  }
+
+  bool isValid() const {
+    return mResourceManager && mResourceManager->hasResource<T>(mResourceId);
+  }
+
+  const std::string& getId() const {
+    return mResourceId;
+  }
+
+  T* operator->() const {
+    return get();
+  }
+
+  T& operator*() const {
+    return *get();
+  }
+
+  operator bool() const {
+    return isValid();
+  }
+
+ private:
+  std::string mResourceId;
+  ResourceManager* mResourceManager;
+};
+
+class Resource {
+ public:
+  explicit Resource(const std::string& id) : mResourceId(id) {}
+  virtual ~Resource() = default;
+
+  const std::string& getId() const {
+    return mResourceId;
+  }
+
+  bool isLoaded() const {
+    return mLoaded;
+  }
+
+  bool load() {
+    mLoaded = doLoad();
+    return mLoaded;
+  }
+
+  void unload() {
+    doUnload();
+    mLoaded = false;
+  }
+
+ protected:
+  virtual bool doLoad() = 0;
+  virtual bool doUnload() = 0;
+
+ private:
+  std::string mResourceId;
+  bool mLoaded = false;
+};
+
+}  // namespace pd

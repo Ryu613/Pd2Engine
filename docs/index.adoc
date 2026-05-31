@@ -1,0 +1,20 @@
+= Pd2Engine 设计文档
+:toc: left
+:toc-title: 目录
+:toclevels: 2
+
+====
+所有文档皆遵循简明扼要，通俗易懂的理念，均为手工编写
+
+为了减轻文档工作，刻意不使用专业架构设计文档模板
+====
+
+:leveloffset: +1
+
+include::architecture.adoc[]
+
+include::system_design.adoc[]
+
+include::module.adoc[]
+
+:leveloffset: -1

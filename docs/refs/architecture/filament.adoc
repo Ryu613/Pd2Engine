@@ -1,0 +1,126 @@
+= filament架构
+
+== 核心调用链路
+
+[plantuml]
+....
+actor developer as User
+User -> FilamentApp++: get()
+note right: get or create(singleton)
+User <-- FilamentApp: FilamentApp
+User -> FilamentApp: run()
+FilamentApp -> FilamentApp: new Window
+activate FilamentApp #DarkSalmon
+note right: init and create sdl window
+FilamentApp -> Engine++: build engine
+
+participant VulkanPlatform [
+  =Platform
+  ----
+  ""VulkanPlatform""
+]
+
+Engine -> VulkanPlatform++: createPlatform()
+
+participant VulkanDriver [
+  =Driver
+  ----
+  ""VulkanDriver""
+]
+Engine -> VulkanPlatform: createDriver()
+VulkanPlatform -> VulkanDriver++: createDriver()
+VulkanPlatform <-- VulkanDriver: Driver
+Engine <-- VulkanPlatform: Driver
+Engine -> Engine: init()
+Engine -> Engine: execute()
+FilamentApp <-- Engine: Engine
+FilamentApp -> Engine: createSwapChain()
+Engine -> VulkanDriver: createSwapChain()
+participant VulkanSwapChain [
+  =Swapchain
+  ----
+  ""VulkanSwapChain""
+]
+VulkanDriver -> VulkanSwapChain++: create
+VulkanDriver <-- VulkanSwapChain: VulkanSwapChain
+Engine <-- VulkanDriver: VulkanSwapChain
+FilamentApp <-- Engine: VulkanSwapChain
+FilamentApp -> Engine: createRenderer()
+Engine -> Renderer++: create
+Engine <-- Renderer: Renderer
+FilamentApp <-- Engine: Renderer
+FilamentApp -> Engine: create Camera
+FilamentApp <- Engine: Camera
+FilamentApp -> Engine: create Views
+FilamentApp <- Engine: View
+note right: view camera binding
+FilamentApp -> Engine: createScene()
+Engine -> Scene++: create
+Engine <-- Scene: Scene
+FilamentApp <-- Engine: Scene
+note right: scene & views binding, scene setup callback
+FilamentApp -> FilamentApp: init imgui
+FilamentApp -> FilamentApp: main loop
+loop
+  FilamentApp -> FilamentApp: handle sdl & app event
+  FilamentApp -> FilamentApp: handle imgui event and call render()
+  FilamentApp -> FilamentApp: update cameras
+  FilamentApp -> FilamentApp: update views
+  FilamentApp -> FilamentApp: pre render callback
+  FilamentApp -> Renderer: render()
+  note right: renderInternal() -> renderJob()
+  Renderer -> FrameGraph++: build FrameGraph
+  Renderer -> FrameGraph: present, compile, execute
+  deactivate FrameGraph
+  FilamentApp -> FilamentApp: post render callback
+end
+FilamentApp -> FilamentApp: cleanup callback
+FilamentApp -> FilamentApp: self cleanup
+FilamentApp -> Scene: destroy scene
+deactivate Scene
+FilamentApp -> Engine: destroy()
+Engine -> Engine: shutdown()
+Engine -> VulkanDriver: destroy
+deactivate VulkanDriver
+deactivate Engine
+FilamentApp -> FilamentApp: destroy VulkanPlatform
+deactivate VulkanPlatform
+FilamentApp -> FilamentApp: destroy Window
+deactivate Renderer
+deactivate VulkanSwapChain
+deactivate FilamentApp
+User <-- FilamentApp--: return 0
+....
+
+. 通过Application创建引擎实例，管理引擎生命周期
+. Window系统并未集成到engine里，而是放到application模块中，也就是说引擎不集成窗口系统，通过swapchain交互
+. engine管理所有相关的资源，并且需要显式进行创建和销毁
+. 可看出核心分层和模块
+.. 分层: application, platform, renderer, scene,其中engine只是聚合管理其他子系统的生命周期，还有资源
+.. 模块: 最核心模块 engine(子系统生命周期管理，引擎资源管理), platform(跨平台能力), driver(相当于RHI，屏蔽不同底层图形API的差异), renderer(具体渲染功能), scene(场景描述)
+... 次核心模块： application(为了易于engine使用), view(为了支持多视窗), swapchain(为了呈现到不同的WSI), camera(为了场景提供视口)
+... 其他在filament/文件夹里的api接口，是为这些核心模块的具体功能进行支撑的次级模块
+. 对于用户，只需创建app实例，给出scene如何配置, 如何创建资源，如何销毁资源(通过回调函数)，然后run()就可以完成，操作比较方便
+
+== 未包含的部分
+
+引擎无关的通用工具是被严格拆开放到了libs下
+
+. 引擎的应用封装, 在libs/filamentapp
+. 材质系统，在libs/filamat
+. 资产管理相关, 在libs/filameshio, gltfio, ktxreader
+. 基础工具, 在libs/utils
+. vulkan loader, 在bluevk
+. 工具程序, 在tools下
+
+== 模块解析
+
+=== 模块划分和生命周期
+
+=== 渲染架构
+
+=== 核心亮点
+
+=== 参考文献
+
+. link:https://github.com/google/filament[google-filament源码]

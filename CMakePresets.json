@@ -1,0 +1,67 @@
+{
+    "version": 9,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 31,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "installDir": "${sourceDir}/build/install",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            },
+            "environment": {
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg/ports",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
+            }
+        },
+        {
+            "name": "msvc",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "$env{compiler_clang_path}/clang-cl.exe",
+                "CMAKE_C_COMPILER": "$env{compiler_clang_path}/clang-cl.exe"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "intelliSenseMode": "windows-msvc-x64",
+                    "disableExternalAnalysis": true,
+                    "enableClangTidyCodeAnalysis": false,
+                    "enableMicrosoftCodeAnalysis": false,
+                    "codeAnalysisRuleset": "CppCoreCheckRules.ruleset"
+                }
+            }
+        },
+        {
+            "name": "x64",
+            "hidden": true,
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "debug",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release",
+            "hidden": true,
+            "inherits": "debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [],
+    "testPresets": []
+}
