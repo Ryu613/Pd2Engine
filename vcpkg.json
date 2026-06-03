@@ -11,11 +11,12 @@
       ]
     },
     "spdlog",
+    "stb",
     "vk-bootstrap",
     "volk",
     "vulkan-headers",
     "vulkan-memory-allocator",
     "vulkan-utility-libraries",
-    "stb"
+    "meshoptimizer"
   ]
 }

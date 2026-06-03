@@ -1,14 +1,14 @@
 {
-  "default-registry": {
-    "kind": "git",
-    "baseline": "ee12231b20c95013c6638d845d04c91559a1d1ff",
-    "repository": "https://github.com/microsoft/vcpkg"
-  },
-  "registries": [
-    {
-      "kind": "artifact",
-      "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
-      "name": "microsoft"
-    }
-  ]
+    "default-registry": {
+        "kind": "git",
+        "baseline": "ee12231b20c95013c6638d845d04c91559a1d1ff",
+        "repository": "https://gitee.com/mirrors/vcpkg"
+    },
+    "registries": [
+        {
+            "kind": "artifact",
+            "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
+            "name": "microsoft"
+        }
+    ]
 }

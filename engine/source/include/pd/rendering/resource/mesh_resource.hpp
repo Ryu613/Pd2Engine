@@ -11,11 +11,21 @@ class MeshResource : public Resource {
     glm::vec2 uv;
     glm::vec3 color;
   };
+  struct Aabb {};
   struct Properties {
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> uvs;
+    std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
   };
+
+  explicit MeshResource(Properties props) noexcept;
+  ~MeshResource();
+  MOVABLE_ONLY(MeshResource);
+
+ protected:
+  Status doLoad() noexcept override;
+  Status doUnload() noexcept override;
+
+ private:
+  Properties mProperties;
 };
 }  // namespace pd

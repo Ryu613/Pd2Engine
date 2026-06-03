@@ -16,8 +16,9 @@ class DefaultScene : public SceneDescription {
     Asset::Info assetInfo{
         .name = "helmet",
         .path = "assets/models/props/DamagedHelmet/DamagedHelmet.gltf",
+        .parseType = Asset::Type::Gltf,
     };
-    Asset* planeAsset = assetMgr.createAsset<Asset::Type::Gltf>(assetInfo);
+    auto planeAsset = assetMgr.createAsset(assetInfo);
     // auto assetId = assetManager.Model* plane =
     //     resourceMgr.loadGltfModel("plane0", "assets/models/environment/plane.gltf");
 

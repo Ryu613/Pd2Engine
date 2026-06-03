@@ -10,7 +10,8 @@ AssetManager::AssetManager(FileSystem& fileSystem, EntityManager& entityManager)
 }
 
 void AssetManager::initParsers() noexcept {
+  mParsers.reserve(8);
   auto gltfParser = std::make_unique<GltfParser>();
-  mParsers.emplace(Asset::Type::Gltf, std::move(gltfParser));
+  mParsers.push_back(std::move(gltfParser));
 }
 }  // namespace pd

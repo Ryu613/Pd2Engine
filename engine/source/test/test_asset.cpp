@@ -11,6 +11,10 @@ TEST_CASE("test_gltf_asset", "asset") {
   pd::Asset::Info assetInfo{
       .name = "plane",
       .path = "assets/models/props/BoxTextured/BoxTextured.glb",
+      .parseType = pd::Asset::Type::Gltf,
   };
-  assetManager->createAsset<pd::Asset::Type::Gltf>(assetInfo);
+  auto result = assetManager->createAsset(assetInfo);
+  REQUIRE(result);
+
+  pd::Entity e = result.value()->getRootEntity();
 }

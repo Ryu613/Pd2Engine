@@ -1,22 +1,74 @@
 #include "pd/asset/parser/gltf_parser.hpp"
 
 #include "fastgltf/core.hpp"
+#include "fastgltf/tools.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #include "pd/platform/file/file_system.hpp"
 #include "pd/rendering/resource/texture_resource.hpp"
+#include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/asset/parser/mesh_processor.hpp"
 
 namespace pd {
-std::unique_ptr<Asset> GltfParser::parse(FileSystem& fs,
-                                         const Asset::Info& assetInfo) noexcept {
+namespace {
+MeshResource::Properties convertMeshData(const fastgltf::Primitive& primitive,
+                                         const fastgltf::Asset& gltfAsset) noexcept {
+  MeshProcessor::Input input{};
+  const auto* posIt = primitive.findAttribute("POSITION");
+  PD_ASSERT_MSG(posIt != primitive.attributes.end(),
+                "gltf primitive is missing POSITION!");
+  const auto& positionAccessor = gltfAsset.accessors[posIt->accessorIndex];
+  input.positions.reserve(positionAccessor.count);
+  fastgltf::iterateAccessor<fastgltf::math::fvec3>(
+      gltfAsset, positionAccessor, [&](fastgltf::math::fvec3 pos) {
+        input.positions.emplace_back(pos.x(), pos.y(), pos.z());
+      });
+  const auto* normIt = primitive.findAttribute("NORMAL");
+  PD_ASSERT_MSG(normIt != primitive.attributes.end(),
+                "GLTF primitive is missing NORMAL!");
+  const auto& normalAccessor = gltfAsset.accessors[normIt->accessorIndex];
+  input.normals.reserve(normalAccessor.count);
+  fastgltf::iterateAccessor<fastgltf::math::fvec3>(
+      gltfAsset, normalAccessor, [&](fastgltf::math::fvec3 norm) {
+        input.normals.emplace_back(norm.x(), norm.y(), norm.z());
+      });
+  const auto* uvIt = primitive.findAttribute("TEXCOORD_0");
+  if (uvIt != primitive.attributes.end()) {
+    const auto& uvAccessor = gltfAsset.accessors[uvIt->accessorIndex];
+    input.uvs.reserve(uvAccessor.count);
+    fastgltf::iterateAccessor<fastgltf::math::fvec2>(
+        gltfAsset, uvAccessor,
+        [&](fastgltf::math::fvec2 uv) { input.uvs.emplace_back(uv.x(), uv.y()); });
+  }
+  const auto* colorIt = primitive.findAttribute("COLOR_0");
+  if (colorIt != primitive.attributes.end()) {
+    const auto& colorAccessor = gltfAsset.accessors[colorIt->accessorIndex];
+    input.colors.reserve(colorAccessor.count);
+    fastgltf::iterateAccessor<fastgltf::math::fvec3>(
+        gltfAsset, colorAccessor, [&](fastgltf::math::fvec3 color) {
+          input.colors.emplace_back(color.x(), color.y(), color.z());
+        });
+  }
+  if (primitive.indicesAccessor.has_value()) {
+    const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
+    input.indices.reserve(indexAccessor.count);
+    fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor, [&](uint32_t index) {
+      input.indices.emplace_back(index);
+    });
+  }
+  return MeshProcessor::process(input);
+}
+}  // namespace
+std::expected<void, AssetError> GltfParser::parse(FileSystem& fs, Asset& asset) noexcept {
+  const auto& assetPath = asset.getPath();
   // 1. 检查文件是否存在，类型是否正确, 文件是否可读
-  if (!fs.exists(assetInfo.path) || !fs.isFile(assetInfo.path)) {
-    log::error("asset path is illegal: {}", assetInfo.path);
-    return nullptr;
+  if (!fs.exists(assetPath) || !fs.isFile(assetPath)) {
+    log::error("asset path is illegal: {}", assetPath);
+    return std::unexpected(AssetError::FileNotFound);
   }
   // 2. 读取gltf文件
-  std::filesystem::path gltfFilePath{assetInfo.path};
+  std::filesystem::path gltfFilePath{assetPath};
   // 设置根文件目录
   mBasePath = gltfFilePath.parent_path();
 
@@ -24,36 +76,47 @@ std::unique_ptr<Asset> GltfParser::parse(FileSystem& fs,
   auto data = fastgltf::GltfDataBuffer::FromPath(gltfFilePath);
   if (data.error() != fastgltf::Error::None) {
     log::error("asset cannot be loaded: {}", gltfFilePath.string());
-    return nullptr;
+    return std::unexpected(AssetError::FileLoadError);
   }
   auto options =
       fastgltf::Options::LoadExternalBuffers | fastgltf::Options::DecomposeNodeMatrices;
   auto gltfAssetRes = parser.loadGltf(data.get(), gltfFilePath.parent_path(), options);
   if (auto error = gltfAssetRes.error(); error != fastgltf::Error::None) {
     log::error("gltf asset file parse failed: {}", gltfFilePath.string());
-    return nullptr;
+    return std::unexpected(AssetError::ParseFailed);
   }
-  // 2.1 创建Asset
+  // 2.1 创建gltf Asset
   auto& gltfAsset = gltfAssetRes.get();
-  auto asset = std::make_unique<Asset>();
   // 2.2 解析网格数据
-  parseMeshes(*asset, gltfAsset);
+  parseMeshes(asset, gltfAsset);
   // 2.3 解析texture(samplers)
-  parseTextures(*asset, gltfAsset);
+  parseTextures(asset, gltfAsset);
   // 2.4 解析material
-  parseMaterials(*asset, gltfAsset);
+  parseMaterials(asset, gltfAsset);
   // 2.5 解析scene,目前默认只解析第一个场景
   size_t scene0 = gltfAsset.defaultScene.value_or(0);
-  parseScene(*asset, gltfAsset, scene0);
+  parseScene(asset, gltfAsset, scene0);
   // 2.1 遍历node，读取每个node信息
   // 2.1.1 读取mesh
   // loadTextures(*asset, gltfAsset);
   // 2.1.3 读取material
   // 2.2 读取scene 0,构建scene graph
-  return asset;
+  return {};
 }
 
-void GltfParser::parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept {}
+void GltfParser::parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept {
+  auto& meshes = asset.mMeshes;
+  meshes.resize(gltfAsset.meshes.size());
+  for (size_t i = 0; i < gltfAsset.meshes.size(); ++i) {
+    const auto& mesh = gltfAsset.meshes[i];
+    meshes[i].reserve(mesh.primitives.size());
+    for (const auto& primitive : mesh.primitives) {
+      auto meshProps = convertMeshData(primitive, gltfAsset);
+      auto newMesh = std::make_unique<MeshResource>(meshProps);
+      meshes[i].push_back(std::move(newMesh));
+    }
+  }
+}
 
 void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept {
   // 根据材质用途确定纹理格式
@@ -118,7 +181,7 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
                      };
                      auto texture = std::make_unique<TextureResource>(props);
                      // 加入到asset中
-                     asset.addTextureResource(std::move(texture));
+                     asset.mTextures.push_back(std::move(texture));
                      // 清除使用后的image数据
                      stbi_image_free(texels);
                    },
@@ -148,7 +211,7 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
                      };
                      auto texture = std::make_unique<TextureResource>(props);
 
-                     asset.addTextureResource(std::move(texture));
+                     asset.mTextures.push_back(std::move(texture));
 
                      stbi_image_free(texels);
                    },
@@ -162,7 +225,8 @@ void GltfParser::parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) 
 
 void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
                             size_t gltfSceneIndex) noexcept {
-  // 2.2.2 根据node数创建对应数量的entity,遍历每个node
+  auto& gltfScene = gltfAsset.scenes[gltfSceneIndex];
+  // 根据node数创建对应数量的entity,遍历每个node
   // 2.2.2.1 设置每个entity的transform
   // 2.2.2.2 若有mesh，则设置mesh
   // 2.2.2.2.1 遍历每个mesh的submesh

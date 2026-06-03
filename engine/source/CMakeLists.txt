@@ -43,13 +43,15 @@ target_sources(engine_lib
         include/pd/platform/windows/platform_windows.hpp
         include/pd/platform/file/file_system.hpp
         include/pd/platform/file/std_file_system.hpp
+        include/pd/platform/backend/handle.hpp
         # resource
         include/pd/resource/handle.hpp
         include/pd/resource/resource.hpp
         include/pd/resource/resource_manager.hpp
         # rendering
         include/pd/rendering/renderer.hpp
-        include/pd/platform/backend/handle.hpp
+        include/pd/rendering/resource/texture_resource.hpp
+        include/pd/rendering/resource/mesh_resource.hpp
         # scene
         include/pd/scene/scene.hpp
         include/pd/scene/scene_description.hpp
@@ -59,6 +61,7 @@ target_sources(engine_lib
         include/pd/asset/asset_parser.hpp
         include/pd/asset/asset_manager.hpp
         include/pd/asset/parser/gltf_parser.hpp
+        include/pd/asset/parser/mesh_processor.hpp
     PRIVATE
         src/engine.cpp
         # core
@@ -70,12 +73,14 @@ target_sources(engine_lib
         # rendering
         src/rendering/renderer.cpp
         src/rendering/resource/texture_resource.cpp
+        src/rendering/resource/mesh_resource.cpp
         # resource
         src/resource/resource_manager.cpp
         # scene
         src/scene/scene.cpp
         # asset
         src/asset/asset_manager.cpp
+        src/asset/parser/mesh_processor.cpp
         src/asset/parser/gltf_parser.cpp
 )
 

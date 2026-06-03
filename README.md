@@ -1,5 +1,7 @@
 # Pd2Engine(WIP)
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](License.txt)
+
 Pd2Engine 是一款易于扩展，易于理解，易于调试的现代进阶级轻量化渲染引擎
 
 ## 特点
@@ -25,10 +27,10 @@ Pd2Engine 是一款易于扩展，易于理解，易于调试的现代进阶级�
 
 ### 需求
 
-. Git
-. Vcpkg
-. CMake
-. MSVC工具链
+1. Git
+1. Vcpkg
+1. CMake
+1. MSVC工具链
 
 ### 操作
 
@@ -43,4 +45,4 @@ Pd2Engine 是一款易于扩展，易于理解，易于调试的现代进阶级�
 
 ### 设计文档
 
-见docs/index.adoc
+见[docs/index.adoc](./docs/index.adoc)

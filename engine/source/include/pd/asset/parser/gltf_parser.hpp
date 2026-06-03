@@ -11,8 +11,7 @@ class GltfParser : public AssetParser {
   ~GltfParser() = default;
   MOVABLE_ONLY(GltfParser);
 
-  std::unique_ptr<Asset> parse(FileSystem& fs,
-                               const Asset::Info& assetInfo) noexcept override;
+  std::expected<void, AssetError> parse(FileSystem& fs, Asset& asset) noexcept override;
 
  private:
   std::filesystem::path mBasePath;

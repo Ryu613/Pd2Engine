@@ -5,12 +5,14 @@ find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(fastgltf CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(meshoptimizer CONFIG REQUIRED)
 
 list(APPEND PD2_ENGINE_LIB_PUBLIC_LINKS
     glm::glm-header-only
     spdlog::spdlog_header_only
     EnTT::EnTT
     fastgltf::fastgltf
+    meshoptimizer::meshoptimizer
     ${Stb_INCLUDE_DIR}
 )
 # backend

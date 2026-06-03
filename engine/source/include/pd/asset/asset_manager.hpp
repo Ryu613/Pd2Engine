@@ -1,5 +1,7 @@
 #pragma once
 
+#include <expected>
+
 #include "pd/platform/file/file_system.hpp"
 #include "pd/asset/asset_parser.hpp"
 
@@ -18,33 +20,37 @@ class AssetManager {
   /**
    * @brief 解析并转换资产文件，保存资产元数据信息
    *
-   * @note 资产拥有者是此管理器
-   * @tparam T
    * @param assetInfo
-   * @return Asset::AssetId
+   * @return std::expected<std::shared_ptr<Asset>, AssetError>
    */
-  template <Asset::Type T>
-  Asset* createAsset(const Asset::Info& assetInfo) noexcept {
+  std::expected<std::shared_ptr<Asset>, AssetError> createAsset(
+      const Asset::Info& assetInfo) noexcept {
     // 检查是否已存在此资产, 目前的实现: 把path视为id
-    Asset::IdType assetId{assetInfo.path};
+    const Asset::IdType& assetId = assetInfo.path;
     auto it = mAssets.find(assetId);
     if (it != mAssets.end()) {
-      return it->second.get();
+      return it->second;
     }
-    // 1. 根据T类型解析资产，生成资产实例
-    auto parsedAsset = mParsers[T]->parse(mFileSystem, assetInfo);
-    // 2. 记录到资产记录表
-    parsedAsset->setId(assetId);  // 只有assetManager有权限设置id, parser不能设置asset id
-    mAssets.emplace(assetId, std::move(parsedAsset));
+    // 1 创建资产实例
+    auto newAsset = std::shared_ptr<Asset>(new Asset(assetId, assetInfo));
+    // 2. 生成资产实例
+    auto parseResult =
+        mParsers[static_cast<size_t>(assetInfo.parseType)]->parse(mFileSystem, *newAsset);
+    if (!parseResult) {
+      return std::unexpected(parseResult.error());
+    }
+    // 3. 记录到资产记录表
+    auto [insertedIt, success] = mAssets.emplace(assetId, std::move(newAsset));
+    PD_ASSERT_MSG(success, "unexpected asset creations!");
 
-    return mAssets[assetId].get();
+    return insertedIt->second;
   }
 
  private:
   FileSystem& mFileSystem;
   EntityManager& mEntityManger;
-  std::unordered_map<Asset::Type, std::unique_ptr<AssetParser>> mParsers;
-  std::unordered_map<Asset::IdType, std::unique_ptr<Asset>> mAssets;
+  std::vector<std::unique_ptr<AssetParser>> mParsers;
+  std::unordered_map<Asset::IdType, std::shared_ptr<Asset>> mAssets;
 
   void initParsers() noexcept;
 };

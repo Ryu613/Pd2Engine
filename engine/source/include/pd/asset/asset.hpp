@@ -2,8 +2,15 @@
 
 #include "pd/core/entity.hpp"
 #include "pd/rendering/resource/texture_resource.hpp"
+#include "pd/rendering/resource/mesh_resource.hpp"
 
 namespace pd {
+enum class AssetError : uint8_t {
+  FileNotFound = 1,
+  FileLoadError = 2,
+  ParseFailed = 3,
+  Unknown = 99,
+};
 /**
  * @brief 资产对象，包含资产元数据信息，方便后续运行时使用
  *
@@ -13,19 +20,20 @@ class Asset {
   // 目前用路径字符串实现id
   using IdType = std::string;
   /**
+   * @brief 资产类型
+   *
+   */
+  enum class Type : uint8_t {
+    Gltf,
+  };
+  /**
    * @brief 资产信息，用于描述资产特征，作为资产管理器的参数
    *
    */
   struct Info {
     std::string name;
     std::string path;
-  };
-  /**
-   * @brief 资产类型
-   *
-   */
-  enum class Type : uint8_t {
-    Gltf = 1,
+    Type parseType = Type::Gltf;
   };
 
   MOVABLE_ONLY(Asset);
@@ -38,22 +46,22 @@ class Asset {
 
   [[nodiscard]] Entity getRootEntity() const noexcept { return mRoot; }
 
-  void addTextureResource(std::unique_ptr<TextureResource> resource) noexcept {
-    mTextures.emplace_back(std::move(resource));
-  }
+  [[nodiscard]] std::string getPath() const noexcept { return mInfo.path; }
 
  private:
   friend class AssetManager;
+  friend class GltfParser;
+  Info mInfo;
   IdType mId{};
   bool mLoaded = false;
   Entity mRoot{};
   std::vector<Entity> mEntities;
+
   std::vector<std::unique_ptr<TextureResource>> mTextures;
+  std::vector<std::vector<std::unique_ptr<MeshResource>>> mMeshes;
 
-  // 只有AssetManager能构造
-  explicit Asset(IdType id) noexcept
-      : mId(std::move(id)) {};
-
-  void setId(const IdType& id) noexcept { mId = id; }
+  explicit Asset(IdType id, Info info) noexcept
+      : mId(std::move(id)),
+        mInfo(std::move(info)) {};
 };
 }  // namespace pd
