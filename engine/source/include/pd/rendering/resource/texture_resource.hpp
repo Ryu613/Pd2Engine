@@ -27,6 +27,8 @@ class TextureResource : public Resource {
   ~TextureResource();
   MOVABLE_ONLY(TextureResource);
 
+  std::string getPath() const noexcept { return mProperties.path; }
+
  protected:
   Status doLoad() noexcept override;
   Status doUnload() noexcept override;

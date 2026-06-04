@@ -2,12 +2,12 @@
 
 #include <typeindex>
 #include <unordered_map>
-#include <filesystem>
 
 #include "pd/core/allocators.hpp"
 #include "pd/resource/handle.hpp"
 #include "pd/resource/resource.hpp"
 #include "pd/rendering/resource/texture_resource.hpp"
+#include "pd/rendering/resource/mesh_resource.hpp"
 
 namespace pd {
 /**
@@ -27,6 +27,7 @@ class ResourceHandle : public Handle {
 };
 
 using TextureHandle = ResourceHandle<TextureResource>;
+using MeshHandle = ResourceHandle<MeshResource>;
 /**
  * @brief 负责资源的注册，加载，卸载，管理资源的生命周期
  *
@@ -42,33 +43,17 @@ class ResourceManager {
   NO_COPY_MOVE(ResourceManager);
 
   /**
-   * @brief 加载模型文件
-   * @note 拆分模型文件，注册资源，返回Model
+   * @brief 运行时资源注册
    *
-   */
-  // template <DerivedAsset T>
-  // static Model* loadGltfModel(const std::string& resourceName,
-  //                             const std::string& resourcePath) noexcept {
-  //   // 1. 按类型构造Model
-  //   // 2. 把资源注册到registry
-  // }
-
-  /**
-   * @brief 通过文件路径声明需要的资源
-   * @param resourceName 资源的名字
-   * @param resourcePath 资源的路径
+   * @tparam T 资源类型
+   * @param t 具体资源实例
+   * @return ResourceHandle<T> 资源句柄
    */
   template <DerivedResource T>
-  [[nodiscard]] ResourceHandle<T> require(const std::string& resourceName,
-                                          const std::string& resourcePath) noexcept {
-    // TODO(author): 目前把path就当成resource的id，逻辑上不同，实现上等效
-    const auto& resourceId = resourcePath;
-    // 判断resourcePath对应的文件是否存在
-    std::filesystem::path filePath(resourcePath);
-    if (!std::filesystem::exists(filePath) ||
-        !std::filesystem::is_regular_file(filePath)) {
-      return ResourceHandle<T>{};
-    }
+  [[nodiscard]] ResourceHandle<T> registerResource(T& t) noexcept {
+    // 为resource生成id
+    t.mId = generateId();
+    const auto& resourceId = t.getId();
     // 判断此资源是否已注册(根据resourcePath)
     auto typeIndex = std::type_index(typeid(T));
     // 若T不存在会创建一个map,故此处可以这么写
@@ -78,16 +63,14 @@ class ResourceManager {
     if (resourceIt != resourceTypeMap.end()) {
       resourceIt->second.refCount++;
       return ResourceHandle<T>{resourceIt->first};
-      // 若未注册，把其构造并返回句柄
-    } else {
-      T* t = mArena.make<T>(resourceId, resourceName, resourcePath);
-      // 写到注册表，key为此resource, value为Resource*
-      resourceTypeMap.emplace(resourceId, t);
-      // 引用计数+1(若不存在会自动创建)
-      resourceTypeMap[resourceId].refCount++;
-
-      return ResourceHandle<T>(resourceId);
+      // 若未注册，把其注册并返回句柄
     }
+    // 写到注册表，key为此resource, value为Resource*
+    resourceTypeMap.emplace(resourceId, &t);
+    // 引用计数+1(若不存在会自动创建)
+    resourceTypeMap[resourceId].refCount++;
+
+    return ResourceHandle<T>(resourceId);
   }
 
   template <DerivedResource T>
@@ -122,6 +105,7 @@ class ResourceManager {
 
  private:
   HeapAllocator mArena;
+  uint32_t mCurrentId = 0;
 
   struct ResourceEntry {
     Resource* resource = nullptr;
@@ -144,5 +128,7 @@ class ResourceManager {
     auto resourceIt = resourceMap.find(resourceId);
     return resourceIt == resourceMap.end() ? nullptr : resourceIt->second.resource;
   }
+
+  [[nodiscard]] Resource::IdType generateId() noexcept { return mCurrentId++; }
 };
 }  // namespace pd

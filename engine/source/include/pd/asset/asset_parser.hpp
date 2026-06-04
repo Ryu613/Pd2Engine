@@ -5,7 +5,6 @@
 #include "pd/asset/asset.hpp"
 
 namespace pd {
-class FileSystem;
 class Asset;
 class AssetParser {
  public:
@@ -13,7 +12,6 @@ class AssetParser {
   virtual ~AssetParser() = default;
   MOVABLE_ONLY(AssetParser);
 
-  virtual std::expected<void, AssetError> parse(FileSystem& fs,
-                                                Asset& asset) noexcept = 0;
+  virtual std::expected<void, AssetError> parse(Asset& asset) noexcept = 0;
 };
 }  // namespace pd

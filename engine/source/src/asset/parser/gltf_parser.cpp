@@ -6,12 +6,16 @@
 #include "stb_image.h"
 
 #include "pd/platform/file/file_system.hpp"
+#include "pd/core/entity_manager.hpp"
 #include "pd/rendering/resource/texture_resource.hpp"
 #include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/resource/resource_manager.hpp"
 #include "pd/asset/parser/mesh_processor.hpp"
+#include "pd/scene/component/components.hpp"
 
 namespace pd {
 namespace {
+
 MeshResource::Properties convertMeshData(const fastgltf::Primitive& primitive,
                                          const fastgltf::Asset& gltfAsset) noexcept {
   MeshProcessor::Input input{};
@@ -60,14 +64,15 @@ MeshResource::Properties convertMeshData(const fastgltf::Primitive& primitive,
   return MeshProcessor::process(input);
 }
 }  // namespace
-std::expected<void, AssetError> GltfParser::parse(FileSystem& fs, Asset& asset) noexcept {
+
+GltfParser::GltfParser(FileSystem& fs, EntityManager& em, ResourceManager& rm) noexcept
+    : mFileSystem(fs),
+      mEntityManager(em),
+      mResourceManager(rm) {}
+
+std::expected<void, AssetError> GltfParser::parse(Asset& asset) noexcept {
   const auto& assetPath = asset.getPath();
-  // 1. 检查文件是否存在，类型是否正确, 文件是否可读
-  if (!fs.exists(assetPath) || !fs.isFile(assetPath)) {
-    log::error("asset path is illegal: {}", assetPath);
-    return std::unexpected(AssetError::FileNotFound);
-  }
-  // 2. 读取gltf文件
+  // 读取gltf文件
   std::filesystem::path gltfFilePath{assetPath};
   // 设置根文件目录
   mBasePath = gltfFilePath.parent_path();
@@ -96,11 +101,6 @@ std::expected<void, AssetError> GltfParser::parse(FileSystem& fs, Asset& asset) 
   // 2.5 解析scene,目前默认只解析第一个场景
   size_t scene0 = gltfAsset.defaultScene.value_or(0);
   parseScene(asset, gltfAsset, scene0);
-  // 2.1 遍历node，读取每个node信息
-  // 2.1.1 读取mesh
-  // loadTextures(*asset, gltfAsset);
-  // 2.1.3 读取material
-  // 2.2 读取scene 0,构建scene graph
   return {};
 }
 
@@ -225,13 +225,51 @@ void GltfParser::parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) 
 
 void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
                             size_t gltfSceneIndex) noexcept {
-  auto& gltfScene = gltfAsset.scenes[gltfSceneIndex];
+  const auto& gltfScene = gltfAsset.scenes[gltfSceneIndex];
+  auto& em = mEntityManager;
+  auto& rm = mResourceManager;
   // 根据node数创建对应数量的entity,遍历每个node
-  // 2.2.2.1 设置每个entity的transform
-  // 2.2.2.2 若有mesh，则设置mesh
-  // 2.2.2.2.1 遍历每个mesh的submesh
-  // 2.2.2.2.2 设置mesh信息
-  // 2.2.2.2.3 设置material信息
-  // 2.2.3 设置node关系,parent, child, sibling
+  auto entityList = em.createEntity(gltfAsset.nodes.size());
+  for (size_t i = 0; i < gltfAsset.nodes.size(); ++i) {
+    const auto& node = gltfAsset.nodes[i];
+    const auto& trs = std::get<fastgltf::TRS>(node.transform);
+    const auto& currentEntity = entityList[i];
+    auto entityName =
+        node.name.empty() ? std::format("node_{}", i) : std::string(node.name);
+    auto position =
+        glm::vec3{trs.translation.x(), trs.translation.y(), trs.translation.z()};
+    auto rotation =
+        glm::quat{trs.rotation.w(), trs.rotation.x(), trs.rotation.y(), trs.rotation.z()};
+    auto scale = glm::vec3{trs.scale.x(), trs.scale.y(), trs.scale.z()};
+
+    em.addComponent<Name>(currentEntity, entityName);
+    // 设置每个entity的transform
+    em.addComponent<Transform>(currentEntity, position, rotation, scale);
+    // 若有mesh，则设置mesh
+    if (node.meshIndex.has_value()) {
+      const auto& submeshes = asset.mMeshes[*node.meshIndex];
+      const auto& gltfMesh = gltfAsset.meshes[*node.meshIndex];
+      // 遍历每个mesh的submesh
+      // 若此mesh只由一个submesh组成
+      if (submeshes.size() == 1) {
+        // rm 注册meshResource拿到MeshHandle
+        auto meshHandle = rm.registerResource<MeshResource>(*submeshes[0]);
+        // em添加MeshHandle作为组件
+        em.addComponent<MeshHandle>(currentEntity, meshHandle);
+        // TODO(author): 材质组件
+        // em.addComponent<Material>(submesh[0]);
+      } else {
+        auto childEntityList = em.createEntity(submeshes.size());
+        for (size_t j = 0; j < submeshes.size(); ++j) {
+          const auto& childEntity = childEntityList[j];
+          const auto& submesh = submeshes[j];
+          auto meshHandle = rm.registerResource<MeshResource>(*submesh);
+          em.addComponent<Name>(childEntity, std::format("{}_submesh_{}", entityName, j));
+          em.addComponent<MeshHandle>(childEntity, meshHandle);
+          // TODO(author): current entity add child
+        }
+      }
+    }
+  }
 }
 }  // namespace pd

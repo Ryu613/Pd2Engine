@@ -55,8 +55,9 @@ class Asset {
   IdType mId{};
   bool mLoaded = false;
   Entity mRoot{};
+  // ecs scene graph
   std::vector<Entity> mEntities;
-
+  // 转换后的资源数据
   std::vector<std::unique_ptr<TextureResource>> mTextures;
   std::vector<std::vector<std::unique_ptr<MeshResource>>> mMeshes;
 

@@ -62,6 +62,17 @@
 
 == 宏观流程
 
+[plantuml]
+....
+@startuml
+start
+:引擎初始化;
+:
+several **lines**;
+stop
+@enduml
+....
+
 == 用例伪代码
 
 == 架构设计

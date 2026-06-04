@@ -5,7 +5,7 @@
 namespace pd {
 class Resource {
  public:
-  using IdType = std::string;
+  using IdType = uint32_t;
 
   enum class Status : uint8_t {
     Unload = 1,
@@ -17,19 +17,19 @@ class Resource {
 
   MOVABLE_ONLY(Resource);
 
-  const IdType& getId() const noexcept { return mId; }
+  [[nodiscard]] const IdType& getId() const noexcept { return mId; }
 
-  bool isLoaded() const noexcept { return mStatus == Status::Loaded; }
+  [[nodiscard]] bool isLoaded() const noexcept { return mStatus == Status::Loaded; }
 
   bool load() noexcept {
-    log::debug("loading resource: {}", mName);
+    log::debug("loading resource: {}", mId);
     mStatus = Status::Loading;
     mStatus = doLoad();
     return isLoaded();
   }
 
   void unload() noexcept {
-    log::debug("unloading resource: {}", mName);
+    log::debug("unloading resource: {}", mId);
     mStatus = doUnload();
   }
 
@@ -37,15 +37,13 @@ class Resource {
   virtual Status doLoad() noexcept = 0;
   virtual Status doUnload() noexcept = 0;
 
-  explicit Resource(IdType id, std::string name, std::string path) noexcept
-      : mId(std::move(id)),
-        mName(std::move(name)),
-        mPath(std::move(path)) {}
+  explicit Resource(IdType id) noexcept
+      : mId(id) {}
 
  private:
-  IdType mId;
-  std::string mName;
-  std::string mPath;
+  friend class ResourceManager;
+
+  IdType mId{};
   Status mStatus = Status::Unload;
 };
 

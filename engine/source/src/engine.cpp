@@ -19,8 +19,8 @@ bool Engine::initialize() noexcept {
     log::error("platform creation failed!");
     return false;
   }
-  mAssetManager =
-      std::make_unique<AssetManager>(mPlatform->getFileSystem(), mEntityManager);
+  mAssetManager = std::make_unique<AssetManager>(mPlatform->getFileSystem(),
+                                                 mEntityManager, mResourceManager);
 
   mInitialized = true;
   return true;
