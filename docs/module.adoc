@@ -8,30 +8,35 @@ memory类负责引擎底层内存管理相关功能，基于模板策略实现�
 
 == 资产/资源管理模块
 
+资源管理可以说是整个引擎的大动脉，是必须清晰整理数据流，逻辑流，状态流的模块
+
 === 职责
 
-. 从硬盘里读取文件，解析，转换，上传到到引擎内部的内存里
+. 从硬盘里读取文件，解析，转换，生成引擎内部资产
 . 在引擎运行时，使用这些数据进行处理和渲染
 
 === 功能
 
 . 文件读取和解析: 应包括gltf2.0形式的文件和ktx纹理文件，解析为对应数据结构
-.. gltf的mesh, texture, scene, buffer等信息的读取和解析
-. 文件转换: 把数据转换为引擎内部数据结构
+.. 复合资产文件：比如gltf解析，并分解成单个资产，比如material, mesh, texture, buffer, scene等
+. 文件转换
+.. 优化数据结构：比如mesh, texture，buffer等，在转换时可以优化为引擎内部字节流
 .. 把gltf和ktx转为引擎内部的PdMesh, PdTexture, PdSceneGraph, PdBuffer等数据结构
-.. 运行时加载和资源生命周期管理: 把上述引擎内数据在引擎运行时加载到内存和GPU并控制其构造和销毁时机
+. 运行时加载和资源生命周期管理: 把上述引擎内数据在引擎运行时加载到内存和GPU并控制其构造和销毁时机
 
 === 本版边界
 
-. 本版只完成基础功能，不实现gltf的蒙皮，动作，多场景解析数据
-. 文件不做进一步转换处理，如专门的二进制格式等
-. 本版不实现异步多线程加载功能
+. 实现gltf和ktx的读取，解析，转换，运行时加载，正确渲染
+. 不实现gltf的蒙皮，动作，多场景解析
+. 不实现异步多线程加载,但是预留扩展性
+. 不实现流式加载，热重载，但是预留扩展性
+. 不实现gltf导出，修改
 
 === 设计思路
 
-. 资源的加载整体上分为两块，资产管理和运行时资源管理
-.. 资产管理: 负责硬盘文件信息读取，并解析转换为运行时资源信息，本身不负责直接加载数据，只解析和转换相关文件的信息
-.. 资源管理: 利用资产管理解析的文件信息，在运行时按需把其加载到内存或显存中，供引擎使用，并管理这些资源的生命周期
+. 资源的加载整体上分为两块，资产管理和资源管理,此处分别称为(Asset Management(AM)和Resource Management(RM))
+.. AM: 负责硬盘文件信息读取，并解析转换为运行时资源信息，本身不负责直接加载数据，只解析和转换相关文件的信息，并提供把转换好的资产"注册"到运行时资源管理中
+.. RM: 利用资产管理解析的文件信息，在运行时按照场景需要，把相关资产加载到内存或显存中，供引擎使用，并管理这些资源的生命周期
 
 === 具体设计
 
@@ -39,12 +44,127 @@ memory类负责引擎底层内存管理相关功能，基于模板策略实现�
 
 . **asset/**: 资产管理相关功能,负责文件信息解析和转换
 .. 根据文件格式不同，使用不同的parsers进行解析和转换，输出Asset类型的数据格式
-. **resource/**: 运行时资源管理功能，负责把转换后的引擎内部文件信息按需加载和销毁
-.. 把Asset中需要的文件数据注册到resource中，在场景加载时负责上传到内存中，在渲染过程中上传到显存中
+.. asset拥有者为AM, AM管理Asset生命周期，外部只能使用不能自行创建和销毁
+. **resource/**: 运行时资源管理功能，负责把转换后的引擎内部文件信息(Asset中的具体的单个资源)按需加载和销毁
+.. 在场景加载时，根据场景需要的具体资产，在渲染过程中上传到显存中
 
-==== 句柄
+==== 类设计
 
-系统中，句柄主要用于运行时隔离资源的指针，避免内存开销和更灵活的资源管理。分为资源句柄和Driver(即RHI)，资源句柄只代表资源文件， RHI句柄只代表GPU资源，各个句柄的关注点，生命周期，和管理者不同
+核心类与核心成员及其关系如下:
+
+[plantuml]
+....
+class AssetManager {
+    + Asset* createAsset(AssetCreateInfo info)
+    + void destroyAsset(Asset* asset)
+}
+class Asset {
+    - String mId
+    - Container<Entity> mScenGraphEntities
+    - Container<TextureHandle> mTextures
+    - Container<MeshHandle> mMeshes
+    - Container<MaterialHandle> mMaterials
+}
+Interface Parser {
+    + {abstract} void parse(Asset& asset)
+}
+class GltfParser implements Parser {
+    + void parse(Asset& asset)
+}
+class ResourceEntry {
+    + Resource* pResource
+    + uint32_t refCount
+    + bool gcFlag
+}
+class ResourceManager{
+    + ResourceHandle registerResource(Resource&& resource)
+    + void unregisterResource(ResourceHandle handle)
+    + void load(ResourceHandle handle)
+    + void gc()
+    + void clearAll()
+
+    - Container<ResourceId, ResourceEntry> mRegistry
+
+    - ResourceId generateId()
+}
+Interface Resource {
+    + {abstract} void load()
+    + {abstract} void unload()
+    + Status status()
+
+    - Status mStatus
+}
+class TextureResource implements Resource {
+    + void load()
+    + void unload()
+
+    - RhiHandle<Texture> mRhiTexture
+}
+class Primitive {
+    - RhiHandle<Buffer> mVertexBuffer
+    - RhiHandle<Buffer> mIndexBuffer
+    - MaterialHandle mMaterial
+}
+class MeshResource implements Resource {
+    + void load()
+    + void unload()
+    
+    - Container<Primitive> mPrimitives
+}
+class MaterialResource implements Resource {
+    + void load()
+    + void unload()
+
+    - RhiHandle<DescriptorSet> mDescriptorSet
+    - TextureHandle mBaseColor
+    - TextureHandle mNormal
+}
+class Handle {
+    - uint32_t mId
+    - uint32_t mGeneration
+}
+class ResourceHandle<? extends Resource> extends Handle {
+    - String name
+}
+
+AssetManager "1"*--"n" Asset
+AssetManager "1"*--"n" Parser
+Asset "1"o--"n" ResourceHandle
+ResourceManager "1"*--"n" ResourceEntry
+ResourceEntry "1"*--"1" Resource
+ResourceManager "1"*--"n" ResourceHandle
+Resource "1"<--"n" ResourceHandle
+MeshResource "1"*--"n" Primitive
+Primitive "1"o--"1" MaterialResource
+MaterialResource "1"o--"n" TextureResource
+....
+
+==== 核心调用链
+
+==== 资源创建
+
+[plantuml]
+....
+participant Participant as Foo
+actor       Actor       as Foo1
+boundary    Boundary    as Foo2
+control     Control     as Foo3
+entity      Entity      as Foo4
+database    Database    as Foo5
+collections Collections as Foo6
+queue       Queue       as Foo7
+Foo -> Foo1 : To actor 
+Foo -> Foo2 : To boundary
+Foo -> Foo3 : To control
+Foo -> Foo4 : To entity
+Foo -> Foo5 : To database
+Foo -> Foo6 : To collections
+Foo -> Foo7: To queue
+....
+
+==== 资源加载
+
+==== 资源销毁
 
 === 测试
 
