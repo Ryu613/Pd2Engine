@@ -2,9 +2,35 @@
 
 == core模块
 
-=== memory
+=== 内存管理
 
-memory类负责引擎底层内存管理相关功能，基于模板策略实现了内存灵活的分配，调试，线程安全，对齐相关功能,方便兼容各种core库甚至stl的分配器，策略本身具备扩展性，可以扩展更多的分配算法和内存资源
+==== 职责
+
+引擎底层内存管理相关功能，应该有多种分配算法，包括：
+
+* pool: 用于支持对象池
+* linear: 线性分配，用于帧内快速分配和清除
+* heap: 堆分配，用于动态创建的内存对象
+* 支持未来扩展，如stack分配，double linear分配等
+
+* 应该可支持调试，支持分配和销毁时的自定义逻辑
+* 应该可支持线程安全，分配时对齐
+* 可作为容器的分配器，如stl分配器
+* 高性能
+
+==== 本版边界
+
+* 不实现跨平台，但预留扩展
+
+==== 设计思路
+
+采用policy-based 模板类实现，单头文件，详见doxygen文档和代码
+
+=== 事件系统
+
+==== 职责
+
+==== 设计思路
 
 == 资产/资源管理模块
 
@@ -141,30 +167,47 @@ MaterialResource "1"o--"n" TextureResource
 
 ==== 核心调用链
 
-==== 资源创建
+创建和销毁资产的核心调用链如下：
 
 [plantuml]
 ....
-participant Participant as Foo
-actor       Actor       as Foo1
-boundary    Boundary    as Foo2
-control     Control     as Foo3
-entity      Entity      as Foo4
-database    Database    as Foo5
-collections Collections as Foo6
-queue       Queue       as Foo7
-Foo -> Foo1 : To actor 
-Foo -> Foo2 : To boundary
-Foo -> Foo3 : To control
-Foo -> Foo4 : To entity
-Foo -> Foo5 : To database
-Foo -> Foo6 : To collections
-Foo -> Foo7: To queue
+actor developer as User order 1
+participant AssetManager as Am order 2
+participant Parser as Parser order 3
+participant ResourceManager as Rm order 4
+Rm -> Rm++: initialize()
+Am -> Am++: initialize()
+participant Parser [
+  =Parser
+  ----
+  ""GltfParser""
+]
+Am -> Parser++: initialize()
+group 创建资产 [gltf]
+    User -> Am: createAsset()
+    Am -> Am: 验证/读取文件
+    activate Am #005500
+    Am -> Parser: parse(Asset& asset)
+    Parser -> Parser: 解析mesh, texture, material
+    Parser -> Rm: registerResource(Resource& rsc)
+    activate Rm #0099f2
+    Parser <-- Rm: ResourceHandle
+    Parser -> Parser: build scene
+    Am <-- Parser: 填充后的Asset
+    User <-- Am: Asset
+end
+group 销毁资产
+    User -> Am: destroyAsset()
+    Am -> Rm: unregisterResource()
+    Rm -> Rm: 添加清除标记
+    ...
+    Rm -> Rm: gc()
+    deactivate Rm
+    deactivate Am
+end
 ....
 
-==== 资源加载
-
-==== 资源销毁
+使用阶段涉及场景管理，见后文
 
 === 测试
 
@@ -174,6 +217,229 @@ Foo -> Foo7: To queue
 
 == 场景管理模块
 
-== 图形后端(底层渲染)模块
+=== 职责
+
+. 运行时加载场景，管理场景内的物体生命周期
+. 确定物体的类型，行为，属性，存储/读取物体数据
+. 物体间的交互行为，关联关系
+. 场景更新
+
+=== 功能
+
+. 场景图
+. 场景描述功能
+. 事件系统
+
+=== 本版边界
+
+. 实现静态object model, scene graph，场景加载
+. 不做脚本系统
+. 不做场景持久化，序列化
+. 不做流式加载和世界块，只做单场景
+. 不做运行时生成实体
+
+=== 设计思路
+
+. object model: 采用ECS(其实更像filament的Entity-Manager模式)实现属性中心式对象模型
+.. 没有单独的system， 场景逻辑在Scene，由于需要多manager协调，由SceneBuilder代劳，Scene保持纯净，渲染逻辑在Renderer(见后文)
+. 场景图采用Entity + Component描述并实现
+. 提供给开发者SceneDescription接口, 可操作scene内对象和逻辑，不直接接触scene
+. 场景只描述场景本身的内容，不代表渲染时有哪些实际要显示
+. 分离出视图(view)代表从哪里看，怎么看，其范畴大于相机
+. 事件系统区分，场景事件独立于引擎全局事件
+
+=== 具体设计
+
+场景管理模块放在**scene/**目录下
+
+核心类，核心成员的类图如下:
+
+[plantuml]
+....
+Interface SceneDescription{
+    + {abstract} void onLoad(SceneBuilder& builder)
+    + {abstract} void onUnLoad(Scene& builder)
+}
+class Scene{
+    + void addEntity(Entity e)
+    + void removeEntity(Entity e)
+    + bool hasEntity(Entity e)
+
+    - Container<Entity> mEntities
+    - Container<View*> mViews
+    - Skybox mSkyBox
+}
+class Entity{
+    - uint32_t mId
+    - uint32_t mGeneration
+}
+class EntityManager {
+    + Entity create()
+    + bool hasEntity()
+    - uint32_t generateId()
+}
+
+class TransformManager{
+    + Entity create()
+    + Transform* getInstance(Entity e)
+    + bool hasInstance(Entity e)
+    + void destroy(Entity e)
+
+    - SoaContainer<Entity, Transform> mTransforms
+}
+class RenderableManager {
+    + Entity create()
+    + Renderable* getInstance(Entity e)
+    + bool hasInstance(Entity e)
+    + void destroy(Entity e)
+
+    - SoaContainer<Entity, Renderable> mRenderables
+}
+class LightManager {
+    + Entity create()
+    + Light* getInstance(Entity e)
+    + bool hasInstance(Entity e)
+    + void destroy(Entity e)
+
+    - SoaContainer<Entity, Light> mLights
+}
+class Light <<Component>> {
+    - LightType mType
+    - vec3 mColor
+    - float mIntensity
+}
+
+class Transform <<Component>> {
+    - vec3 mPosition
+    - vec4 mRotation
+    - vec3 mScale
+    - Entity mParent
+    - Container<Entity> mChildren
+    - bool dirtyFlag
+}
+class Renderable <<Component>> {
+    - ResourceHandle<MeshResource> mMeshHandle
+    - ResourceHandle<MaterialResource> mMaterialHandle
+}
+class CameraManager {
+    + Entity create()
+    + Camera* getInstance(Entity e)
+    + bool hasInstance(Entity e)
+    + void destroy(Entity e)
+
+    - SoaContainer<Entity, Camera> mCameras
+}
+
+class Camera <<Component>> {
+    - ProjectionType mProjType
+    - float zNear
+    - float zFar
+    - float mHFov
+    - float mAspectRatio
+}
+
+class View {
+    - Viewport mViewport
+    - Entity mMainCamera
+    - Scene* mScene
+}
+
+class Viewport {
+    - float x
+    - float y
+    - float width
+    - float height
+}
+
+
+Scene "1"o--"n" Entity
+Scene "1" o--"n" View
+TransformManager "1"*--"n" Transform
+RenderableManager "1"*--"n" Renderable
+CameraManager "1"*--"n" Camera
+LightManager "1"*--"n" Light
+EntityManager "1"*--"n" Entity
+View "1"*--"1" Viewport
+View "1"o--"1" Camera
+Scene <.. SceneDescription
+....
+
+=== 核心调用链
+
+[plantuml]
+....
+actor developer as User order 10
+participant Engine as Engine order 20
+participant SceneDescription as SD order 30
+participant SceneBuilder as SB order 40
+participant EntityManager as EM order 50
+participant TransformManager as TM order 60
+participant RenderableManager as RM order 70
+participant CameraManager as CM order 90
+participant LightManager as LM order 100
+participant Scene as Scene order 110
+participant View as View order 120
+User -> Engine++: 创建并初始化
+User -> SD: 派生并实现
+User -> Engine: loadScene
+Engine -> Scene++: new Scene()
+Engine -> SB++: new SceneBuilder(Scene&)
+Engine -> SD++: onLoad(builder)
+group 生成场景图
+    SB -> Scene: createView()
+    Scene -> View++: new
+    Scene <-- View: View
+    SB -> EM: create()
+    SB <-- EM: entity
+    SB -> TM: create(entity)
+    TM -> TM: new Transform
+    SB <-- TM
+    ... 在其他Manager中创建entity,同上 ...
+    SB -> Scene: addEntity(entity)
+    SB -> SB: 配置view, scene, camera等关系
+end
+Engine <-- SB--: Scene
+group 卸载场景
+    Engine -> Engine: render loop退出
+    Engine -> SD: onUnload(SceneBuilder&)
+    SD -> SD: 自定义逻辑
+    SD -> Scene: clear()
+    Scene -> View: destroy view
+    deactivate View
+    Scene -> RM: destroy()
+    ... 其他manager同上 ...
+    Engine <-- Scene--
+    Engine -> Engine: 执行内部清理逻辑
+end
+....
+
+此处渲染时场景读取的调用链暂略，详见渲染模块设计
 
 == 渲染模块
+
+=== 职责
+
+=== 功能
+
+=== 边界
+
+=== 具体设计
+
+==== 核心类及成员
+
+==== 核心调用链
+
+== 图形后端(底层渲染)模块
+
+=== 职责
+
+=== 功能
+
+=== 边界
+
+=== 具体设计
+
+==== 核心类及成员
+
+==== 核心调用链
+

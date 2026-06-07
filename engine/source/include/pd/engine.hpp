@@ -14,7 +14,6 @@
 namespace pd {
 /**
  * 作为引擎全局入口，负责管理子系统的停启及监控运行状态，统一在此进行资源的创建和销毁
- * zi
  */
 class Engine {
  public:
@@ -56,7 +55,6 @@ class Engine {
   std::unique_ptr<AssetManager> mAssetManager;
   std::unique_ptr<Renderer> mRenderer;
 
-  // TODO: 目前只支持一个场景+一个视窗
   Scene mScene;
   View mView;
 };

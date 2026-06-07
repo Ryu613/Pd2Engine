@@ -4,7 +4,7 @@ include(cmake/base.cmake)
 
 project(PD2
     VERSION 0.1.0
-    DESCRIPTION "Pd2Engine: A modern lightweight realtime graphics engine"
+    DESCRIPTION "Pd2Engine: A modern lightweight realtime 3D rendering engine"
 )
 
 set(CMAKE_CXX_STANDARD 23)
