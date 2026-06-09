@@ -35,6 +35,7 @@ target_sources(engine_lib
         include/pd/core/globals.hpp
         include/pd/core/logging.hpp
         include/pd/core/assert.hpp
+        include/pd/core/handle.hpp
         include/pd/core/entity.hpp
         include/pd/core/utils/memory.hpp
         include/pd/core/allocators.hpp
@@ -47,17 +48,24 @@ target_sources(engine_lib
         include/pd/platform/file/std_file_system.hpp
         include/pd/platform/backend/handle.hpp
         # resource
-        include/pd/resource/handle.hpp
+        include/pd/resource/resource_handle.hpp
         include/pd/resource/resource.hpp
         include/pd/resource/resource_manager.hpp
         # rendering
         include/pd/rendering/renderer.hpp
         include/pd/rendering/resource/texture_resource.hpp
         include/pd/rendering/resource/mesh_resource.hpp
+        include/pd/rendering/resource/material_resource.hpp
         # scene
         include/pd/scene/scene.hpp
-        include/pd/scene/scene_description.hpp
+        include/pd/scene/scene_descriptor.hpp
+        include/pd/scene/skybox.hpp
         include/pd/scene/view.hpp
+        include/pd/scene/component/components.hpp
+        include/pd/scene/manager/transform_manager.hpp
+        include/pd/scene/manager/renderable_manager.hpp
+        include/pd/scene/manager/light_manager.hpp
+        include/pd/scene/manager/camera_manager.hpp
         # asset
         include/pd/asset/asset.hpp
         include/pd/asset/asset_parser.hpp

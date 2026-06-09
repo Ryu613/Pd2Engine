@@ -4,30 +4,9 @@
 #include <unordered_map>
 
 #include "pd/core/allocators.hpp"
-#include "pd/resource/handle.hpp"
-#include "pd/resource/resource.hpp"
-#include "pd/rendering/resource/texture_resource.hpp"
-#include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/resource/resource_handle.hpp"
 
 namespace pd {
-/**
- * @brief 资源句柄，只有ResourceManager能用，其他用户只能查看
- */
-template <DerivedResource T>
-class ResourceHandle : public Handle {
- public:
-  ResourceHandle() noexcept
-      : Handle() {}
-
- private:
-  friend class ResourceManager;
-
-  explicit ResourceHandle(Handle::HandleId id) noexcept
-      : Handle(id) {}
-};
-
-using TextureHandle = ResourceHandle<TextureResource>;
-using MeshHandle = ResourceHandle<MeshResource>;
 /**
  * @brief 负责资源的注册，加载，卸载，管理资源的生命周期
  *

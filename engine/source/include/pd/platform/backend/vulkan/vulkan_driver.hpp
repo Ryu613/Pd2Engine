@@ -12,9 +12,10 @@ class VulkanDriver : public Driver {
  public:
   explicit VulkanDriver(VulkanConfig config) noexcept;
   ~VulkanDriver();
+  NO_COPY_MOVE(VulkanDriver);
 
   // 推进到下一帧
-  void nextFrame() noexcept;
+  void acquireNextFrame() noexcept;
 
   // 开始命令录制
   void startCmdRecording() noexcept;
@@ -32,7 +33,6 @@ class VulkanDriver : public Driver {
   void endFrame() noexcept;
 
   VulkanFrame& getCurrentFrame() noexcept { return mVulkanFrames[mCurrentFrameIndex]; }
-
 
  private:
   VulkanConfig mConfig;

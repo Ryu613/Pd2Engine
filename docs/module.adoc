@@ -256,7 +256,7 @@ end
 
 [plantuml]
 ....
-Interface SceneDescription{
+Interface SceneDescriptor{
     + {abstract} void onLoad(SceneBuilder& builder)
     + {abstract} void onUnLoad(Scene& builder)
 }
@@ -419,23 +419,154 @@ end
 
 === 职责
 
+. 根据场景描述收集渲染数据, 裁剪出需要渲染的部分
+. 请求资源系统确保所需资源可用
+. 描述渲染的流程(render pass及其组合)，渲染的方式(forward/deferred shading), 渲染的技术(PBR)
+. 构建并管理每帧数据
+. 根据pass生成render graph, 自动优化和确保同步机制，给出pass和资源的依赖关系，推导资源生命周期，按顺序执行
+. 生成并录制渲染命令，提交到渲染底层(RHI)
+. 界面绘制，后处理特效，及其他相关功能
+. 渲染相关的多线程任务调度
+
 === 功能
+
+. render pass
+. render graph
+. custom & flexible shading path(deferred/forward)
+. pbr， ibl, directional shadow, tonemap
 
 === 边界
 
+. 本版暂不集成job system
+. 暂不做多线程命令录制
+. 不直接操作和接触RM和RHI层的资源，只描述操作过程
+. 以实现功能为主，设计上采用数据驱动和自动rg，架构上会预留扩展空间，但暂不保证测试覆盖，和性能
+
+=== 设计思路
+
+. 以render pass描述pass，可以通过render graph组织依赖关系，优化执行顺序，优化资源读写
+. render graph支持自动屏障插入，不需要手动管理pass之间的依赖和操作同步原语
+. renderer不会去直接与底层资源和内存资源交互，而是通过handle
+. renderer带有自己的内存管理器，主要用于管理帧内资源，实现高效分配和回收，保证内存局部性和连续性
+
 === 具体设计
+
+渲染模块放在**rendering/**目录下
 
 ==== 核心类及成员
 
+[plantuml]
+....
+class Renderer {
+    + void renderFrame(View& view)
+    - void beginFrame()
+    - void endFrame()
+
+    - ResourceManager& mResourceManager
+    - FrameContext mFrameContext
+    - Container<FrameData> mPerFrameData
+    - RenderGraph mRenderGraph
+    - Driver& mDriver
+}
+class Driver {
+  + {abstract} void acquireNextFrame()
+  + {abstract} void startCmdRecording()
+  + {abstract} void endCmdRecording()
+  + {abstract} void submitFrame()
+  + {abstract} void presentFrame()
+  + {abstract} void endFrame()
+  + {abstract} HwTexture& createTexture(TextureResource& resource)
+  + {abstract} HwBuffer& createBuffer(BufferResource& resource)
+}
+class RenderPass {
+    + void inputResource(ResourceHandle handle)
+    + void outputResource(ResourceHandle handle)
+    + void execute()
+
+    - Container<ResourceHandle> mInputs
+    - Container<ResourceHandle> mOutputs
+
+}
+class RenderGraph{
+    + void addPass(RenderPass&& pass)
+    + void compile()
+    + void execute()
+
+    - Driver& mDriver
+    - Container<ResourceNode::IdType> mExecutionOrder
+}
+
+Renderer o-- Driver
+Renderer *-- RenderGraph
+RenderGraph "1"*--"n" RenderPass
+....
+
 ==== 核心调用链
+
+[plantuml]
+....
+actor developer as User order 10
+participant Engine as Engine order 20
+participant SceneDescriptor as SD order 30
+participant Renderer as Renderer order 40
+participant RenderGraph as RG order 42
+participant Driver as Driver order 50
+participant Scene as Scene order 60
+participant View as View order 70
+
+User -> Engine++: initialize()
+Engine -> Driver++: new
+Engine -> Renderer++: new
+Renderer -> RG++: new
+Engine -> Scene++: new
+Engine -> View++: new
+User -> Engine: loadScene()
+Engine -> SD++: new
+User -> Engine: run()
+Engine -> SD: onLoad()
+SD -> Scene: 重置并准备场景数据
+SD -> View: 重置并准备视图，相机配置
+group mainLoop
+    Engine -> Renderer: beginFrame()
+    Renderer -> Driver:  acquireNextFrame()
+    Renderer <-- Driver: finish frame data update and syncing
+    Engine <-- Renderer
+    Engine -> View: update()
+    Engine -> Scene: update()
+    Engine -> Renderer: renderFrame()
+    Renderer -> Renderer: View, Scene数据剔除，抽取, 写到PerFrameData
+    Renderer -> RG: reset()
+    Renderer -> RG: addPass()
+    Renderer -> RG: compile()
+    Renderer -> RG: execute()
+    Engine <-- Renderer
+Engine -> Renderer: endFrame()
+Renderer -> Driver: submitFrame()
+Renderer -> Driver: presentFrame()
+Renderer -> Driver: endFrame()
+end
+....
 
 == 图形后端(底层渲染)模块
 
 === 职责
 
+. 向渲染层提供统一的API，使其能操作backend资源
+. 将接口调用映射到具体图形API实现
+. 可描述，管理，操作backend的GPU资源
+. 可完整支持并隔离上层渲染操作
+
 === 功能
 
+. rhi接口，rhi资源描述和管理
+. rhi实现，底层API的封装
+. 底层API的资源管理
+. slangc加载，shader资源管理
+
 === 边界
+
+. 不实现多backend，只实现vulkan backend
+. 暂不实现完整RHI，只预留接口
 
 === 具体设计
 

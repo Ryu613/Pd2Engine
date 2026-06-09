@@ -12,7 +12,7 @@ TEST_CASE("test_gltf_asset", "asset") {
       std::make_unique<pd::AssetManager>(*fileSystem, *entityManager, *resourceManager);
 
   pd::Asset::Info assetInfo{
-      .name = "plane",
+      .name = "box",
       .path = "assets/models/props/BoxTextured/BoxTextured.glb",
       .parseType = pd::Asset::Type::Gltf,
   };

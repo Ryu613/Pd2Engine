@@ -12,7 +12,7 @@ void Renderer::beginFrame() {
   // 让driver执行完上帧后获取到新的swapchain image
   // TODO(author): 目前Driver(RHI)不实现，先直接下转
   auto& driver = static_cast<VulkanDriver&>(mDriver);
-  driver.nextFrame();
+  driver.acquireNextFrame();
   // 指令重置及开始录制
   driver.startCmdRecording();
 }

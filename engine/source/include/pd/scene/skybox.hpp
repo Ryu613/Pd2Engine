@@ -1,8 +1,5 @@
 #pragma once
 
 namespace pd {
-class TransformManager {
- public:
- private:
-};
+class Skybox {};
 }  // namespace pd

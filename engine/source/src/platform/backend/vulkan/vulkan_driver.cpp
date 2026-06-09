@@ -22,7 +22,7 @@ VulkanDriver::~VulkanDriver() {
   // }
 }
 
-void VulkanDriver::nextFrame() noexcept {
+void VulkanDriver::acquireNextFrame() noexcept {
   auto device = mVulkanContext.getDevice();
   auto& currentFrame = getCurrentFrame();
 

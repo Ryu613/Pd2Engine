@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 #include "entt/entity/entity.hpp"
 
 namespace pd {
@@ -28,5 +26,6 @@ class Entity {
       : mId(id) {}
 
   IdType mId;
+  // TODO(author): entt has generation?
 };
 }  // namespace pd

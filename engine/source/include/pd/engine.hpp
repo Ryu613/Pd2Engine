@@ -7,9 +7,12 @@
 #include "pd/resource/resource_manager.hpp"
 #include "pd/asset/asset_manager.hpp"
 #include "pd/rendering/renderer.hpp"
-#include "pd/scene/scene_description.hpp"
+#include "pd/scene/scene_descriptor.hpp"
 #include "pd/scene/scene.hpp"
-#include "pd/scene/view.hpp"
+#include "pd/scene/manager/transform_manager.hpp"
+#include "pd/scene/manager/renderable_manager.hpp"
+#include "pd/scene/manager/camera_manager.hpp"
+#include "pd/scene/manager/light_manager.hpp"
 
 namespace pd {
 /**
@@ -23,6 +26,10 @@ class Engine {
     uint32_t windowHeight = global::DEFAULT_WINDOW_HEIGHT;
     bool enableDebug = true;
   };
+  enum class EngineError : uint8_t {
+    SceneLoadError = 1,
+    RunFailed = 2,
+  };
 
   explicit Engine(Config& config) noexcept;
   ~Engine() noexcept;
@@ -35,13 +42,14 @@ class Engine {
   bool initialize() noexcept;
   void shutdown() noexcept;
 
-  template <DerivedSceneDescription T, typename... Args>
-  void loadScene(Args&&... args) {
-    T description{std::forward<Args>(args)...};
-    description.preRender(mAssetManager);
+  template <DerivedSceneDescriptor T, typename... Args>
+  std::expected<void, EngineError> loadScene(Args&&... args) {
+    mSceneDescriptor = std::make_unique<SceneDescriptor>(std::forward<Args>(args)...);
+    mSceneDescriptor->onLoad(*mAssetManager, mEntityManager, mTransformManager,
+                             mCameraManager, mScene);
   }
 
-  void run();
+  std::expected<void, EngineError> run() noexcept;
 
  private:
   Config mConfig;
@@ -50,12 +58,18 @@ class Engine {
   HeapAllocator mArena;
   ResourceManager mResourceManager;
   EntityManager mEntityManager;
+  // scene property managers
+  TransformManager mTransformManager;
+  RenderableManager mRenderableManager;
+  CameraManager mCameraManager;
+  LightManager mLightManager;
 
   std::unique_ptr<Platform> mPlatform;
   std::unique_ptr<AssetManager> mAssetManager;
   std::unique_ptr<Renderer> mRenderer;
-
+  // 相当于world
   Scene mScene;
-  View mView;
+
+  std::unique_ptr<SceneDescriptor> mSceneDescriptor;
 };
 }  // namespace pd

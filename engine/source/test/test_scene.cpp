@@ -1,68 +1,56 @@
 #include "catch2/catch_test_macros.hpp"
 #include "pd/engine.hpp"
-#include "pd/scene/scene_description.hpp"
+#include "pd/scene/scene_descriptor.hpp"
+
+#include <print>
 
 namespace pd {
 
-class DefaultScene : public SceneDescription {
+class DefaultScene : public SceneDescriptor {
  public:
-  void preRender(AssetManager& assetMgr, TransformManager& transformMgr, Scene& scene,
-                 View& view) override {
+  void onLoad(AssetManager& assetMgr, EntityManager& entityMgr,
+              TransformManager& transformMgr, CameraManager& cameraMgr,
+              Scene& scene) override {
     /**
      * describe which assets should be used in the scene
      */
 
     // need a gltf model
-    Asset::Info assetInfo{
-        .name = "helmet",
-        .path = "assets/models/props/DamagedHelmet/DamagedHelmet.gltf",
-        .parseType = Asset::Type::Gltf,
+    pd::Asset::Info assetInfo{
+        .name = "box",
+        .path = "assets/models/props/BoxTextured/BoxTextured.glb",
+        .parseType = pd::Asset::Type::Gltf,
     };
-    auto planeAsset = assetMgr.createAsset(assetInfo);
-    // auto assetId = assetManager.Model* plane =
-    //     resourceMgr.loadGltfModel("plane0", "assets/models/environment/plane.gltf");
+    auto result = assetMgr.createAsset(assetInfo);
+    REQUIRE(result);
 
     /**
      * describe which/how objects should be included into the scene
      */
-    // Entity planeEntity = scene.addEntity((planeAsset->getRootEntity()));
-    // planeEntity.get<Transform>().location = {0.0f, 0.0f, 0.0f};
-    // // quaternion
-    // planeEntity.get<Transform>().rotation = {1.0f, 0.0f, 0.0f, 0.0f};
-    // planeEntity.get<Transform>().scale = {1.0f, 1.0f, 1.0f};
 
-    // set root node
-    // scene.setRoot(planeEntity);
-    /**
-     * TODO: describe which/how lights should be included into the scene
-     */
+    // use gltf's scene graph root node as Scene entity
+    auto& asset = result.value();
+    auto sceneRootEntity = asset->getRootEntity();
+    scene.addEntity(sceneRootEntity);
 
-    /**
-     * describe how to "look into" the scene
-     */
+    // set scene root transformation
+    auto* rootTransform = transformMgr.getEntity(sceneRootEntity);
+    auto& transform = *rootTransform;
+    transform.location = {0.0f, 0.0f, 0.0f};
+    transform.rotation = {1.0f, 0.0f, 0.0f, 0.0f};
+    transform.scale = {1.0f, 1.0f, 1.0f};
+    // create and configure scene view
+    auto& view = scene.createView();
+    Entity cameraEntity = entityMgr.createEntity();
+    auto* camera = cameraMgr.create(cameraEntity);
+    camera->hFov = 0.75f;
+    auto* cameraTransform = transformMgr.create(cameraEntity);
+    cameraTransform->location = {0.0f, 0.0f, 0.0f};
 
-    // setup relations between scene and view(s)
-    // view.bindTo(scene);
-
-    // setup view properties
-    // view.setAspectRatio();
-
-    // setup the camera(s)
-    // Entity camera = view.getMainCamera();
-
-    // setup camera properties
-    // camera.setFov()
-    // camera.setFocalLength()
-    // camera.setZnear()
-    // camera.setZFar()
-    // camera.setProjection()
-    // camera.setExposure()
-
-    // place camera into the scene
-    // camera.get<Transform>().location = {0.0f, 0.0f, 0.0f};
+    view.setMainCamera(cameraEntity);
   }
 
-  void postRender(AssetManager& assetMgr) override {
+  void onUnload(Scene& scene) override {
     // clear resource which required before rendering
     // for (auto handle : mAssetHandles) {
     // resourceMgr.release(handle);
@@ -80,10 +68,9 @@ TEST_CASE("test_scene", "engine") {
   };
   auto engine = std::make_unique<Engine>(config);
   engine->initialize();
-  try {
-    engine->loadScene<pd::DefaultScene>();
-    engine->run();
-  } catch (const std::runtime_error& e) {
-    std::cerr << e.what() << "\n";
+  auto loadResult = engine->loadScene<pd::DefaultScene>();
+  if (!loadResult) {
+    pd::log::error("scene load failed: {}", loadResult.error());
   }
+  auto runResult = engine->run();
 }

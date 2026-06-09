@@ -36,17 +36,16 @@ void Engine::shutdown() noexcept {
   mPlatform.reset();
 }
 
-void Engine::run() {
+std::expected<void, Engine::EngineError> Engine::run() noexcept {
   if (!mInitialized) {
-    throw std::runtime_error("Engine not initialized!");
+    return std::unexpected<EngineError>(EngineError::RunFailed);
   }
-
   while (!mPlatform->shouldClose()) {
     mPlatform->processEvents();
-
     mRenderer->beginFrame();
     // mRenderer->renderFrame();
     mRenderer->endFrame();
   }
+  return {};
 }
 }  // namespace pd
