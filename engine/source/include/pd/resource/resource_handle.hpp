@@ -1,9 +1,7 @@
 #pragma once
 
 #include "pd/core/handle.hpp"
-#include "pd/rendering/resource/texture_resource.hpp"
-#include "pd/rendering/resource/mesh_resource.hpp"
-#include "pd/rendering/resource/material_resource.hpp"
+#include "pd/resource/resource.hpp"
 
 namespace pd {
 /**
@@ -21,8 +19,4 @@ class ResourceHandle : public Handle {
   explicit ResourceHandle(Handle::HandleId id) noexcept
       : Handle(id) {}
 };
-
-using TextureHandle = ResourceHandle<TextureResource>;
-using MeshHandle = ResourceHandle<MeshResource>;
-using MaterialHandle = ResourceHandle<MaterialResource>;
 }  // namespace pd

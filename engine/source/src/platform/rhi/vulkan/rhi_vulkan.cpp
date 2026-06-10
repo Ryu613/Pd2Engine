@@ -1,7 +1,9 @@
-#include "pd/platform/backend/vulkan/vulkan_driver.hpp"
+#include "pd/platform/rhi/vulkan/rhi_vulkan.hpp"
+
+#include "pd/platform/rhi/vulkan/vulkan_texture.hpp"
 
 namespace pd {
-VulkanDriver::VulkanDriver(VulkanConfig config) noexcept
+RhiVulkan::RhiVulkan(VulkanConfig config) noexcept
     : mConfig(std::move(config)),
       mVulkanSwapchain(mVulkanContext) {
   // init vulkan
@@ -16,13 +18,13 @@ VulkanDriver::VulkanDriver(VulkanConfig config) noexcept
   }
 }
 
-VulkanDriver::~VulkanDriver() {
+RhiVulkan::~RhiVulkan() {
   // for (auto& frameData : mVulkanFrames) {
   //   frameData.shutdown();
   // }
 }
 
-void VulkanDriver::acquireNextFrame() noexcept {
+void RhiVulkan::acquireNextFrame() noexcept {
   auto device = mVulkanContext.getDevice();
   auto& currentFrame = getCurrentFrame();
 
@@ -34,7 +36,7 @@ void VulkanDriver::acquireNextFrame() noexcept {
   assert(acquireComplete);
 }
 
-void VulkanDriver::startCmdRecording() noexcept {
+void RhiVulkan::startCmdRecording() noexcept {
   auto& currentFrame = getCurrentFrame();
   auto currentCmdBuffer = currentFrame.getCommandBuffer();
   VkCommandBufferBeginInfo beginInfo{
@@ -47,14 +49,14 @@ void VulkanDriver::startCmdRecording() noexcept {
   PD_ASSERT_MSG(result == VK_SUCCESS, string_VkResult(result));
 }
 
-void VulkanDriver::endCmdRecording() noexcept {
+void RhiVulkan::endCmdRecording() noexcept {
   auto& currentFrame = getCurrentFrame();
   auto currentCmdBuffer = currentFrame.getCommandBuffer();
 
   vkEndCommandBuffer(currentCmdBuffer);
 }
 
-void VulkanDriver::submitFrame() noexcept {
+void RhiVulkan::submitFrame() noexcept {
   auto device = mVulkanContext.getDevice();
   auto& currentFrame = getCurrentFrame();
   auto currentCmdBuffer = currentFrame.getCommandBuffer();
@@ -86,11 +88,29 @@ void VulkanDriver::submitFrame() noexcept {
   PD_ASSERT_MSG(result == VK_SUCCESS, "vulkan queue submit error!");
 }
 
-void VulkanDriver::presentFrame() noexcept { mVulkanSwapchain.present(); }
+void RhiVulkan::presentFrame() noexcept { mVulkanSwapchain.present(); }
 
-void VulkanDriver::endFrame() noexcept {
+void RhiVulkan::endFrame() noexcept {
   mCurrentFrameIndex = (mCurrentFrameIndex + 1) % INFLIGHT_FRAME_COUNT;
 
   // TODO(author): gc()
+}
+
+RhiHandle<RhiTexture> RhiVulkan::createTexture(uint32_t width, uint32_t height,
+                                               uint32_t depth) noexcept {
+  return mResourceManager.createTexture(width, height, depth);
+}
+
+void RhiVulkan::updateTexture(RhiHandle<RhiTexture> handle, void* pPixelData) noexcept {
+  // copy data
+  // update texture image
+}
+
+void RhiVulkan::destroyTexture(RhiHandle<RhiTexture> handle) noexcept {
+  if (!handle) {
+    return;
+  }
+  // TODO(author): destroy vulkan texture
+  return;
 }
 }  // namespace pd

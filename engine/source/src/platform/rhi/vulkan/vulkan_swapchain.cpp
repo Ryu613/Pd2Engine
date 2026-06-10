@@ -1,8 +1,8 @@
-#include "pd/platform/backend/vulkan/vulkan_swapchain.hpp"
+#include "pd/platform/rhi/vulkan/vulkan_swapchain.hpp"
 
 #include "VkBootstrap.h"
 
-#include "pd/platform/backend/vulkan/vulkan_context.hpp"
+#include "pd/platform/rhi/vulkan/vulkan_context.hpp"
 
 namespace pd {
 VulkanSwapchain::VulkanSwapchain(const VulkanContext& ctx) noexcept

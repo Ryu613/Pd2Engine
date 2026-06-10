@@ -41,12 +41,13 @@ target_sources(engine_lib
         include/pd/core/allocators.hpp
         # platform
         include/pd/platform/platform.hpp
-        include/pd/platform/backend/driver.hpp
+        include/pd/platform/rhi/rhi_api.hpp
+        include/pd/platform/rhi/rhi_handle.hpp
+        include/pd/platform/rhi/rhi_resource.hpp
         include/pd/platform/platform_factory.hpp
         include/pd/platform/windows/platform_windows.hpp
         include/pd/platform/file/file_system.hpp
         include/pd/platform/file/std_file_system.hpp
-        include/pd/platform/backend/handle.hpp
         # resource
         include/pd/resource/resource_handle.hpp
         include/pd/resource/resource.hpp
@@ -97,15 +98,17 @@ target_sources(engine_lib
 if(${PD2_BACKEND} STREQUAL "VULKAN")
 target_sources(engine_lib
     PUBLIC
-        include/pd/platform/backend/vulkan/vulkan_driver.hpp
-		include/pd/platform/backend/vulkan/vulkan_context.hpp
-		include/pd/platform/backend/vulkan/vulkan_swapchain.hpp
-		include/pd/platform/backend/vulkan/vulkan_frame.hpp
+        include/pd/platform/rhi/vulkan/rhi_vulkan.hpp
+		include/pd/platform/rhi/vulkan/vulkan_context.hpp
+		include/pd/platform/rhi/vulkan/vulkan_swapchain.hpp
+		include/pd/platform/rhi/vulkan/vulkan_frame.hpp
+		include/pd/platform/rhi/vulkan/resource/vulkan_resource_manager.hpp
     PRIVATE
-        src/platform/backend/vulkan/vulkan_driver.cpp
-		src/platform/backend/vulkan/vulkan_context.cpp
-		src/platform/backend/vulkan/vulkan_swapchain.cpp
-		src/platform/backend/vulkan/vulkan_frame.cpp
+        src/platform/rhi/vulkan/rhi_vulkan.cpp
+		src/platform/rhi/vulkan/vulkan_context.cpp
+		src/platform/rhi/vulkan/vulkan_swapchain.cpp
+		src/platform/rhi/vulkan/vulkan_frame.cpp
+		src/platform/rhi/vulkan/resource/vulkan_resource_manager.cpp
 )
 endif()
 

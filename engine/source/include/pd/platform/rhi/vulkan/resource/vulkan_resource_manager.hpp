@@ -1,0 +1,27 @@
+#pragma once
+
+#include "pd/platform/rhi/rhi_handle.hpp"
+
+namespace pd {
+class VulkanResourceManager {
+ public:
+  VulkanResourceManager() noexcept = default;
+  ~VulkanResourceManager() = default;
+  NO_COPY_MOVE(VulkanResourceManager);
+
+  RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,
+                                      uint32_t depth) noexcept;
+
+  void gc() noexcept;
+
+ private:
+  uint32_t mCurrentId = 0;
+  // TODO(author): 临时方案,暂不考虑性能，下标就是id
+  struct RhiResourceEntry {
+    RhiResource* resource = nullptr;
+    uint32_t refCount = 0;
+  };
+  std::vector<RhiResourceEntry> mResources;
+  uint32_t generateHandleId() noexcept;
+};
+}  // namespace pd

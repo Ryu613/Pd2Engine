@@ -6,6 +6,6 @@ MeshResource::MeshResource(Properties props) noexcept
 
 MeshResource::~MeshResource() {}
 
-MeshResource::Status MeshResource::doLoad() noexcept { return Status::Loaded; }
-MeshResource::Status MeshResource::doUnload() noexcept { return Status::Unload; }
+void MeshResource::doLoad() noexcept { }
+void MeshResource::doUnload() noexcept {}
 }  // namespace pd

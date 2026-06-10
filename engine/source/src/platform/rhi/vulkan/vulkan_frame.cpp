@@ -1,6 +1,6 @@
-#include "pd/platform/backend/vulkan/vulkan_frame.hpp"
+#include "pd/platform/rhi/vulkan/vulkan_frame.hpp"
 
-#include "pd/platform/backend/vulkan/vulkan_context.hpp"
+#include "pd/platform/rhi/vulkan/vulkan_context.hpp"
 
 namespace pd {
 

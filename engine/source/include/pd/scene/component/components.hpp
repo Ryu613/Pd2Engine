@@ -2,6 +2,8 @@
 
 #include "pd/core/entity.hpp"
 #include "pd/resource/resource_handle.hpp"
+#include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/rendering/resource/material_resource.hpp"
 
 namespace pd {
 struct Name {
@@ -26,8 +28,8 @@ struct Light {
 };
 
 struct Renderable {
-  MeshHandle meshHandle;
-  MaterialHandle materialHandle;
+  ResourceHandle<MeshResource> meshHandle;
+  ResourceHandle<MaterialResource> materialHandle;
 };
 
 struct Camera {

@@ -23,6 +23,9 @@ TextureResource::TextureResource(Properties props) noexcept
 
 TextureResource::~TextureResource() {}
 
-TextureResource::Status TextureResource::doLoad() noexcept { return Status::Loaded; }
-TextureResource::Status TextureResource::doUnload() noexcept { return Status::Unload; }
+void TextureResource::doLoad() noexcept {
+  // auto rhiHandle = rhiApi.createTexture(...);
+  // rhiApi.updateTexture(rhiHandle, pSourceData);
+}
+void TextureResource::doUnload() noexcept {}
 }  // namespace pd

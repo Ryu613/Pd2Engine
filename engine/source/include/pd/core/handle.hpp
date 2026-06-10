@@ -9,6 +9,8 @@ class Handle {
   Handle() noexcept
       : mId(nullId) {};
 
+  explicit operator bool() const noexcept { return mId != nullId; };
+
   [[nodiscard]] HandleId getId() const noexcept { return mId; }
 
   // 拷贝和移动留给具体的句柄派生类实现，这里只有默认逻辑
@@ -22,8 +24,6 @@ class Handle {
       : mId(std::exchange(rhs.mId, nullId)) {}
   Handle& operator=(Handle&& rhs) noexcept { mId = std::exchange(rhs.mId, nullId); }
   ~Handle() noexcept = default;
-
-  explicit operator bool() const noexcept { return mId != nullId; }
   bool operator==(const Handle& other) const { return mId == other.mId; }
 
  private:

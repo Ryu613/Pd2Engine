@@ -14,6 +14,7 @@
 #include "pd/scene/component/components.hpp"
 
 namespace pd {
+using MeshHandle = ResourceHandle<MeshResource>;
 namespace {
 
 MeshResource::Properties convertMeshData(const fastgltf::Primitive& primitive,

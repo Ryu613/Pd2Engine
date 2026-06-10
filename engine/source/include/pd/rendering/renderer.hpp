@@ -1,12 +1,12 @@
 #pragma once
 
 namespace pd {
-class Driver;
+class RhiApi;
 class View;
 class Renderer {
  public:
   struct Config {};
-  explicit Renderer(Driver& driver) noexcept;
+  explicit Renderer(RhiApi& rhiApi) noexcept;
   ~Renderer();
 
   NO_COPY_MOVE(Renderer);
@@ -16,6 +16,6 @@ class Renderer {
   void renderFrame(View& view);
 
  private:
-  Driver& mDriver;
+  RhiApi& mRhiApi;
 };
 }  // namespace pd

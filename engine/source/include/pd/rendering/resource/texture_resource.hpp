@@ -30,8 +30,8 @@ class TextureResource : public Resource {
   std::string getPath() const noexcept { return mProperties.path; }
 
  protected:
-  Status doLoad() noexcept override;
-  Status doUnload() noexcept override;
+  void doLoad() noexcept override;
+  void doUnload() noexcept override;
 
  private:
   Properties mProperties;

@@ -19,7 +19,7 @@ class PlatformWindows : public Platform {
 
   bool shouldClose() noexcept override;
 
-  Driver& getDriver() noexcept override;
+  RhiApi& getRhiApi() noexcept override;
 
   FileSystem& getFileSystem() noexcept override;
 
@@ -30,7 +30,7 @@ class PlatformWindows : public Platform {
 
   SDL_Window* mWindow = nullptr;
 
-  std::unique_ptr<Driver> mDriver;
+  std::unique_ptr<RhiApi> mRhiApi;
 
   void* getNativeWindowHandle() noexcept;
 

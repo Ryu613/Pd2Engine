@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd/platform/file/file_system.hpp"
-#include "pd/platform/backend/driver.hpp"
+#include "pd/platform/rhi/rhi_api.hpp"
 
 namespace pd {
 /**
@@ -27,7 +27,7 @@ class Platform {
 
   virtual bool shouldClose() noexcept = 0;
 
-  [[nodiscard]] virtual Driver& getDriver() noexcept = 0;
+  [[nodiscard]] virtual RhiApi& getRhiApi() noexcept = 0;
 
   [[nodiscard]] virtual FileSystem& getFileSystem() noexcept = 0;
 };

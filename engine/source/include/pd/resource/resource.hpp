@@ -21,21 +21,24 @@ class Resource {
 
   [[nodiscard]] bool isLoaded() const noexcept { return mStatus == Status::Loaded; }
 
-  bool load() noexcept {
+  void load() noexcept {
     log::debug("loading resource: {}", mId);
     mStatus = Status::Loading;
-    mStatus = doLoad();
-    return isLoaded();
+    doLoad();
+    mStatus = Status::Loaded;
   }
 
   void unload() noexcept {
     log::debug("unloading resource: {}", mId);
-    mStatus = doUnload();
+    doUnload();
+    mStatus = Status::Unload;
   }
 
+  Status getStatus() const noexcept { return mStatus; }
+
  protected:
-  virtual Status doLoad() noexcept = 0;
-  virtual Status doUnload() noexcept = 0;
+  virtual void doLoad() noexcept = 0;
+  virtual void doUnload() noexcept = 0;
 
   explicit Resource(IdType id) noexcept
       : mId(id) {}

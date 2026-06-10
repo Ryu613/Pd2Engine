@@ -1,7 +1,7 @@
 #include "pd/platform/windows/platform_windows.hpp"
 
 #include "pd/platform/file/std_file_system.hpp"
-#include "pd/platform/backend/vulkan/vulkan_driver.hpp"
+#include "pd/platform/rhi/vulkan/rhi_vulkan.hpp"
 
 #include "SDL3/SDL_vulkan.h"
 
@@ -34,13 +34,13 @@ bool PlatformWindows::initialize(const std::string& appName, uint32_t width,
       .nativeWindowHandle = getNativeWindowHandle(),
       .requiredInstanceExtensions = getVulkanInstanceExts(),
   };
-  mDriver = std::make_unique<VulkanDriver>(vkConfig);
+  mRhiApi = std::make_unique<RhiVulkan>(vkConfig);
 
   return true;
 }
 void PlatformWindows::shutdown() noexcept {
   log::info("destroying Driver...");
-  mDriver.reset();
+  mRhiApi.reset();
 
   log::info("destroying SDL3...");
   if (mWindow == nullptr) {
@@ -69,7 +69,7 @@ void PlatformWindows::processEvents() noexcept {
 
 bool PlatformWindows::shouldClose() noexcept { return mClosed; }
 
-Driver& PlatformWindows::getDriver() noexcept { return *mDriver; }
+RhiApi& PlatformWindows::getRhiApi() noexcept { return *mRhiApi; }
 
 FileSystem& PlatformWindows::getFileSystem() noexcept { return *mFileSystem; }
 
