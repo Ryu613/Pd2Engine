@@ -6,7 +6,7 @@
 
 namespace pd {
 /**
- * @brief 实体管理器，负责实体的生命周期和相关功能,主要用于场景图
+ * @brief 实体管理器，负责实体的生命周期和相关功能, 分发entity(即id), 主要用于场景图
  *
  */
 class EntityManager {

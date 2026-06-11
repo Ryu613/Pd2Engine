@@ -1,6 +1,10 @@
 #pragma once
 
 namespace pd {
+/**
+ * @brief 句柄基类
+ *
+ */
 class Handle {
  public:
   using HandleId = uint32_t;

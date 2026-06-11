@@ -17,7 +17,7 @@ enum class AssetError : uint8_t {
  */
 class Asset {
  public:
-  // 目前用路径字符串实现id
+  // 路径字符串实现id,保持运行时id稳定
   using IdType = std::string;
   /**
    * @brief 资产类型
