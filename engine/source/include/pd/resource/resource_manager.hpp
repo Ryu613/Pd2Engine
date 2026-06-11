@@ -13,6 +13,7 @@ namespace pd {
  * TODO:
  * 本版本不区分资产和运行时的资源
  * 前者应该包括资产处理成引擎内资源的过程,后者是对处理好的资产生成1个或多个资源方便在运行时使用
+ * handle id暂时采用自增，未采用分代+freelist
  */
 class ResourceManager {
  public:
