@@ -1,22 +1,45 @@
 {
+  "name": "pd2engine",
+  "version": "0.1.0",
+  "description": "A modern lightweight realtime 3D rendering engine",
+  "homepage": "https://github.com/Ryu613/Pd2Engine",
+  "license": "Apache-2.0",
   "dependencies": [
     "catch2",
     "entt",
     "fastgltf",
     "glm",
-    {
-      "name": "sdl3",
-      "features": [
-        "vulkan"
-      ]
-    },
+    "meshoptimizer",
     "spdlog",
     "stb",
-    "vk-bootstrap",
-    "volk",
-    "vulkan-headers",
-    "vulkan-memory-allocator",
-    "vulkan-utility-libraries",
-    "meshoptimizer"
-  ]
+    "magic-enum"
+  ],
+  "features": {
+    "backend-vulkan": {
+      "description": "use vulkan backend",
+      "dependencies": [
+        {
+          "name": "sdl3",
+          "features": [
+            "vulkan"
+          ]
+        },
+        "vk-bootstrap",
+        "volk",
+        "vulkan-headers",
+        "vulkan-memory-allocator",
+        "vulkan-utility-libraries"
+      ]
+    },
+    "slang": {
+      "description": "Enable Slang shader support",
+      "supports": "(windows & !arm32 & !uwp & !xbox) | (linux & x64)",
+      "dependencies": [
+        {
+          "name": "shader-slang",
+          "host": true
+        }
+      ]
+    }
+  }
 }

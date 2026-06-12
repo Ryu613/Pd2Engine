@@ -44,7 +44,7 @@ class Engine {
 
   template <DerivedSceneDescriptor T, typename... Args>
   std::expected<void, EngineError> loadScene(Args&&... args) noexcept {
-    mSceneDescriptor = std::make_unique<SceneDescriptor>(std::forward<Args>(args)...);
+    mSceneDescriptor = std::make_unique<T>(std::forward<Args>(args)...);
     mSceneDescriptor->onLoad(*mAssetManager, mEntityManager, mTransformManager,
                              mCameraManager, mScene);
   }

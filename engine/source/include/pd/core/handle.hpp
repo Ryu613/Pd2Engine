@@ -26,7 +26,11 @@ class Handle {
   Handle& operator=(const Handle&) = default;
   Handle(Handle&& rhs) noexcept
       : mId(std::exchange(rhs.mId, nullId)) {}
-  Handle& operator=(Handle&& rhs) noexcept { mId = std::exchange(rhs.mId, nullId); }
+  Handle& operator=(Handle&& rhs) noexcept {
+    mId = std::exchange(rhs.mId, nullId);
+    return *this;
+  }
+
   ~Handle() noexcept = default;
   bool operator==(const Handle& other) const { return mId == other.mId; }
 

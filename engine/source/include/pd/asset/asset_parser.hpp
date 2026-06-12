@@ -10,7 +10,7 @@ class AssetParser {
  public:
   AssetParser() noexcept = default;
   virtual ~AssetParser() = default;
-  MOVABLE_ONLY(AssetParser);
+  NO_COPY_MOVE(AssetParser);
 
   virtual std::expected<void, AssetError> parse(Asset& asset) noexcept = 0;
 };

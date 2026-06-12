@@ -1,0 +1,85 @@
+= KDGPU项目阅读
+
+KDGPU项目是vulkan底层封装的模范级工程项目
+
+* 优点：项目结构，代码非常清晰，现代，文档健全，工程配置规范
+* 缺点: 有大量先进内容，不一定熟悉，比如响应式编程及框架KDbinding
+
+== 总览
+
+* **构建工具**: cmake(v3, preset模式) + vcpkg
+
+=== 趣味点
+
+.主目录CMakeLists.txt
+. include(FeatureSummary): 可输出打印启用的特性，包等信息,但是额外信息要自己写add_feature_info()
+. include(CMakeDependentOption): 若存在某个option选项需依赖另一个option状态才能显示并修改时使用
+. VCPKG_HOST_TRIPLET推导： 自动设置vcpkg的host_os, host_arch, 如果要让vcpkg跨平台/架构编译时需要，目前暂时不需要
+. include(ECMEnableSanitizers): 内存检查，暂不需要
+
+=== 可参考点
+
+. vcpkg配置有feature，可以用来当切换平台或backend时，依赖并下载不同的三方库
+. compile shader的cmake宏
+. 文档工具链：doxygen+doxybook2+mkdocs和如何集成cmake
+
+== src主目录
+
+* 核心代码: KDGpu
+* 核心代码无关工具: KDGpuUtils
+* GUI也解耦出核心代码: KDGpuKDGui
+* 其他功能： openxr, example等
+
+=== 趣味点
+
+. include(GenerateExportHeader): 用于自动生成一个 C/C++ 配置头文件。这个生成的头文件包含了处理控制符号导出和导入的宏定义（如 __declspec(dllexport) 或 __attribute__((visibility("default")))）
+.. 编写动态链接库（Shared Library）时：需要向外暴露 API 接口
+.. 优化库体积与性能时：隐藏非必要符号可以减少动态符号表的大小，从而加快库的加载速度，并允许编译器进行更多深度优化（如内联）
+. set(CMAKE_POSITION_INDEPENDENT_CODE ON): 开启位置无关代码（Position Independent Code，简称 PIC）,对应 GCC/Clang 中的 -fPIC 编译参数
+.. 创建动态链接库（Shared Library）时：Linux 等系统强制要求动态库必须是位置无关的，因为动态库在运行时会被加载到内存的不同随机地址（ASLR 机制）
+.. 静态库被动态库链接时：如果你维护一个静态库 A，且这个静态库 A 随后会被链接进一个动态库 B，那么静态库 A 必须在编译时开启 POSITION_INDEPENDENT_CODE，否则 Linux 下链接会报错（例如：relocation R_X86_64_32 against ... can not be used when making a shared object）
+. include(CMakeFindDependencyMacro): cmake内置模块，提供了一个名为 find_dependency 的宏。当你的库依赖于其他第三方库（例如 OpenSSL、Boost、OpenCV），且其他开发者通过 find_package(YourLib) 使用你的库时，find_dependency 会自动去寻找这些第三方库
+.. 当库依赖于其他库，且这些其他库里有PUBLIC引入的，且当前这个库要被其他用户使用并依赖，要保证这些其他库可以被正确找到
+.. find_dependency比find_package更好用，因为能正确处理依赖传递，正确处理这些间接依赖的报错
+
+==== KDBindings
+
+响应式编程，用“数据变化自动传播”代替“手动调用更新函数”
+
+. 数据流有复杂的依赖关系时，不用手动去调用更新
+. 绑定通常有性能开销
+. 通常在 GUI、游戏 UI、配置系统、表格计算等场景下适用，简单的，性能敏感的场景不太适用
+
+=== 架构
+
+以examples/hello_triangle_overlap为例
+
+[plantuml]
+....
+class EventReceiver {
+    事件接口：用于实现事件传递
+    ==
+    + {abstract} void event(EventReceiver* target, Event* ev)
+}
+
+class Object extends EventReceiver {
+    全局基类，支持延迟销毁，可形成树结构，支持事件处理
+    ==
+}
+
+class CoreApplication extends Object {
+    应用层包装
+    ==
+}
+class GuiApplication extends CoreApplication {
+    表示带有GUI的应用
+    ==
+}
+....
+
+
+== test目录
+
+=== 可参考点
+
+. test函数封装

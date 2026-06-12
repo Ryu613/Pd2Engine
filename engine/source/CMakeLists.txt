@@ -5,13 +5,14 @@ add_library(engine_lib)
 # 这句必须加，否则clangd无法识别c++20及以上语法(msvc clang-cl下)
 # 原因在于std的latest无法正常识别，clangd的stl会fallback到C++14，导致stl14以上的stl和语法报错
 # 可忽略构建时warning
-target_compile_options(engine_lib PRIVATE /std:c++23)
+# target_compile_options(engine_lib PUBLIC /std:c++23)
+target_compile_features(engine_lib PUBLIC cxx_std_23)
 
 #engine pch
 target_precompile_headers(engine_lib PUBLIC include/pd/pch.hpp)
 
 # 3rd-party libs
-include(${PD2_ROOT_DIR}/cmake/deps/deps_engine.cmake)
+include(${PD2_ROOT_DIR}/cmake/deps/EngineDeps.cmake)
 
 # 第三方，稳定，且无vcpkg，和cmake支持的库
 # 比自己写vcpkg port或cmake打包方便，直接一起打包
@@ -115,6 +116,7 @@ endif()
 target_include_directories(engine_lib
     PUBLIC
         include
+        ${PD2_ENGINE_LIB_PUBLIC_INCLUDE}
     PRIVATE
         src
 )

@@ -1,6 +1,10 @@
+# 3rd party libs
 set(PD2_ENGINE_LIB_PUBLIC_LINKS)
+# 3rd party include dir(header only)
+set(PD2_ENGINE_LIB_PUBLIC_INCLUDE)
 # base
 find_package(spdlog CONFIG REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(fastgltf CONFIG REQUIRED)
@@ -10,9 +14,12 @@ find_package(meshoptimizer CONFIG REQUIRED)
 list(APPEND PD2_ENGINE_LIB_PUBLIC_LINKS
     glm::glm-header-only
     spdlog::spdlog_header_only
+    magic_enum::magic_enum
     EnTT::EnTT
     fastgltf::fastgltf
     meshoptimizer::meshoptimizer
+)
+list(APPEND PD2_ENGINE_LIB_PUBLIC_INCLUDE
     ${Stb_INCLUDE_DIR}
 )
 # backend
@@ -42,6 +49,17 @@ if(PD2_WSI STREQUAL "SDL3")
     )
 else()
     message(WARNING "PD2_WSI 不符合要求，当前值是: ${PD2_WSI}")
+endif()
+
+# shader language
+if(PD2_SHADER_LANG STREQUAL "SLANG")
+    find_package(slang CONFIG REQUIRED)
+
+    list(APPEND PD2_ENGINE_LIB_PUBLIC_LINKS
+        slang::slang
+    )
+else()
+    message(WARNING "PD2_SHADER_LANG 不符合要求，当前值是: ${PD2_SHADER_LANG}")
 endif()
 
 message(STATUS "ENGINE_PUBLIC_LINKS: ${PD2_ENGINE_LIB_PUBLIC_LINKS}")

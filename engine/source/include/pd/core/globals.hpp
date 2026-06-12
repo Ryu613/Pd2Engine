@@ -19,4 +19,16 @@ static constexpr int DEFAULT_WINDOW_WIDTH = 1024;
 static constexpr int DEFAULT_WINDOW_HEIGHT = 768;
 
 }  // namespace global
+
+// helper functions
+template <typename Enum>
+  requires std::is_enum_v<Enum>
+inline std::string GetEnumName(Enum e) {
+  auto name = magic_enum::enum_name(e);
+  if (!name.empty()) {
+    return std::string{name};
+  }
+  // 如果枚举值超出了反射范围，则降级打印其底层的数字
+  return std::to_string(std::to_underlying(e));
+}
 }  // namespace pd

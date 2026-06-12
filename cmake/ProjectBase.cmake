@@ -4,6 +4,8 @@ set(PD2_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_compile_options("/utf-8")
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 if(WIN32)
     add_compile_definitions(NOMINMAX)
 endif()

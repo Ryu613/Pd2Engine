@@ -6,6 +6,7 @@
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
+#include "fmt/format.h"
 
 namespace pd {
 namespace log {
@@ -61,6 +62,17 @@ inline void shutdown() noexcept {
     std::cerr << " log destroy failed!" << ex.what() << "\n";
   }
 }
+
+// 对enum打印枚举名
+template <typename Enum>
+  requires std::is_enum_v<Enum>
+struct fmt::formatter<Enum> {
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+  auto format(Enum e, format_context& ctx) const {
+    return fmt::format_to(ctx.out(), "{}", GetEnumName(e));
+  }
+};
 
 template <typename Str, typename... Args>
 inline void trace(Str&& str, Args&&... args) {

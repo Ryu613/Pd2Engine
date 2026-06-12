@@ -12,7 +12,7 @@ class GltfParser : public AssetParser {
  public:
   GltfParser(FileSystem& fs, EntityManager& em, ResourceManager& rm) noexcept;
   ~GltfParser() = default;
-  MOVABLE_ONLY(GltfParser);
+  NO_COPY_MOVE(GltfParser);
 
   std::expected<void, AssetError> parse(Asset& asset) noexcept override;
 

@@ -17,6 +17,7 @@ namespace pd {
  */
 class SceneDescriptor {
  public:
+  SceneDescriptor() noexcept = default;
   virtual ~SceneDescriptor() = default;
 
   MOVABLE_ONLY(SceneDescriptor);
