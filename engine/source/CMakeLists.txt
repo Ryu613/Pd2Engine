@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.31)
 add_library(engine_lib)
 # 这句必须加，否则clangd无法识别c++20及以上语法(msvc clang-cl下)
 # 原因在于std的latest无法正常识别，clangd的stl会fallback到C++14，导致stl14以上的stl和语法报错
-# 可忽略构建时warning
 # target_compile_options(engine_lib PUBLIC /std:c++23)
 target_compile_features(engine_lib PUBLIC cxx_std_23)
 
@@ -43,6 +42,9 @@ target_sources(engine_lib
         # platform
         include/pd/platform/platform.hpp
         include/pd/platform/platform_factory.hpp
+        include/pd/platform/window/window.hpp
+        #platform:sdl3
+        include/pd/platform/window/sdl3/window_sdl3.hpp
         #include/pd/platform/rhi/rhi_api.hpp
         #include/pd/platform/rhi/rhi_handle.hpp
         #include/pd/platform/rhi/rhi_resource.hpp
@@ -82,8 +84,11 @@ target_sources(engine_lib
         # platform
         src/platform/file/file_system.cpp
         src/platform/file/std_file_system.cpp
+        # platform:sdl3
+        src/platform/window/sdl3/window_sdl3.cpp
         # platform:win32
         src/platform/os/win32/platform_win32.cpp
+        
         # rendering
         src/rendering/renderer.cpp
         src/rendering/resource/texture_resource.cpp
@@ -101,17 +106,17 @@ target_sources(engine_lib
 if(${PD2_BACKEND} STREQUAL "VULKAN")
 target_sources(engine_lib
     PUBLIC
-        include/pd/platform/rhi/vulkan/rhi_vulkan.hpp
-		include/pd/platform/rhi/vulkan/vulkan_context.hpp
-		include/pd/platform/rhi/vulkan/vulkan_swapchain.hpp
-		include/pd/platform/rhi/vulkan/vulkan_frame.hpp
-		include/pd/platform/rhi/vulkan/resource/vulkan_resource_manager.hpp
+        include/pd/backend/vulkan/backend_vulkan.hpp
+		include/pd/backend/vulkan/vulkan_context.hpp
+		#include/pd/backend/vulkan/vulkan_swapchain.hpp
+		#include/pd/backend/vulkan/vulkan_frame.hpp
+		#include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
     PRIVATE
-        src/platform/rhi/vulkan/rhi_vulkan.cpp
-		src/platform/rhi/vulkan/vulkan_context.cpp
-		src/platform/rhi/vulkan/vulkan_swapchain.cpp
-		src/platform/rhi/vulkan/vulkan_frame.cpp
-		src/platform/rhi/vulkan/resource/vulkan_resource_manager.cpp
+        src/backend/vulkan/backend_vulkan.cpp
+		src/backend/vulkan/vulkan_context.cpp
+		#src/platform/rhi/vulkan/vulkan_swapchain.cpp
+		#src/platform/rhi/vulkan/vulkan_frame.cpp
+		#src/platform/rhi/vulkan/resource/vulkan_resource_manager.cpp
 )
 target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)
 endif()
