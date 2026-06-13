@@ -137,13 +137,8 @@ image::img/architecture.svg[figure1]
 ... ECS: 基于EnTT封装，主要用于实现场景图
 ... job system: 基于EnkiTS开发，主要用于异步多线程场景数据处理
 ... gltf加载: 基于fastgltf封装,用于读取和解析gltf文件
-<<<<<<< HEAD
 ... 纹理读取和转换: 基于stb和libktx封装
 ... 文件读写：基于stl filesystem封装并预留接口
-=======
-... 文件读写：基于stl filesystem封装并预留接口
-... 纹理加载: 基于libktx和stb封装， 用于读取ktx和常见图片格式的纹理文件
->>>>>>> 7ba51f91023a2c54653c7d8bab5b8a364fc2a0cd
 ... vulkan封装: vulkan-headers, vulkan-utility, vma, volk, spirv-reflect, slangc
 ... 测试/调试: Catch2, RenderDoc, Tracy，基于imgui提供性能剖析，调试可视化
 

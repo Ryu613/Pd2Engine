@@ -1,29 +1,52 @@
 #include "pd/engine.hpp"
 
 #include "pd/platform/platform_factory.hpp"
+#include "pd/core/layers/engine_layer.hpp"
 
 namespace pd {
-Engine::Engine(Config& config) noexcept
-    : mConfig{config},
+using Error = Engine::Error;
+
+Engine::Engine(Config config) noexcept
+    : mConfig{std::move(config)},
       mArena{"Engine Heap Allocator", ResourceType::NullResource{}} {
   log::info("Engine created!");
+  mLayers.reserve(4);
   log::logo();
 }
 
 Engine::~Engine() noexcept { shutdown(); }
 
-bool Engine::initialize() noexcept {
-  mPlatform = createPlatform();
-  if (!mPlatform->initialize(mConfig.appName, mConfig.windowWidth, mConfig.windowHeight,
-                             mConfig.enableDebug)) {
-    log::error("platform creation failed!");
-    return false;
+Engine::EngineResult<void> Engine::initialize() noexcept {
+  // 初始化平台层
+  Platform::Config config{
+      .window =
+          {
+              .title = mConfig.appName,
+              .width = mConfig.windowWidth,
+              .height = mConfig.windowHeight,
+          },
+  };
+  mPlatform = createPlatform(std::move(config));
+  //   if (!mPlatform->initialize(mConfig.appName, mConfig.windowWidth,
+  //   mConfig.windowHeight,
+  //                              mConfig.enableDebug)) {
+  //     log::error("platform creation failed!");
+  //     return std::unexpected<EngineError>(EngineError::InitializeFailed);
+  //   }
+  //   mAssetManager = std::make_unique<AssetManager>(mPlatform->getFileSystem(),
+  //                                                  mEntityManager, mResourceManager);
+
+  // 初始化 engine layer
+  auto engineLayer = std::make_unique<EngineLayer>(mPlatform->window());
+
+  auto result = attachLayer(std::move(engineLayer));
+  if (!result) {
+    log::error("engine layer onAttach() failed!");
+    return std::unexpected<Error>(Error::InitializeFailed);
   }
-  mAssetManager = std::make_unique<AssetManager>(mPlatform->getFileSystem(),
-                                                 mEntityManager, mResourceManager);
 
   mInitialized = true;
-  return true;
+  return {};
 }
 
 void Engine::shutdown() noexcept {
@@ -34,18 +57,45 @@ void Engine::shutdown() noexcept {
   mRenderer.reset();
   mAssetManager.reset();
   mPlatform.reset();
+
+  mInitialized = false;
 }
 
-std::expected<void, Engine::EngineError> Engine::run() noexcept {
+Engine::EngineResult<void> Engine::run() noexcept {
   if (!mInitialized) {
-    return std::unexpected<EngineError>(EngineError::RunFailed);
+    return std::unexpected<Error>(Error::RunFailed);
   }
-  while (!mPlatform->shouldClose()) {
-    mPlatform->processEvents();
-    mRenderer->beginFrame();
-    // mRenderer->renderFrame();
-    mRenderer->endFrame();
+  while (!mPlatform->window()->shouldClose()) {
+    //     mPlatform->processEvents();
+    for (const auto& eachLayer : mLayers) {
+      eachLayer->onUpdate();
+    }
+    //     mRenderer->beginFrame();
+    //     // mRenderer->renderFrame();
+    //     mRenderer->endFrame();
   }
   return {};
+}
+
+Engine::EngineResult<Layer*> Engine::attachLayer(
+    std::unique_ptr<Layer>&& layer) noexcept {
+  mLayers.push_back(std::move(layer));
+  auto* pLayer = mLayers.back().get();
+  auto result = pLayer->onAttached();
+  PD_ASSERT(result);
+  return {};
+}
+
+Engine::EngineResult<std::unique_ptr<Layer>> Engine::detachLayer(Layer* layer) noexcept {
+  auto findLayer = [layer](const auto& v) { return v.get() == layer; };
+  auto layerIt = std::ranges::find_if(mLayers.begin(), mLayers.end(), findLayer);
+  if (layerIt == mLayers.end()) {
+    return std::unexpected(Error::LayerNotFound);
+  }
+  auto returnLayer = std::move(*layerIt);
+  auto result = returnLayer->onDetached();
+  PD_ASSERT(result);
+  mLayers.erase(layerIt);
+  return returnLayer;
 }
 }  // namespace pd

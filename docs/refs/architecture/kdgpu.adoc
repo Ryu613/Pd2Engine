@@ -54,6 +54,8 @@ KDGPU项目是vulkan底层封装的模范级工程项目
 
 以examples/hello_triangle_overlap为例
 
+==== engine
+
 [plantuml]
 ....
 class EventReceiver {
@@ -66,17 +68,30 @@ class Object extends EventReceiver {
     全局基类，支持延迟销毁，可形成树结构，支持事件处理
     ==
 }
+class EngineLayer extends Object {
+    引擎层
+    用途：画面层隔离，易于实现gui,debug,editor层可插拔，逻辑解耦
+    特征：一般用事件模式触发调用
+    ==
+}
 
 class CoreApplication extends Object {
-    应用层包装
+    封装平台，处理事件
     ==
 }
 class GuiApplication extends CoreApplication {
     表示带有GUI的应用
     ==
 }
+class Engine extends Object {}
 ....
 
+==== platform
+
+[plantuml]
+....
+
+....
 
 == test目录
 

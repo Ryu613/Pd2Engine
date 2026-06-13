@@ -1,5 +1,16 @@
 #pragma once
 
+#if defined(_WIN32)
+#define VK_USE_PLATFORM_WIN32_KHR 1
+#else
+#error "unsupported system!"
+#endif
+#define VK_NO_PROTOTYPES
+#include "vk_mem_alloc.h"
+#include "volk.h"
+#include "vulkan/vk_enum_string_helper.h"
+#include "vulkan/vulkan.h"
+
 #define VK_CHECK(x)                                                               \
   do {                                                                            \
     VkResult err = x;                                                             \
@@ -19,6 +30,10 @@ struct VulkanConfig {
   std::vector<const char*> requiredInstanceExtensions;
 };
 
-static constexpr uint32_t INVALID_VK_INDEX = UINT32_MAX;
-static constexpr size_t INFLIGHT_FRAME_COUNT = 2;
+namespace global {
+
+inline constexpr uint32_t INVALID_VK_INDEX = UINT32_MAX;
+inline constexpr size_t INFLIGHT_FRAME_COUNT = 2;
+
+}  // namespace global
 }  // namespace pd

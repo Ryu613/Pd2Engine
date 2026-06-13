@@ -12,7 +12,7 @@ target_compile_features(engine_lib PUBLIC cxx_std_23)
 target_precompile_headers(engine_lib PUBLIC include/pd/pch.hpp)
 
 # 3rd-party libs
-include(${PD2_ROOT_DIR}/cmake/deps/EngineDeps.cmake)
+include(deps/EngineDeps)
 
 # 第三方，稳定，且无vcpkg，和cmake支持的库
 # 比自己写vcpkg port或cmake打包方便，直接一起打包
@@ -42,13 +42,14 @@ target_sources(engine_lib
         include/pd/core/allocators.hpp
         # platform
         include/pd/platform/platform.hpp
-        include/pd/platform/rhi/rhi_api.hpp
-        include/pd/platform/rhi/rhi_handle.hpp
-        include/pd/platform/rhi/rhi_resource.hpp
         include/pd/platform/platform_factory.hpp
-        include/pd/platform/windows/platform_windows.hpp
+        #include/pd/platform/rhi/rhi_api.hpp
+        #include/pd/platform/rhi/rhi_handle.hpp
+        #include/pd/platform/rhi/rhi_resource.hpp
         include/pd/platform/file/file_system.hpp
         include/pd/platform/file/std_file_system.hpp
+        # platform:win32
+        include/pd/platform/os/win32/platform_win32.hpp
         # resource
         include/pd/resource/resource_handle.hpp
         include/pd/resource/resource.hpp
@@ -79,9 +80,10 @@ target_sources(engine_lib
         # core
         src/core/utils/memory.cpp
         # platform
-        src/platform/windows/platform_windows.cpp
         src/platform/file/file_system.cpp
         src/platform/file/std_file_system.cpp
+        # platform:win32
+        src/platform/os/win32/platform_win32.cpp
         # rendering
         src/rendering/renderer.cpp
         src/rendering/resource/texture_resource.cpp
@@ -111,6 +113,17 @@ target_sources(engine_lib
 		src/platform/rhi/vulkan/vulkan_frame.cpp
 		src/platform/rhi/vulkan/resource/vulkan_resource_manager.cpp
 )
+target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)
+endif()
+
+if(${PD2_WINDOW} STREQUAL "SDL3")
+target_sources(engine_lib
+    PUBLIC
+        include/pd/platform/window/sdl3/window_sdl3.hpp
+    PRIVATE
+        src/platform/window/sdl3/window_sdl3.cpp
+)
+target_compile_definitions(engine_lib PRIVATE WINDOW_SDL3)
 endif()
 
 target_include_directories(engine_lib

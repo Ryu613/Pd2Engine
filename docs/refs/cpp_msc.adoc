@@ -1,0 +1,6 @@
+= {cpp}优质参考源
+
+== std::expected
+
+. link:https://towardsdev.com/cpp-23-std-expected-tutorial-modern-error-handling-guide-2026-9494ebb44e81[基本使用说明]
+. link:https://www.cppstories.com/2024/expected-cpp23/[进阶使用]

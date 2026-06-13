@@ -1,4 +1,4 @@
-#include "pd/platform/windows/platform_windows.hpp"
+#include "pd/platform/win32/platform_win32.hpp"
 
 #include "pd/platform/file/std_file_system.hpp"
 #include "pd/platform/rhi/vulkan/rhi_vulkan.hpp"
@@ -7,10 +7,10 @@
 
 namespace pd {
 
-PlatformWindows::PlatformWindows() noexcept {}
-PlatformWindows ::~PlatformWindows() noexcept { shutdown(); }
-bool PlatformWindows::initialize(const std::string& appName, uint32_t width,
-                                 uint32_t height, bool enableDebug) noexcept {
+PlatformWin32::PlatformWin32() noexcept {}
+PlatformWin32 ::~PlatformWin32() noexcept { shutdown(); }
+bool PlatformWin32::initialize(const std::string& appName, uint32_t width,
+                               uint32_t height, bool enableDebug) noexcept {
   log::info("initializing file system...");
   mFileSystem = std::make_unique<StdFileSystem>();
   log::info("initializing WSI...");
@@ -38,7 +38,7 @@ bool PlatformWindows::initialize(const std::string& appName, uint32_t width,
 
   return true;
 }
-void PlatformWindows::shutdown() noexcept {
+void PlatformWin32::shutdown() noexcept {
   log::info("destroying Driver...");
   mRhiApi.reset();
 
@@ -50,7 +50,7 @@ void PlatformWindows::shutdown() noexcept {
   SDL_Quit();
 }
 
-void PlatformWindows::processEvents() noexcept {
+void PlatformWin32::processEvents() noexcept {
   for (SDL_Event event; SDL_PollEvent(&event);) {
     // quit window
     if (event.type == SDL_EVENT_QUIT) {
@@ -67,18 +67,18 @@ void PlatformWindows::processEvents() noexcept {
   }
 }
 
-bool PlatformWindows::shouldClose() noexcept { return mClosed; }
+bool PlatformWin32::shouldClose() noexcept { return mClosed; }
 
-RhiApi& PlatformWindows::getRhiApi() noexcept { return *mRhiApi; }
+RhiApi& PlatformWin32::getRhiApi() noexcept { return *mRhiApi; }
 
-FileSystem& PlatformWindows::getFileSystem() noexcept { return *mFileSystem; }
+FileSystem& PlatformWin32::getFileSystem() noexcept { return *mFileSystem; }
 
-void* PlatformWindows::getNativeWindowHandle() noexcept {
+void* PlatformWin32::getNativeWindowHandle() noexcept {
   return SDL_GetPointerProperty(SDL_GetWindowProperties(mWindow),
                                 SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
 }
 
-std::vector<const char*> PlatformWindows::getVulkanInstanceExts() noexcept {
+std::vector<const char*> PlatformWin32::getVulkanInstanceExts() noexcept {
   uint32_t instanceExtensionsCount{0};
   const char* const* instanceExtensions{
       SDL_Vulkan_GetInstanceExtensions(&instanceExtensionsCount)};

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <expected>
+
 #define MOVABLE_ONLY(CLASS_NAME)                     \
   CLASS_NAME(const CLASS_NAME&) = delete;            \
   CLASS_NAME& operator=(const CLASS_NAME&) = delete; \
@@ -15,10 +17,15 @@
 namespace pd {
 namespace global {
 // window default properties
-static constexpr int DEFAULT_WINDOW_WIDTH = 1024;
-static constexpr int DEFAULT_WINDOW_HEIGHT = 768;
+inline const std::string DefaultWindowTitle{"PDEngine"};
+inline constexpr uint32_t DefaultWindowWidth = 1024;
+inline constexpr uint32_t DefaultWindowHeight = 768;
 
 }  // namespace global
+
+// aliases
+template <typename Type, typename Err>
+using Result = std::expected<Type, Err>;
 
 // helper functions
 template <typename Enum>

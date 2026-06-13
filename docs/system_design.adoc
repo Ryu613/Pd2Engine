@@ -123,6 +123,7 @@ ResourceManager <-- Renderer
 
 === 使用策略
 
+. 全局禁用异常，对帧外逻辑采用std::expected + noexcept声明， 每层按需自行构造强类型枚举错误码
 . 对于引擎内部的数据结构和基础类，使用核心库的STL
 . 对于非热点数据的分配，优先用栈，使用堆时，需要通过Arena分配，不允许使用C/{cpp}自己的分配/销毁操作
 . 对于热点数据，使用Arena并选用合适的分配策略，如Pool, Linear等

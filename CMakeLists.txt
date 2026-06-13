@@ -8,14 +8,14 @@ option(PD2_BUILD_LIBS "build libs with using engine or used by engine" OFF)
 option(PD2_BUILD_DOCS "Build the API documentation" OFF)
 
 set(PD2_BACKEND "VULKAN")
-set(PD2_WSI "SDL3")
+set(PD2_WINDOW "SDL3")
 set(PD2_SHADER_LANG "SLANG")
 
 message(STATUS "BUILD_TESTS:${PD2_BUILD_TESTS}")
 message(STATUS "BUILD_SAMPLES:${PD2_BUILD_SAMPLES}")
 message(STATUS "BUILD_LIBS:${PD2_BUILD_LIBS}")
 message(STATUS "USE_BACKEND:${PD2_BACKEND}")
-message(STATUS "USE_WSI:${PD2_WSI}")
+message(STATUS "USE_WINDOW:${PD2_WINDOW}")
 message(STATUS "USE_SHADER_LANG:${PD2_SHADER_LANG}")
 
 # currently only support vulkan, slangc, sdl3

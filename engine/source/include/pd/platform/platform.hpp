@@ -2,6 +2,7 @@
 
 #include "pd/platform/file/file_system.hpp"
 #include "pd/platform/rhi/rhi_api.hpp"
+#include "pd/platform/window/window.hpp"
 
 namespace pd {
 /**
@@ -10,26 +11,33 @@ namespace pd {
  */
 class Platform {
  public:
+  enum class BaseDir : uint8_t {
+    AppDir,
+    DataDir,
+    AssetsDir,
+  };
+  struct Config {
+    Window::Config window;
+  };
+
   Platform() noexcept = default;
   virtual ~Platform() = default;
+  MOVABLE_ONLY(Platform);
 
-  Platform(const Platform&) = delete;
-  Platform& operator=(const Platform&) = delete;
-  Platform(Platform&&) noexcept = delete;
-  Platform& operator=(Platform&&) noexcept = delete;
+  [[nodiscard]] virtual FileSystem* fileSystem() noexcept { return nullptr; }
+  [[nodiscard]] virtual Window* window() noexcept { return nullptr; };
 
-  virtual bool initialize(const std::string& appName, uint32_t width, uint32_t height,
-                          bool enableDebug) noexcept = 0;
+  //   virtual bool initialize(const std::string& appName, uint32_t width, uint32_t
+  //   height,
+  //                           bool enableDebug) noexcept = 0;
 
-  virtual void shutdown() noexcept = 0;
+  //   virtual void shutdown() noexcept = 0;
 
-  virtual void processEvents() noexcept = 0;
+  //   virtual void processEvents() noexcept = 0;
 
-  virtual bool shouldClose() noexcept = 0;
+  //   virtual bool shouldClose() noexcept = 0;
 
-  [[nodiscard]] virtual RhiApi& getRhiApi() noexcept = 0;
-
-  [[nodiscard]] virtual FileSystem& getFileSystem() noexcept = 0;
+  //   [[nodiscard]] virtual RhiApi& getRhiApi() noexcept = 0;
 };
 
 }  // namespace pd
