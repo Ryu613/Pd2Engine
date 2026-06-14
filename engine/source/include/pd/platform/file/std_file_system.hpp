@@ -3,7 +3,7 @@
 #include "pd/platform/file/file_system.hpp"
 
 namespace pd {
-class StdFileSystem final : public FileSystem {
+class StdFileSystem final : public IFileSystem {
  public:
   StdFileSystem() = default;
   ~StdFileSystem() = default;

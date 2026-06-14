@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pd/core/entity.hpp"
+#include "pd/scene/entity.hpp"
 #include "pd/scene/skybox.hpp"
 #include "pd/scene/view.hpp"
 

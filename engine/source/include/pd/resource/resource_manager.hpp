@@ -29,7 +29,7 @@ class ResourceManager {
    * @param t 具体资源实例
    * @return ResourceHandle<T> 资源句柄
    */
-  template <DerivedResource T>
+  template <BaseOfResource T>
   [[nodiscard]] ResourceHandle<T> registerResource(T& t) noexcept {
     // 为resource生成id
     t.mId = generateId();
@@ -53,7 +53,7 @@ class ResourceManager {
     return ResourceHandle<T>(resourceId);
   }
 
-  template <DerivedResource T>
+  template <BaseOfResource T>
   bool hasResource(const Resource::IdType& resourceId) noexcept {
     auto typeIt = mRegistry.find(std::type_index(typeid(T)));
     if (typeIt == mRegistry.end()) {
@@ -64,7 +64,7 @@ class ResourceManager {
     return resourceIt != resourceMap.end();
   }
 
-  template <typename T>
+  template <BaseOfResource T>
   void release(ResourceHandle<T> handle) noexcept {
     Resource* resource = getResource<T>(handle.getId());
     if (resource == nullptr) {
@@ -98,7 +98,7 @@ class ResourceManager {
                          std::unordered_map<Resource::IdType, ResourceEntry>>;
   Registry mRegistry;
 
-  template <DerivedResource T>
+  template <BaseOfResource T>
   Resource* getResource(const Resource::IdType& resourceId) noexcept {
     auto typeIt = mRegistry.find(std::type_index(typeid(T)));
     if (typeIt == mRegistry.end()) {

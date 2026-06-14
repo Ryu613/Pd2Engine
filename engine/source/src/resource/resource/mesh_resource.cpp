@@ -1,4 +1,4 @@
-#include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/resource/resource/mesh_resource.hpp"
 
 namespace pd {
 MeshResource::MeshResource(Properties props) noexcept
@@ -6,6 +6,6 @@ MeshResource::MeshResource(Properties props) noexcept
 
 MeshResource::~MeshResource() {}
 
-void MeshResource::doLoad() noexcept { }
+void MeshResource::doLoad() noexcept {}
 void MeshResource::doUnload() noexcept {}
 }  // namespace pd

@@ -7,7 +7,7 @@
 #endif
 
 namespace pd {
-PlatformWin32::PlatformWin32(Platform::Config config) noexcept
+PlatformWin32::PlatformWin32(IPlatform::Config config) noexcept
     : mConfig(std::move(config)) {
 // TODO(author): windows raw window system not implemented yet
 #ifdef WINDOW_SDL3

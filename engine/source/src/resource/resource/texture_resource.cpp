@@ -1,4 +1,4 @@
-#include "pd/rendering/resource/texture_resource.hpp"
+#include "pd/resource/resource/texture_resource.hpp"
 
 namespace pd {
 namespace {

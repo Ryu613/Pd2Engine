@@ -1,16 +1,8 @@
 #pragma once
 
-#include "pd/core/entity.hpp"
-#include "pd/rendering/resource/texture_resource.hpp"
-#include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/resource/resource_alias.hpp"
 
 namespace pd {
-enum class AssetError : uint8_t {
-  FileNotFound = 1,
-  FileLoadError = 2,
-  ParseFailed = 3,
-  Unknown = 99,
-};
 /**
  * @brief 资产对象，包含资产元数据信息，方便后续运行时使用
  *
@@ -30,13 +22,22 @@ class Asset {
    * @brief 资产信息，用于描述资产特征，作为资产管理器的参数
    *
    */
-  struct Info {
+  struct CreateInfo {
     std::string name;
     std::string path;
     Type parseType = Type::Gltf;
   };
+  enum class Error : uint8_t {
+    FileNotFound = 1,
+    FileLoadError = 2,
+    ParseFailed = 3,
+    Unknown = 99,
+  };
+  template <typename T>
+  using AssetResult = Result<T, Error>;
 
   MOVABLE_ONLY(Asset);
+
   Asset() noexcept = default;
   ~Asset() = default;
 
@@ -44,24 +45,20 @@ class Asset {
 
   [[nodiscard]] bool isNull() const noexcept { return mId.empty(); }
 
-  [[nodiscard]] Entity getRootEntity() const noexcept { return mRoot; }
-
   [[nodiscard]] std::string getPath() const noexcept { return mInfo.path; }
 
  private:
   friend class AssetManager;
   friend class GltfParser;
-  Info mInfo;
+  CreateInfo mInfo;
   IdType mId{};
   bool mLoaded = false;
-  Entity mRoot{};
-  // ecs scene graph
-  std::vector<Entity> mEntities;
-  // 转换后的资源数据
-  std::vector<std::unique_ptr<TextureResource>> mTextures;
-  std::vector<std::vector<std::unique_ptr<MeshResource>>> mMeshes;
+  // TODO(author): scene node
+  //  转换后的资源数据
+  std::vector<TextureHandle> mTextures;
+  std::vector<MeshHandle> mMeshes;
 
-  explicit Asset(IdType id, Info info) noexcept
+  explicit Asset(IdType id, CreateInfo info) noexcept
       : mId(std::move(id)),
         mInfo(std::move(info)) {};
 };

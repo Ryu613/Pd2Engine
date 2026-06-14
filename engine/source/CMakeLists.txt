@@ -36,8 +36,6 @@ target_sources(engine_lib
         include/pd/core/logging.hpp
         include/pd/core/assert.hpp
         include/pd/core/handle.hpp
-        include/pd/core/entity.hpp
-        include/pd/core/layer.hpp
         include/pd/core/utils/memory.hpp
         include/pd/core/allocators.hpp
         # platform
@@ -57,28 +55,32 @@ target_sources(engine_lib
         include/pd/resource/resource_handle.hpp
         include/pd/resource/resource.hpp
         include/pd/resource/resource_manager.hpp
+        include/pd/resource/resource/texture_resource.hpp
+        include/pd/resource/resource/mesh_resource.hpp
+        include/pd/resource/resource/material_resource.hpp
+        include/pd/resource/resource_alias.hpp
         # rendering
-        include/pd/rendering/layer/engine_layer.hpp
+        include/pd/rendering/layer/layer.hpp
+        # include/pd/rendering/layer/engine_layer.hpp
         include/pd/rendering/renderer.hpp
-        include/pd/rendering/resource/texture_resource.hpp
-        include/pd/rendering/resource/mesh_resource.hpp
-        include/pd/rendering/resource/material_resource.hpp
         # scene
+        include/pd/scene/entity.hpp
         include/pd/scene/scene.hpp
         include/pd/scene/scene_descriptor.hpp
         include/pd/scene/skybox.hpp
         include/pd/scene/view.hpp
         include/pd/scene/component/components.hpp
+        include/pd/scene/manager/entity_manager.hpp
         include/pd/scene/manager/transform_manager.hpp
         include/pd/scene/manager/renderable_manager.hpp
         include/pd/scene/manager/light_manager.hpp
         include/pd/scene/manager/camera_manager.hpp
         # asset
-        include/pd/asset/asset.hpp
-        include/pd/asset/asset_parser.hpp
-        include/pd/asset/asset_manager.hpp
-        include/pd/asset/parser/gltf_parser.hpp
-        include/pd/asset/parser/mesh_processor.hpp
+        #include/pd/asset/asset.hpp
+        #include/pd/asset/asset_parser.hpp
+        #include/pd/asset/asset_manager.hpp
+        #include/pd/asset/parser/gltf_parser.hpp
+        #include/pd/asset/parser/mesh_processor.hpp
     PRIVATE
         src/engine.cpp
         # core
@@ -92,18 +94,18 @@ target_sources(engine_lib
         src/platform/os/win32/platform_win32.cpp
         
         # rendering
-        src/rendering/layer/engine_layer.cpp
+        # src/rendering/layer/engine_layer.cpp
         src/rendering/renderer.cpp
-        src/rendering/resource/texture_resource.cpp
-        src/rendering/resource/mesh_resource.cpp
         # resource
         src/resource/resource_manager.cpp
+        src/resource/resource/texture_resource.cpp
+        src/resource/resource/mesh_resource.cpp
         # scene
         src/scene/scene.cpp
         # asset
-        src/asset/asset_manager.cpp
-        src/asset/parser/mesh_processor.cpp
-        src/asset/parser/gltf_parser.cpp
+        #src/asset/asset_manager.cpp
+        #src/asset/parser/mesh_processor.cpp
+        #src/asset/parser/gltf_parser.cpp
 )
 
 if(${PD2_BACKEND} STREQUAL "VULKAN")

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "pd/core/layer.hpp"
+#include "pd/rendering/layer/layer.hpp"
 
 namespace pd {
-class GuiLayer : public Layer {
+class GuiLayer : public ILayer {
  public:
   GuiLayer() noexcept;
   virtual ~GuiLayer() = default;

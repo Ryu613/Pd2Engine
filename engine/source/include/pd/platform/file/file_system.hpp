@@ -19,12 +19,12 @@ using Path = std::filesystem::path;
  * @brief 文件系统抽象，提供统一的接口进行文件的读写等操作，实现类可按平台扩展
  *
  */
-class FileSystem {
+class IFileSystem {
  public:
-  FileSystem() noexcept = default;
-  virtual ~FileSystem() = default;
+  IFileSystem() noexcept = default;
+  virtual ~IFileSystem() = default;
 
-  MOVABLE_ONLY(FileSystem);
+  MOVABLE_ONLY(IFileSystem);
 
   /**
    * @brief 获取文件状态信息

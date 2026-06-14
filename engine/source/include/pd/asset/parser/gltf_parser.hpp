@@ -5,21 +5,20 @@
 #include "fastgltf/types.hpp"
 
 namespace pd {
-class FileSystem;
-class EntityManager;
+class IFileSystem;
 class ResourceManager;
-class GltfParser : public AssetParser {
+class GltfParser : public IAssetParser {
  public:
-  GltfParser(FileSystem& fs, EntityManager& em, ResourceManager& rm) noexcept;
-  ~GltfParser() = default;
-  NO_COPY_MOVE(GltfParser);
+  GltfParser() noexcept = default;
+  GltfParser(IFileSystem* fs, ResourceManager* rm) noexcept;
+  ~GltfParser() override = default;
+  MOVABLE_ONLY(GltfParser);
 
-  std::expected<void, AssetError> parse(Asset& asset) noexcept override;
+  Asset::AssetResult<void> parse(Asset& asset) noexcept override;
 
  private:
-  FileSystem& mFileSystem;
-  EntityManager& mEntityManager;
-  ResourceManager& mResourceManager;
+  IFileSystem* mFileSystem = nullptr;
+  ResourceManager* mResourceManager = nullptr;
   std::filesystem::path mBasePath;
   std::vector<TextureFormat> mTextureFormatCache;
 

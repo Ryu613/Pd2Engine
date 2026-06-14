@@ -35,7 +35,8 @@ class Handle {
   bool operator==(const Handle& other) const { return mId == other.mId; }
 
  private:
-  HandleId mId;
+  HandleId mId = nullId;
+  uint32_t mGen = 0;
 };
 
 }  // namespace pd

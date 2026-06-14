@@ -6,9 +6,8 @@
 #include "stb_image.h"
 
 #include "pd/platform/file/file_system.hpp"
-#include "pd/core/entity_manager.hpp"
-#include "pd/rendering/resource/texture_resource.hpp"
-#include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/resource/resource/texture_resource.hpp"
+#include "pd/resource/resource/mesh_resource.hpp"
 #include "pd/resource/resource_manager.hpp"
 #include "pd/asset/parser/mesh_processor.hpp"
 #include "pd/scene/component/components.hpp"
@@ -66,12 +65,11 @@ MeshResource::Properties convertMeshData(const fastgltf::Primitive& primitive,
 }
 }  // namespace
 
-GltfParser::GltfParser(FileSystem& fs, EntityManager& em, ResourceManager& rm) noexcept
+GltfParser::GltfParser(IFileSystem* fs, ResourceManager* rm) noexcept
     : mFileSystem(fs),
-      mEntityManager(em),
       mResourceManager(rm) {}
 
-std::expected<void, AssetError> GltfParser::parse(Asset& asset) noexcept {
+Asset::AssetResult<void> GltfParser::parse(Asset& asset) noexcept {
   const auto& assetPath = asset.getPath();
   // 读取gltf文件
   std::filesystem::path gltfFilePath{assetPath};
@@ -82,14 +80,14 @@ std::expected<void, AssetError> GltfParser::parse(Asset& asset) noexcept {
   auto data = fastgltf::GltfDataBuffer::FromPath(gltfFilePath);
   if (data.error() != fastgltf::Error::None) {
     log::error("asset cannot be loaded: {}", gltfFilePath.string());
-    return std::unexpected(AssetError::FileLoadError);
+    return std::unexpected(Asset::Error::FileLoadError);
   }
   auto options =
       fastgltf::Options::LoadExternalBuffers | fastgltf::Options::DecomposeNodeMatrices;
   auto gltfAssetRes = parser.loadGltf(data.get(), gltfFilePath.parent_path(), options);
   if (auto error = gltfAssetRes.error(); error != fastgltf::Error::None) {
     log::error("gltf asset file parse failed: {}", gltfFilePath.string());
-    return std::unexpected(AssetError::ParseFailed);
+    return std::unexpected(Asset::Error::ParseFailed);
   }
   // 2.1 创建gltf Asset
   auto& gltfAsset = gltfAssetRes.get();

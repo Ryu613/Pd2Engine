@@ -9,14 +9,14 @@ namespace pd {
  *
  * TODO:
  */
-class PlatformWin32 : public Platform {
+class PlatformWin32 : public IPlatform {
  public:
-  explicit PlatformWin32(Platform::Config config) noexcept;
+  explicit PlatformWin32(IPlatform::Config config) noexcept;
   ~PlatformWin32() noexcept;
   MOVABLE_ONLY(PlatformWin32);
 
-  FileSystem* fileSystem() noexcept override { return mFileSystem.get(); }
-  Window* window() noexcept override { return mWindow.get(); }
+  IFileSystem* fileSystem() noexcept override { return mFileSystem.get(); }
+  IWindow* window() noexcept override { return mWindow.get(); }
 
   //   bool initialize(const std::string& appName, uint32_t width, uint32_t height,
   //                   bool enableDebug) noexcept override;
@@ -30,10 +30,10 @@ class PlatformWin32 : public Platform {
   //   RhiApi& getRhiApi() noexcept override;
 
  private:
-  Platform::Config mConfig;
+  IPlatform::Config mConfig;
 
-  std::unique_ptr<Window> mWindow;
-  std::unique_ptr<FileSystem> mFileSystem;
+  std::unique_ptr<IWindow> mWindow;
+  std::unique_ptr<IFileSystem> mFileSystem;
 
   //   std::unique_ptr<RhiApi> mRhiApi;
 

@@ -51,5 +51,5 @@ class Resource {
 };
 
 template <typename T>
-concept DerivedResource = std::derived_from<T, Resource>;
+concept BaseOfResource = std::derived_from<T, Resource>;
 }  // namespace pd

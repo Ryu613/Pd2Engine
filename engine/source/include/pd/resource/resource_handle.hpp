@@ -7,7 +7,7 @@ namespace pd {
 /**
  * @brief 资源句柄，只有ResourceManager能用，其他用户只能查看
  */
-template <DerivedResource T>
+template <BaseOfResource T>
 class ResourceHandle : public Handle {
  public:
   ResourceHandle() noexcept
@@ -19,4 +19,5 @@ class ResourceHandle : public Handle {
   explicit ResourceHandle(Handle::HandleId id) noexcept
       : Handle(id) {}
 };
+
 }  // namespace pd

@@ -1,7 +1,6 @@
 #include "pd/engine.hpp"
 
 #include "pd/platform/platform_factory.hpp"
-#include "pd/core/layers/engine_layer.hpp"
 
 namespace pd {
 using Error = Engine::Error;
@@ -18,7 +17,7 @@ Engine::~Engine() noexcept { shutdown(); }
 
 Engine::EngineResult<void> Engine::initialize() noexcept {
   // 初始化平台层
-  Platform::Config config{
+  IPlatform::Config config{
       .window =
           {
               .title = mConfig.appName,
@@ -37,13 +36,13 @@ Engine::EngineResult<void> Engine::initialize() noexcept {
   //                                                  mEntityManager, mResourceManager);
 
   // 初始化 engine layer
-  auto engineLayer = std::make_unique<EngineLayer>(mPlatform->window());
+  //   auto engineLayer = std::make_unique<EngineLayer>(mPlatform->window());
 
-  auto result = attachLayer(std::move(engineLayer));
-  if (!result) {
-    log::error("engine layer onAttach() failed!");
-    return std::unexpected<Error>(Error::InitializeFailed);
-  }
+  //   auto result = attachLayer(std::move(engineLayer));
+  //   if (!result) {
+  //     log::error("engine layer onAttach() failed!");
+  //     return std::unexpected<Error>(Error::InitializeFailed);
+  //   }
 
   mInitialized = true;
   return {};
@@ -54,8 +53,8 @@ void Engine::shutdown() noexcept {
     return;
   }
   // explicit destroy subsystem
-  mRenderer.reset();
-  mAssetManager.reset();
+  //   mRenderer.reset();
+  //   mAssetManager.reset();
   mPlatform.reset();
 
   mInitialized = false;
@@ -77,8 +76,8 @@ Engine::EngineResult<void> Engine::run() noexcept {
   return {};
 }
 
-Engine::EngineResult<Layer*> Engine::attachLayer(
-    std::unique_ptr<Layer>&& layer) noexcept {
+Engine::EngineResult<ILayer*> Engine::attachLayer(
+    std::unique_ptr<ILayer>&& layer) noexcept {
   mLayers.push_back(std::move(layer));
   auto* pLayer = mLayers.back().get();
   auto result = pLayer->onAttached();
@@ -86,7 +85,8 @@ Engine::EngineResult<Layer*> Engine::attachLayer(
   return {};
 }
 
-Engine::EngineResult<std::unique_ptr<Layer>> Engine::detachLayer(Layer* layer) noexcept {
+Engine::EngineResult<std::unique_ptr<ILayer>> Engine::detachLayer(
+    ILayer* layer) noexcept {
   auto findLayer = [layer](const auto& v) { return v.get() == layer; };
   auto layerIt = std::ranges::find_if(mLayers.begin(), mLayers.end(), findLayer);
   if (layerIt == mLayers.end()) {

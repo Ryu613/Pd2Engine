@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pd/rendering/resource/mesh_resource.hpp"
+#include "pd/resource/resource/mesh_resource.hpp"
 
 namespace pd {
 class MeshProcessor {

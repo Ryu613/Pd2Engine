@@ -2,7 +2,7 @@
 
 #include "entt/entt.hpp"
 
-#include "pd/core/entity.hpp"
+#include "pd/scene/entity.hpp"
 
 namespace pd {
 /**

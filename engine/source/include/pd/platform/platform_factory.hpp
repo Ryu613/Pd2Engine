@@ -8,7 +8,7 @@
 
 namespace pd {
 template <typename... Args>
-std::unique_ptr<Platform> createPlatform(Args&&... args) {
+std::unique_ptr<IPlatform> createPlatform(Args&&... args) {
 #ifdef _WIN32
   return std::make_unique<PlatformWin32>(std::forward<Args>(args)...);
 #else

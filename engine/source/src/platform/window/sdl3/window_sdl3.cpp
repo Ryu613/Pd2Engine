@@ -1,5 +1,3 @@
-#pragma once
-
 #include "pd/platform/window/sdl3/window_sdl3.hpp"
 
 #include "SDL3/sdl.h"
@@ -8,10 +6,10 @@
 #endif
 
 namespace pd {
-WindowSDL3::WindowSDL3(Window::Config config) noexcept
+WindowSDL3::WindowSDL3(IWindow::Config config) noexcept
     : mConfig(std::move(config)) {}
 
-WindowSDL3::~WindowSDL3() noexcept { close(); }
+WindowSDL3::~WindowSDL3() { closeImpl(); }
 
 bool WindowSDL3::create() noexcept {
   if (!mClosed) {
@@ -34,7 +32,9 @@ bool WindowSDL3::create() noexcept {
   return true;
 }
 
-void WindowSDL3::close() noexcept {
+void WindowSDL3::close() noexcept { closeImpl(); }
+
+void WindowSDL3::closeImpl() noexcept {
   if (mWindow == nullptr) {
     return;
   }
@@ -61,7 +61,7 @@ void* WindowSDL3::nativeHandle() const noexcept {
 #endif
 }
 
-std::vector<const char*> getVulkanInstanceExtensions() noexcept {
+std::vector<const char*> WindowSDL3::getVulkanInstanceExtensions() noexcept {
   uint32_t instanceExtensionsCount{0};
 #ifdef BACKEND_VULKAN
   const char* const* instanceExtensions{

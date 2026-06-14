@@ -1,7 +1,7 @@
 #pragma once
 
 namespace pd {
-class Layer {
+class ILayer {
  public:
   enum class Error : uint8_t {
     InitializeFailed,
@@ -9,9 +9,9 @@ class Layer {
   template <typename T>
   using LayerResult = Result<T, Error>;
 
-  Layer() noexcept = default;
-  virtual ~Layer() = default;
-  MOVABLE_ONLY(Layer);
+  ILayer() noexcept = default;
+  virtual ~ILayer() = default;
+  MOVABLE_ONLY(ILayer);
 
  protected:
   virtual LayerResult<void> onAttached() noexcept { return {}; }
@@ -23,5 +23,5 @@ class Layer {
 };
 
 template <typename T>
-concept BaseOfLayer = std::derived_from<T, Layer>;
+concept BaseOfLayer = std::derived_from<T, ILayer>;
 }  // namespace pd

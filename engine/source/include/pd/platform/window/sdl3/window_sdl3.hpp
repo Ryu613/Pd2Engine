@@ -4,10 +4,10 @@
 
 struct SDL_Window;
 namespace pd {
-class WindowSDL3 : public Window {
+class WindowSDL3 : public IWindow {
  public:
-  explicit WindowSDL3(Window::Config config) noexcept;
-  ~WindowSDL3() noexcept;
+  explicit WindowSDL3(IWindow::Config config) noexcept;
+  ~WindowSDL3() override;
   MOVABLE_ONLY(WindowSDL3);
 
   bool create() noexcept override;
@@ -32,5 +32,7 @@ class WindowSDL3 : public Window {
   bool mClosed = true;
 
   SDL_Window* mWindow = nullptr;
+
+  void closeImpl() noexcept;
 };
 }  // namespace pd

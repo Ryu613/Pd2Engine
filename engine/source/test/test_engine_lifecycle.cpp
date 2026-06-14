@@ -8,5 +8,6 @@ TEST_CASE("test_engine_lifecycle", "engine") {
       .enableDebug = true,
   };
   auto engine = std::make_unique<Engine>(config);
-  engine->initialize();
+  auto initResult = engine->initialize();
+  REQUIRE(initResult);
 }

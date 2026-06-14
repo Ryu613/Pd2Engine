@@ -1,19 +1,8 @@
 #pragma once
 
-#include "pd/core/globals.hpp"
 #include "pd/core/allocators.hpp"
-#include "pd/core/entity_manager.hpp"
 #include "pd/platform/platform.hpp"
-#include "pd/resource/resource_manager.hpp"
-#include "pd/asset/asset_manager.hpp"
-#include "pd/rendering/renderer.hpp"
-#include "pd/scene/scene_descriptor.hpp"
-#include "pd/scene/scene.hpp"
-#include "pd/scene/manager/transform_manager.hpp"
-#include "pd/scene/manager/renderable_manager.hpp"
-#include "pd/scene/manager/camera_manager.hpp"
-#include "pd/scene/manager/light_manager.hpp"
-#include "pd/core/layer.hpp"
+#include "pd/rendering/layer/layer.hpp"
 
 namespace pd {
 /**
@@ -41,6 +30,7 @@ class Engine {
   NO_COPY_MOVE(Engine);
 
   EngineResult<void> initialize() noexcept;
+
   void shutdown() noexcept;
 
   //   template <DerivedSceneDescriptor T, typename... Args>
@@ -51,9 +41,9 @@ class Engine {
   //   }
 
   /**
-   * @brief 创建界面层
+   * @brief 创建界面层, 支持运行时创建和销毁
    *
-   * @tparam TLayer 要求派生自Layer
+   * @tparam TLayer 要求派生自Layer接口
    * @tparam Args Layer构造函数参数
    * @param args
    * @return EngineResult<void>
@@ -64,10 +54,27 @@ class Engine {
     return attachLayer(std::move(layer));
   }
 
-  EngineResult<Layer*> attachLayer(std::unique_ptr<Layer>&& layer) noexcept;
+  /**
+   * @brief 把界面层附着到引擎中
+   *
+   * @param layer
+   * @return EngineResult<Layer*>
+   */
+  EngineResult<ILayer*> attachLayer(std::unique_ptr<ILayer>&& layer) noexcept;
 
-  EngineResult<std::unique_ptr<Layer>> detachLayer(Layer* layer) noexcept;
+  /**
+   * @brief 把界面层从引擎中拔下
+   *
+   * @param layer
+   * @return EngineResult<std::unique_ptr<Layer>>
+   */
+  EngineResult<std::unique_ptr<ILayer>> detachLayer(ILayer* layer) noexcept;
 
+  /**
+   * @brief 开始运行
+   *
+   * @return EngineResult<void>
+   */
   EngineResult<void> run() noexcept;
 
  private:
@@ -76,8 +83,8 @@ class Engine {
 
   HeapAllocator mArena;
 
-  std::unique_ptr<Platform> mPlatform;
-  std::vector<std::unique_ptr<Layer>> mLayers;
+  std::unique_ptr<IPlatform> mPlatform;
+  std::vector<std::unique_ptr<ILayer>> mLayers;
 
   //   ResourceManager mResourceManager;
   //   EntityManager mEntityManager;

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "pd/core/layer.hpp"
+#include "pd/rendering/layer/layer.hpp"
 
 namespace pd {
-class EditorLayer : public Layer {
+class EditorLayer : public ILayer {
  public:
   EditorLayer() noexcept;
   virtual ~EditorLayer() = default;

@@ -1,7 +1,7 @@
 #pragma once
 
 namespace pd {
-class Window {
+class IWindow {
  public:
   enum class Type : uint8_t {
     Win32,
@@ -14,9 +14,9 @@ class Window {
     uint32_t width = global::DefaultWindowWidth;
     uint32_t height = global::DefaultWindowHeight;
   };
-  explicit Window() noexcept = default;
-  virtual ~Window();
-  MOVABLE_ONLY(Window);
+  explicit IWindow() noexcept = default;
+  virtual ~IWindow() = default;
+  MOVABLE_ONLY(IWindow);
 
   // common opts
   virtual bool create() noexcept = 0;

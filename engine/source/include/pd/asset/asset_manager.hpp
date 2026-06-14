@@ -1,11 +1,9 @@
 #pragma once
 
-#include <expected>
-
 #include "pd/asset/asset_parser.hpp"
 
 namespace pd {
-class FileSystem;
+class IFileSystem;
 class EntityManager;
 class ResourceManager;
 /**
@@ -14,9 +12,10 @@ class ResourceManager;
  */
 class AssetManager {
  public:
-  explicit AssetManager(FileSystem& fs, EntityManager& em, ResourceManager& rm) noexcept;
+  AssetManager() noexcept = default;
+  explicit AssetManager(IFileSystem* fs, ResourceManager* rm) noexcept;
   ~AssetManager() = default;
-  NO_COPY_MOVE(AssetManager);
+  MOVABLE_ONLY(AssetManager);
 
   /**
    * @brief 解析并转换资产文件，保存资产元数据信息
@@ -24,15 +23,13 @@ class AssetManager {
    * @param assetInfo
    * @return std::expected<std::shared_ptr<Asset>, AssetError>
    */
-  std::expected<std::shared_ptr<Asset>, AssetError> createAsset(
-      const Asset::Info& assetInfo) noexcept;
+  Asset::AssetResult<Asset*> createAsset(const Asset::CreateInfo& assetInfo) noexcept;
 
  private:
-  FileSystem& mFileSystem;
-  EntityManager& mEntityManger;
-  ResourceManager& mResourceManager;
-  std::vector<std::unique_ptr<AssetParser>> mParsers;
-  std::unordered_map<Asset::IdType, std::shared_ptr<Asset>> mAssets;
+  IFileSystem* mFileSystem = nullptr;
+  ResourceManager* mResourceManager = nullptr;
+  std::vector<std::unique_ptr<IAssetParser>> mParsers;
+  std::unordered_map<Asset::IdType, std::unique_ptr<Asset>> mAssets;
 
   void initParsers() noexcept;
 };

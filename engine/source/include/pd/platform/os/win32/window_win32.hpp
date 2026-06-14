@@ -4,7 +4,7 @@
 
 namespace pd {
 // TODO(author)
-class WindowWin32 : public Window {
+class WindowWin32 : public IWindow {
  public:
   bool create() noexcept override;
   void close() noexcept override;

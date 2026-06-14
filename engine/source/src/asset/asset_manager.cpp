@@ -4,22 +4,20 @@
 #include "pd/asset/parser/gltf_parser.hpp"
 
 namespace pd {
-AssetManager::AssetManager(FileSystem& fs, EntityManager& em,
-                           ResourceManager& rm) noexcept
+AssetManager::AssetManager(IFileSystem* fs, ResourceManager* rm) noexcept
     : mFileSystem(fs),
-      mEntityManger(em),
       mResourceManager(rm) {
   initParsers();
 }
 
-std::expected<std::shared_ptr<Asset>, AssetError> AssetManager::createAsset(
-    const Asset::Info& assetInfo) noexcept {
+Asset::AssetResult<Asset*> AssetManager::createAsset(
+    const Asset::CreateInfo& assetInfo) noexcept {
   // 检查文件是否存在，类型是否正确, 文件是否可读
   const auto& assetPath = assetInfo.path;
-  auto& fs = mFileSystem;
+  auto& fs = *mFileSystem;
   if (!fs.exists(assetPath) || !fs.isFile(assetPath)) {
     log::error("asset path is illegal: {}", assetPath);
-    return std::unexpected(AssetError::FileNotFound);
+    return std::unexpected(Asset::Error::FileNotFound);
   }
   // 检查是否已存在此资产, 目前的实现: 把path视为id
   const Asset::IdType& assetId = assetInfo.path;
@@ -28,7 +26,7 @@ std::expected<std::shared_ptr<Asset>, AssetError> AssetManager::createAsset(
     return it->second;
   }
   // 1 创建资产实例
-  auto newAsset = std::shared_ptr<Asset>(new Asset(assetId, assetInfo));
+  auto newAsset = std::make_unique<Asset>(assetId, assetInfo);
   // 2. 生成资产实例
   auto parseResult = mParsers[static_cast<size_t>(assetInfo.parseType)]->parse(*newAsset);
   if (!parseResult) {

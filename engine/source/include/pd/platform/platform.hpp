@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pd/platform/file/file_system.hpp"
-#include "pd/platform/rhi/rhi_api.hpp"
 #include "pd/platform/window/window.hpp"
 
 namespace pd {
@@ -9,7 +8,7 @@ namespace pd {
  * @brief 平台层，统一处理操作系统及底层库调用差异
  *
  */
-class Platform {
+class IPlatform {
  public:
   enum class BaseDir : uint8_t {
     AppDir,
@@ -17,15 +16,15 @@ class Platform {
     AssetsDir,
   };
   struct Config {
-    Window::Config window;
+    IWindow::Config window;
   };
 
-  Platform() noexcept = default;
-  virtual ~Platform() = default;
-  MOVABLE_ONLY(Platform);
+  IPlatform() noexcept = default;
+  virtual ~IPlatform() = default;
+  MOVABLE_ONLY(IPlatform);
 
-  [[nodiscard]] virtual FileSystem* fileSystem() noexcept { return nullptr; }
-  [[nodiscard]] virtual Window* window() noexcept { return nullptr; };
+  [[nodiscard]] virtual IFileSystem* fileSystem() noexcept { return nullptr; }
+  [[nodiscard]] virtual IWindow* window() noexcept { return nullptr; };
 
   //   virtual bool initialize(const std::string& appName, uint32_t width, uint32_t
   //   height,
