@@ -3,6 +3,9 @@
 #include "pd/platform/window/sdl3/window_sdl3.hpp"
 
 #include "SDL3/sdl.h"
+#ifdef BACKEND_VULKAN
+#include "SDL3/SDL_vulkan.h"
+#endif
 
 namespace pd {
 WindowSDL3::WindowSDL3(Window::Config config) noexcept
@@ -47,5 +50,26 @@ void WindowSDL3::resize(uint32_t width, uint32_t height) noexcept {
 
 void WindowSDL3::setTitle(const std::string& title) noexcept {
   // TODO(author)
+}
+
+void* WindowSDL3::nativeHandle() const noexcept {
+#ifdef _WIN32
+  return SDL_GetPointerProperty(SDL_GetWindowProperties(mWindow),
+                                SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+#else
+  PD_ASSERT_MSG(false, "WINDOW HANDLE ERROR! UNSUPPORTED PLATFORM");
+#endif
+}
+
+std::vector<const char*> getVulkanInstanceExtensions() noexcept {
+  uint32_t instanceExtensionsCount{0};
+#ifdef BACKEND_VULKAN
+  const char* const* instanceExtensions{
+      SDL_Vulkan_GetInstanceExtensions(&instanceExtensionsCount)};
+  return std::vector<const char*>(instanceExtensions,
+                                  instanceExtensions + instanceExtensionsCount);
+#else
+  PD_ASSERT_MSG(false, "illegal operation!");
+#endif
 }
 }  // namespace pd

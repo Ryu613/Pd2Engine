@@ -20,6 +20,7 @@ BackendVulkan::~BackendVulkan() {
   // }
 }
 
+/*
 void BackendVulkan::acquireNextFrame() noexcept {
   auto device = mVulkanContext.getDevice();
   auto& currentFrame = getCurrentFrame();
@@ -110,4 +111,5 @@ void BackendVulkan::destroyTexture(RhiHandle<RhiTexture> handle) noexcept {
   // TODO(author): destroy vulkan texture
   return;
 }
+  */
 }  // namespace pd

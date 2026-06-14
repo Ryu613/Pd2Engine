@@ -16,7 +16,7 @@ class WindowSDL3 : public Window {
   void resize(uint32_t width, uint32_t height) noexcept override;
   void setTitle(const std::string& title) noexcept override;
 
-  [[nodiscard]] void* handle() const noexcept override { return mWindow; };
+  [[nodiscard]] void* nativeHandle() const noexcept override;
   [[nodiscard]] bool isRunning() const noexcept override { return !mClosed; }
   [[nodiscard]] bool shouldClose() const noexcept override { return mClosed; }
   [[nodiscard]] uint32_t windowHeight() const noexcept override { return mConfig.height; }
@@ -25,8 +25,9 @@ class WindowSDL3 : public Window {
     return mConfig.title;
   }
 
+  [[nodiscard]] std::vector<const char*> getVulkanInstanceExtensions() noexcept override;
+
  private:
-  friend class SDL3Helper;
   Config mConfig;
   bool mClosed = true;
 

@@ -37,6 +37,7 @@ target_sources(engine_lib
         include/pd/core/assert.hpp
         include/pd/core/handle.hpp
         include/pd/core/entity.hpp
+        include/pd/core/layer.hpp
         include/pd/core/utils/memory.hpp
         include/pd/core/allocators.hpp
         # platform
@@ -57,6 +58,7 @@ target_sources(engine_lib
         include/pd/resource/resource.hpp
         include/pd/resource/resource_manager.hpp
         # rendering
+        include/pd/rendering/layer/engine_layer.hpp
         include/pd/rendering/renderer.hpp
         include/pd/rendering/resource/texture_resource.hpp
         include/pd/rendering/resource/mesh_resource.hpp
@@ -90,6 +92,7 @@ target_sources(engine_lib
         src/platform/os/win32/platform_win32.cpp
         
         # rendering
+        src/rendering/layer/engine_layer.cpp
         src/rendering/renderer.cpp
         src/rendering/resource/texture_resource.cpp
         src/rendering/resource/mesh_resource.cpp

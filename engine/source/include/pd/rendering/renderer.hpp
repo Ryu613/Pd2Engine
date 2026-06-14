@@ -1,21 +1,21 @@
 #pragma once
 
 namespace pd {
-class RhiApi;
+class Backend;
 class View;
 class Renderer {
  public:
   struct Config {};
-  explicit Renderer(RhiApi& rhiApi) noexcept;
+  Renderer() noexcept = default;
   ~Renderer();
 
   NO_COPY_MOVE(Renderer);
 
   void beginFrame();
-  void endFrame();
   void renderFrame(View& view);
+  void endFrame();
 
  private:
-  RhiApi& mRhiApi;
+  Backend* mBackend;
 };
 }  // namespace pd

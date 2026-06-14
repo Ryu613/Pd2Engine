@@ -1,68 +1,84 @@
 = 模块设计简述
 
-== core模块
+== Engine模块
 
-=== 内存管理
+=== 职责
 
-==== 职责
-
-引擎底层内存管理相关功能，应该有多种分配算法，包括：
-
-* pool: 用于支持对象池
-* linear: 线性分配，用于帧内快速分配和清除
-* heap: 堆分配，用于动态创建的内存对象
-* 支持未来扩展，如stack分配，double linear分配等
-
-* 应该可支持调试，支持分配和销毁时的自定义逻辑
-* 应该可支持线程安全，分配时对齐
-* 可作为容器的分配器，如stl分配器
-* 高性能
-
-==== 本版边界
-
-* 不实现跨平台，但预留扩展
+. 主入口
+. 暴露必要API给外部操作
+. 拥有全部子系统
+. 子系统的生命周期管理
+. 其他需要全局协调的相关事务
 
 ==== 设计思路
 
-采用policy-based 模板类实现，单头文件，详见doxygen文档和代码
+. 不执行具体逻辑
+. 显式，命令式进行子系统的创销逻辑
+. 子系统之间的调用通过事件系统解耦
+
+== core模块
+
+提供引擎全局基础能力，包括：
+
+. 日志
+. 调试
+. 性能剖析
+. 全局配置项
+. 全局基类和接口定义
+. 全局便利工具
+.. 内存管理
+.. job system
+
+=== 内存管理
+
+==== 设计思路
+
+自研高性能内存管理器Arena：
+
+* Policy-Based Class Template实现，内存资源和分配算法分离
+* 支持内存追踪，线程安全, 内存对齐
+* 自带对象池实现，使用TLSF实现
+* 预留了跨平台扩展性
+* 预留了其他内存资源, 分配算法的扩展性
 
 === 事件系统
-
-==== 职责
 
 ==== 设计思路
 
 == 资产/资源管理模块
 
-资源管理可以说是整个引擎的大动脉，是必须清晰整理数据流，逻辑流，状态流的模块
-
-=== 职责
-
-. 从硬盘里读取文件，解析，转换，生成引擎内部资产
-. 在引擎运行时，使用这些数据进行处理和渲染
-
-=== 功能
-
-. 文件读取和解析: 应包括gltf2.0形式的文件和ktx纹理文件，解析为对应数据结构
-.. 复合资产文件：比如gltf解析，并分解成单个资产，比如material, mesh, texture, buffer, scene等
-. 文件转换
-.. 优化数据结构：比如mesh, texture，buffer等，在转换时可以优化为引擎内部字节流
-.. 把gltf和ktx转为引擎内部的PdMesh, PdTexture, PdSceneGraph, PdBuffer等数据结构
-. 运行时加载和资源生命周期管理: 把上述引擎内数据在引擎运行时加载到内存和GPU并控制其构造和销毁时机
-
-=== 本版边界
-
-. 实现gltf和ktx的读取，解析，转换，运行时加载，正确渲染
-. 不实现gltf的蒙皮，动作，多场景解析
-. 不实现异步多线程加载,但是预留扩展性
-. 不实现流式加载，热重载，但是预留扩展性
-. 不实现gltf导出，修改
+作为整个引擎的大动脉，是必须清晰整理数据流，逻辑流，状态流
 
 === 设计思路
 
 . 资源的加载整体上分为两块，资产管理和资源管理,此处分别称为(Asset Management(AM)和Resource Management(RM))
 .. AM: 负责硬盘文件信息读取，并解析转换为运行时资源信息，本身不负责直接加载数据，只解析和转换相关文件的信息，并提供把转换好的资产"注册"到运行时资源管理中
 .. RM: 利用资产管理解析的文件信息，在运行时按照场景需要，把相关资产加载到内存或显存中，供引擎使用，并管理这些资源的生命周期
+. AM,RM解耦，各自管理相关的数据
+. 不与其他子系统耦合，比如场景系统
+
+=== 功能
+
+.AM
+. 文件读取：支持读取gltf模型, ktx, png等格式的纹理 
+.. 包括复合型资产拆分成子资产，比如gltf
+. 文件转换: 可把上述格式的文件转换为对应引擎内部数据结构
+.. 建立资源之间的引用关系
+.. gltf场景图
+
+.RM
+. 资源注册: 保证资源唯一,记录文件基本信息
+. 资源加载: 控制加载时机
+. 资源句柄: 资源可外部引用，但由RM内部管理生命周期
+
+=== 本版边界
+
+. 实现gltf和ktx的读取，解析，转换，运行时加载，正确渲染
+. 不实现gltf的蒙皮，动作，多场景解析
+. 不实现异步多线程加载
+. 不实现流式加载，热重载
+. 不实现gltf修改，导出
+. 预留不实现功能的扩展性
 
 === 具体设计
 
@@ -81,76 +97,108 @@
 [plantuml]
 ....
 class AssetManager {
+    资产管理：负责读取文件，转换为内部数据格式，输出Asset，管理Asset生命周期
+    ==
     + Asset* createAsset(AssetCreateInfo info)
     + void destroyAsset(Asset* asset)
+    ==
+    - Container<Asset*> mAssets
+    - Container<Parser*> mParsers
 }
 class Asset {
+    资源对象: 资产转换后数据，只持有句柄
+    暂不对资产类型做进一步区分
+    ==
     - String mId
-    - Container<Entity> mScenGraphEntities
+    - Container<Node*> mSceneNodes
     - Container<TextureHandle> mTextures
     - Container<MeshHandle> mMeshes
     - Container<MaterialHandle> mMaterials
 }
 Interface Parser {
+    把资产文件转换并填充到asset中,在AM中注册资源拿到句柄
+    ==
     + {abstract} void parse(Asset& asset)
 }
 class GltfParser implements Parser {
+    gltf解析器
+    ==
     + void parse(Asset& asset)
 }
 class ResourceEntry {
+    带引用计数和gc支持的资源指针
+    ==
     + Resource* pResource
     + uint32_t refCount
     + bool gcFlag
 }
 class ResourceManager{
+    管理运行时资源
+    ==
     + ResourceHandle registerResource(Resource&& resource)
     + void unregisterResource(ResourceHandle handle)
     + void load(ResourceHandle handle)
+    + void unload(ResourceHandle handle)
     + void gc()
     + void clearAll()
-
+    --
     - Container<ResourceId, ResourceEntry> mRegistry
-
+    --
     - ResourceId generateId()
 }
 Interface Resource {
+    资源接口:定义资源操作
+    ==
     + {abstract} void load()
     + {abstract} void unload()
     + Status status()
-
+    --
     - Status mStatus
 }
 class TextureResource implements Resource {
+    纹理资源数据
+    ==
     + void load()
     + void unload()
-
-    - RhiHandle<Texture> mRhiTexture
+    --
+    - BackendHandle<HwTexture> mHwTexture
 }
 class Primitive {
-    - RhiHandle<Buffer> mVertexBuffer
-    - RhiHandle<Buffer> mIndexBuffer
+    网格的submesh或primitive
+    ==
+    --
+    - BackendHandle<HwBuffer> mVertexBuffer
+    - BackendHandle<HwBuffer> mIndexBuffer
     - MaterialHandle mMaterial
 }
 class MeshResource implements Resource {
+    网格资源
+    ==
     + void load()
     + void unload()
-    
+    --
     - Container<Primitive> mPrimitives
 }
 class MaterialResource implements Resource {
+    材质资源
+    ==
     + void load()
     + void unload()
-
-    - RhiHandle<DescriptorSet> mDescriptorSet
+    --
+    - BackendHandle<DescriptorSet> mDescriptorSet
     - TextureHandle mBaseColor
     - TextureHandle mNormal
 }
 class Handle {
+    句柄基类，可支持分代
+    ==
     - uint32_t mId
-    - uint32_t mGeneration
+    - uint32_t mGen
 }
+
 class ResourceHandle<? extends Resource> extends Handle {
-    - String name
+    类型安全的资源句柄
+    ==
 }
 
 AssetManager "1"*--"n" Asset
@@ -213,7 +261,7 @@ end
 
 . 测试文件信息正确读取并解析成对应数据钢结构，见test/test_asset.cpp
 . 测试把Asset注册到resource manager,并在运行时正确加载到内存中
-.. 注：GPU资源上传相关功能暂不测试，会在其他模块中一起测试
+.. 注：GPU资源上传相关功能暂不测试，会在Backend模块中一起测试
 
 == 场景管理模块
 
@@ -227,8 +275,8 @@ end
 === 功能
 
 . 场景图
-. 场景描述功能
-. 事件系统
+. 场景描述
+. 其他功能
 
 === 本版边界
 
@@ -240,13 +288,10 @@ end
 
 === 设计思路
 
-. object model: 采用ECS(其实更像filament的Entity-Manager模式)实现属性中心式对象模型
-.. 没有单独的system， 场景逻辑在Scene，由于需要多manager协调，由SceneBuilder代劳，Scene保持纯净，渲染逻辑在Renderer(见后文)
-. 场景图采用Entity + Component描述并实现
-. 提供给开发者SceneDescription接口, 可操作scene内对象和逻辑，不直接接触scene
-. 场景只描述场景本身的内容，不代表渲染时有哪些实际要显示
-. 分离出视图(view)代表从哪里看，怎么看，其范畴大于相机
-. 事件系统区分，场景事件独立于引擎全局事件
+. 采用数据驱动架构，实现属性中心式的对象模型
+. 职责纯净，不耦合于其他模块，只描述场景本身的内容和相关数据，不负责可见性剔除等操作
+. 使用者通过SceneDescriptor接口实现可插拔的资源加载和场景描述
+. 分离出视图(view)代表从哪里看，怎么看，一个场景可有多个视图，代表屏幕内的子视窗，可对应多个相机
 
 === 具体设计
 
@@ -256,30 +301,63 @@ end
 
 [plantuml]
 ....
-Interface SceneDescriptor{
-    + {abstract} void onLoad(SceneBuilder& builder)
-    + {abstract} void onUnLoad(Scene& builder)
+Interface ISceneDescriptor{
+    + {abstract} void onLoad(AssetManager& assetMgr, SceneManager& sceneMgr)
+    + {abstract} void onUnLoad(AssetManager& assetMgr, SceneManager& mgr)
 }
-class Scene{
+class SceneManager {
+    场景管理器: 负责统一管理场景内数据和视图
+    ==
+    + void resetScene()
+    + void loadScene(ISceneDescriptor* sceneDescriptor)
+    + Scene* getScene()
+    + View* createView(string name)
+    + View* getView(string name)
+    + void removeView(string name)
+    --
+    - Scene mScene
+    - ISceneDescriptor* mSceneDescriptor
+    - Container<string, View*> mViews
+    - EntityManager mEntityManager
+    - TransformManager mTransformManager
+    - RenderableManager mRenderableManager
+    - LightManager mLightManager
+    - CameraManager mCameraManager
+}
+class Scene {
     + void addEntity(Entity e)
     + void removeEntity(Entity e)
     + bool hasEntity(Entity e)
-
+    --
     - Container<Entity> mEntities
     - Container<View*> mViews
     - Skybox mSkyBox
 }
 class Entity{
     - uint32_t mId
-    - uint32_t mGeneration
+    - uint32_t mGen
 }
+
 class EntityManager {
+    实体管理器：负责分发entity
+    ==
     + Entity create()
     + bool hasEntity()
     - uint32_t generateId()
 }
 
-class TransformManager{
+class BaseComponentsManager {
+    entity的各component组件管理器基类
+    ==
+    + Entity create()
+    + Transform* getInstance(Entity e)
+    + bool hasInstance(Entity e)
+    + void destroy(Entity e)
+}
+
+class TransformManager extends BaseComponentsManager {
+    entity的变换数据管理
+    ==
     + Entity create()
     + Transform* getInstance(Entity e)
     + bool hasInstance(Entity e)
@@ -287,7 +365,9 @@ class TransformManager{
 
     - SoaContainer<Entity, Transform> mTransforms
 }
-class RenderableManager {
+class RenderableManager  extends BaseComponentsManager {
+    entity的渲染数据管理
+    ==
     + Entity create()
     + Renderable* getInstance(Entity e)
     + bool hasInstance(Entity e)
@@ -295,7 +375,9 @@ class RenderableManager {
 
     - SoaContainer<Entity, Renderable> mRenderables
 }
-class LightManager {
+class LightManager  extends BaseComponentsManager {
+    entity的光源数据管理
+    ==
     + Entity create()
     + Light* getInstance(Entity e)
     + bool hasInstance(Entity e)
@@ -321,7 +403,9 @@ class Renderable <<Component>> {
     - ResourceHandle<MeshResource> mMeshHandle
     - ResourceHandle<MaterialResource> mMaterialHandle
 }
-class CameraManager {
+class CameraManager extends BaseComponentsManager {
+    entity的相机数据管理
+    ==
     + Entity create()
     + Camera* getInstance(Entity e)
     + bool hasInstance(Entity e)
@@ -339,29 +423,40 @@ class Camera <<Component>> {
 }
 
 class View {
+    场景中的视图: 定义在场景的哪里看，怎么看
+    ==
+    --
+    - String mName
     - Viewport mViewport
     - Entity mMainCamera
     - Scene* mScene
 }
 
 class Viewport {
+    视口：定义视图里看哪里，多大范围
+    ==
+    --
     - float x
     - float y
     - float width
     - float height
 }
 
-
+SceneManager *-- Scene
 Scene "1"o--"n" Entity
 Scene "1" o--"n" View
+EntityManager "1"*--"n" Entity
 TransformManager "1"*--"n" Transform
 RenderableManager "1"*--"n" Renderable
 CameraManager "1"*--"n" Camera
 LightManager "1"*--"n" Light
-EntityManager "1"*--"n" Entity
+Transform <.. Entity
+Renderable <.. Entity
+Camera <.. Entity
+Light <.. Entity
 View "1"*--"1" Viewport
 View "1"o--"1" Camera
-Scene <.. SceneDescription
+Scene <.. ISceneDescriptor
 ....
 
 === 核心调用链
@@ -370,8 +465,8 @@ Scene <.. SceneDescription
 ....
 actor developer as User order 10
 participant Engine as Engine order 20
-participant SceneDescription as SD order 30
-participant SceneBuilder as SB order 40
+participant SceneDescriptor as SD order 30
+participant SceneManager as SM order 40
 participant EntityManager as EM order 50
 participant TransformManager as TM order 60
 participant RenderableManager as RM order 70
@@ -380,36 +475,40 @@ participant LightManager as LM order 100
 participant Scene as Scene order 110
 participant View as View order 120
 User -> Engine++: 创建并初始化
+Engine -> SM: new
+SM -> Scene++: new
+SM -> EM++: new
+SM -> TM++: new
+SM -> RM++: new
+SM -> CM++: new
+SM -> LM++: new
 User -> SD: 派生并实现
-User -> Engine: loadScene
-Engine -> Scene++: new Scene()
-Engine -> SB++: new SceneBuilder(Scene&)
-Engine -> SD++: onLoad(builder)
-group 生成场景图
-    SB -> Scene: createView()
-    Scene -> View++: new
-    Scene <-- View: View
-    SB -> EM: create()
-    SB <-- EM: entity
-    SB -> TM: create(entity)
-    TM -> TM: new Transform
-    SB <-- TM
-    ... 在其他Manager中创建entity,同上 ...
-    SB -> Scene: addEntity(entity)
-    SB -> SB: 配置view, scene, camera等关系
+User -> Engine: loadScene()
+Engine -> SM: loadScene()
+SM -> SM: resetScene()
+SM -> SD: onLoad()
+group 加载场景
+    SD -> SM: createView()
+    SM -> View++: new
+    SM <- View: view
+    SD -> EM: create()
+    SD <-- EM: entity
+    SD -> TM: create(entity)
+    SD <- TM: transform
+    ... 在其他Manager中创建entity对应的数据, 方法同上 ...
+    SD -> Scene: addEntity(entity)
+    SD -> SD: 配置view, scene, camera等关系
 end
-Engine <-- SB--: Scene
+SM -> Engine: 完成场景加载
+... main loop ...
+Engine -> Engine: main loop退出
 group 卸载场景
-    Engine -> Engine: render loop退出
-    Engine -> SD: onUnload(SceneBuilder&)
-    SD -> SD: 自定义逻辑
-    SD -> Scene: clear()
-    Scene -> View: destroy view
-    deactivate View
-    Scene -> RM: destroy()
-    ... 其他manager同上 ...
-    Engine <-- Scene--
-    Engine -> Engine: 执行内部清理逻辑
+    Engine -> SM: unloadScene()
+    SM -> SD: onUnload()
+    SD -> SD: 自定义场景卸载逻辑
+    SM -> SM: clearScene()
+    Engine <- SM: 场景数据清理完毕
+    Engine -> Engine: ResourceManager::clearAll()
 end
 ....
 

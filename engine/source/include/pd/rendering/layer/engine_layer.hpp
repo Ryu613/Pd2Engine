@@ -3,6 +3,7 @@
 #include "pd/core/layer.hpp"
 #include "pd/platform/window/window.hpp"
 #include "pd/backend/backend.hpp"
+#include "pd/rendering/renderer.hpp"
 
 namespace pd {
 class EngineLayer : public Layer {
@@ -19,5 +20,9 @@ class EngineLayer : public Layer {
  private:
   Window* mWindow = nullptr;
   std::unique_ptr<Backend> mBackend;
+
+  Renderer mRenderer;
+
+  void render();
 };
 }  // namespace pd

@@ -45,7 +45,6 @@ class BackendVulkan : public Backend {
   //   }
 
  private:
-  Config mConfig;
   VulkanContext mVulkanContext;
   //   VulkanSwapchain mVulkanSwapchain;
   //   VulkanResourceManager mResourceManager;

@@ -49,6 +49,7 @@ class Engine {
   //     mSceneDescriptor->onLoad(*mAssetManager, mEntityManager, mTransformManager,
   //                              mCameraManager, mScene);
   //   }
+
   /**
    * @brief 创建界面层
    *
@@ -73,23 +74,24 @@ class Engine {
   Config mConfig;
   bool mInitialized = false;
 
-  std::vector<std::unique_ptr<Layer>> mLayers;
-
   HeapAllocator mArena;
-  ResourceManager mResourceManager;
-  EntityManager mEntityManager;
-  // scene property managers
-  TransformManager mTransformManager;
-  RenderableManager mRenderableManager;
-  CameraManager mCameraManager;
-  LightManager mLightManager;
 
   std::unique_ptr<Platform> mPlatform;
-  std::unique_ptr<AssetManager> mAssetManager;
-  std::unique_ptr<Renderer> mRenderer;
-  // 相当于world
-  Scene mScene;
+  std::vector<std::unique_ptr<Layer>> mLayers;
 
-  std::unique_ptr<SceneDescriptor> mSceneDescriptor;
+  //   ResourceManager mResourceManager;
+  //   EntityManager mEntityManager;
+  //   // scene property managers
+  //   TransformManager mTransformManager;
+  //   RenderableManager mRenderableManager;
+  //   CameraManager mCameraManager;
+  //   LightManager mLightManager;
+
+  //   std::unique_ptr<AssetManager> mAssetManager;
+  //   std::unique_ptr<Renderer> mRenderer;
+  // 相当于world
+  //   Scene mScene;
+
+  //   std::unique_ptr<SceneDescriptor> mSceneDescriptor;
 };
 }  // namespace pd
