@@ -2,35 +2,38 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](License.txt)
 
-Pd2Engine 是一款易于扩展，易于理解，易于调试的现代进阶级轻量化渲染引擎
+Pd2Engine 是一款易于理解，易于开发，易于调试的现代渲染引擎(WIP)
 
 ## 特点
 
-1. 基于C++23开发
-2. 渲染底层目前采用Vulkan实现，但预留了其他backend的扩展性
-3. 自行独立设计和研发，由于需要切实保证学习质量，文档及代码均为手写，未使用AI生成
-4. 现代图形/渲染技术
-5. 刻意避免单纯的功能堆叠，过度设计，可扩展，尽量精巧且易理解
+1. 基于现代C++(23)开发
+1. 自行独立自学，设计，和开发，由于需要切实保证学习和代码质量，文档及代码均为手写，未使用AI生成
+1. 现代图形/渲染技术
+1. 定位为进阶到高级水平
+1. 小到中型规模的工程级项目
 
 ## 功能点
 
 1. 支持PBR渲染
 2. 支持GLTF, KTX模型和材质的导入
-3. render graph
-4. ECS
-5. 支持多线程渲染
-6. Vulkan渲染底层
+3. 数据驱动，ECS
+4. render graph
+5. 多线程
+6. Vulkan底层
+7. 预留了跨平台，跨渲染后端扩展性
 
 ## 构建要求
 
-目前项目只支持在Windows上构建, 并且主要在MSVC工具链上开发，对其他编译器尚未测试
+目前项目只支持在Windows， MSVC工具链上构建和开发，其他编译器和平台预留扩展性，但目前尚不支持
 
-### 需求
+### 环境要求
 
 1. Git
 1. Vcpkg
 1. CMake
-1. MSVC工具链
+1. MSVC build tools
+1. (可选推荐)asciidoc(vscode的asciidoctor插件并打开groki预览功能)
+1. (可选推荐)doxygen + doxybook2 + mkdocs
 
 ### 操作
 
@@ -41,7 +44,7 @@ Pd2Engine 是一款易于扩展，易于理解，易于调试的现代进阶级�
 
 ### 如何使用
 
-请参考samples文件夹
+请参考samples文件夹(TODO)
 
 ### 设计文档
 

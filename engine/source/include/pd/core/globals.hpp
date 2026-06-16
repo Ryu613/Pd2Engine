@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pd/pd2_engine_export.h"
 #include <expected>
 
 #define MOVABLE_ONLY(CLASS_NAME)                     \
@@ -13,6 +14,8 @@
   CLASS_NAME& operator=(const CLASS_NAME&) = delete; \
   CLASS_NAME(CLASS_NAME&&) noexcept = delete;        \
   CLASS_NAME& operator=(CLASS_NAME&&) noexcept = delete;
+
+#define PD2_ENGINE_API PD2_ENGINE_EXPORT
 
 namespace pd {
 namespace global {

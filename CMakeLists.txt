@@ -36,6 +36,8 @@ project(PD2
     DESCRIPTION "Pd2Engine: A modern C++ lightweight realtime 3D rendering engine"
 )
 
+include(GenerateExportHeader)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

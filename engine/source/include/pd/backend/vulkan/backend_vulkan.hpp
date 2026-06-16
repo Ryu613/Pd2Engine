@@ -4,7 +4,7 @@
 
 #include "pd/backend/vulkan/vulkan_common.hpp"
 #include "pd/backend/vulkan/vulkan_context.hpp"
-#include "pd/backend/vulkan/vulkan_resource_manager.hpp"
+#include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
 // #include "pd/backend/vulkan/vulkan_swapchain.hpp"
 // #include "pd/backend/vulkan/vulkan_frame.hpp"
 // #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"

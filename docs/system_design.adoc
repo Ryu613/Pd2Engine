@@ -31,23 +31,24 @@
 
 引擎模块皆在engine/source下,其中include是公开的头文件, src是私有的头文件及cpp文件，test是单元测试代码。引擎代码皆在"pd"命名空间内，模块以文件夹区分而不再嵌套命名空间以维持扁平简单的结构，引擎内的模块划分如下:
 
-* **platform**: 对应平台层: 包含操作系统相关操作，RHI, 渲染后端底层API封装，窗口系统封装等
+* **platform**: 对应平台层: 包含操作系统相关操作，窗口系统封装等
 * **core**: 对应核心层: 包含系统级基类，基础工具模块，基础功能等
-* **asset**: 对应资产层: 包括资产文件读取，解析，转换相关功能
-* **resource**: 对应资源层: 包含资源定义，句柄，资源管理器，资源加载器等资源相关类
-* **rendering**: 对应渲染层：包含渲染器，pass定义，render graph, 材质模块等基础渲染相关类
+* **backend**: 对应渲染(后端): RHI, 渲染后端底层API封装，窗口系统封装等
+* **rendering**: 对应渲染(前端)：包含渲染器，render pass，render graph, 材质系统等具体的渲染功能
+* **asset**: 对应资产层: 包括资产文件读取，解析，转换相关功能，主要是运行前的资产数据处理工作
+* **resource**: 对应资源层: 包含资源定义，句柄，资源管理器，资源加载器等资源相关类，蛀牙是运行时的资产数据处理工作
 * **scene**: 对应场景层： 包含场景定义，场景视图, 场景相关工具类等
 
-其中应用层主要通过libs/application模块实现，因其只依赖整个引擎，故可以独立出引擎的核心代码
+其中应用层主要通过libs/application模块实现，因其只依赖整个引擎，故可以独立于引擎的核心代码
 
 == 引擎整体设计
 
 * 以接口定义契约，接口采用纯接口类，不使用抽象类
-* Engine只是一个薄的大容器，没有具体执行逻辑，只负责子系统的停启，子系统负责具体职责内逻辑，不依赖Engine，使用接口建立依赖关系
-* 跨子系统的调用需求通过事件模式解耦并实现
+* Engine只是一个薄的大容器，没有具体执行逻辑，只负责子系统的停启，子系统负责具体职责内逻辑，不依赖Engine
+* 子系统之间使用接口建立依赖关系，跨子系统的调用通过事件模式解耦
 * 全局禁用异常，非热路径采用std::expected + noexcept声明函数
-* 使用RAII管理资源
-* 分模块，并根据性能要求决定设计和开发策略，详见模块设计
+* 使用RAII管理资源，使用handle引用资源，handle根据生命周期和范围分为多级
+* 分模块的设计和开发策略，主要根据性能要求决定，详见模块设计
 
 线程有三个主要线程:
 
@@ -72,8 +73,7 @@ class Engine {
     - IBackend* mBackend
     - ResourceManager mResourceManager
     - AssetManager mAssetManager
-    - Scene mScene
-    - Container<View*> mViews
+    - SceneManager mSceneManager
     - Renderer mRenderer
 }
 Interface ILayer {
@@ -90,6 +90,10 @@ class AssetManager {
 }
 class ResourceManager {
     运行时资源管理
+    ==
+}
+class SceneManager {
+    场景管理器：负责场景相关数据统一处理，场景描述，场景
     ==
 }
 Interface IPlatform {
@@ -147,9 +151,10 @@ Application *-- Engine
 Engine *-- IPlatform
 Engine *-- IBackend
 Engine *-- Renderer
-Engine *-- Scene
+Engine *-- SceneManager
 Engine "1"*--"n" ILayer
-Engine "1"*--"n" View
+SceneManager "1"*--"1" Scene
+SceneManager "1"*--"n" View
 IPlatform *-- IWindow
 IPlatform *-- IFileSystem
 Engine *-- AssetManager
@@ -162,31 +167,25 @@ IWindow <.. IBackend
 
 根据整体类图，拆分出模块设计工作：
 
-. Engine/Core模块设计
+. Engine/Core设计
 . Resource模块设计
 . Platform模块设计
 . Vulkan模块设计
-. Asset模块设计
 . Scene/View模块设计
 . Backend模块设计
+. Asset模块设计
 . App模块设计
 
 每个模块的具体设计详见模块设计
 
-=== 使用策略
+=== 开发策略
 
-. 全局禁用异常，对帧外逻辑采用std::expected + noexcept声明， 每层按需自行构造强类型枚举错误码
+. 代码风格和规范参考clang-format和tidy配置，基本上可参考google代码风格，代码质量主要参考{cpp} core guideline
 . 对于引擎内部的数据结构和基础类，使用核心库的STL
 . 对于非热点数据的分配，优先用栈，使用堆时，需要通过Arena分配，不允许使用C/{cpp}自己的分配/销毁操作
 . 对于热点数据，使用Arena并选用合适的分配策略，如Pool, Linear等
 
-== 系统全局规约
-
-. 代码风格和规范参考clang-format和tidy配置，基本上可参考google代码风格，代码质量主要参考{cpp} core guideline
-. 引擎代码不允许使用{cpp} exception, 用错误码，bool取代
-
-
 == 已知问题
 
 . 对用户开放的控制权限过大，暂时不严格封装，是因为减轻设计和实现成本，依赖用户自律，用户操作目前可控
-. 无ABI稳定支持，pimpl之类，暂时不实现，后期若需要可在上层加API层封装
+. 无ABI稳定支持，pimpl，插件系统，暂时不实现，后期若需要可在上层加API层封装

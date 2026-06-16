@@ -140,8 +140,14 @@ target_include_directories(engine_lib
     PUBLIC
         include
         ${PD2_ENGINE_LIB_PUBLIC_INCLUDE}
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     PRIVATE
         src
+)
+
+generate_export_header(engine_lib BASE_NAME pd2_engine)
+configure_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/pd2_engine_export.h ${CMAKE_BINARY_DIR}/include/pd/pd2_engine_export.h
 )
 
 if(PD2_BUILD_TESTS)

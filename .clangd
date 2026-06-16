@@ -1,7 +1,6 @@
-# .clangd 配置文件（置于项目根目录）
 CompileFlags:
   CompilationDatabase: build   # 原 --compile-commands-dir=${workspaceFolder}/build
 Index:
   Background: Build            # 原 --background-index（默认已启用）
 Completion:
-  HeaderInsertion: Never       # 原 --header-insertion=never
+  HeaderInsertion: Never       # 原 --header-insertion=never(需clangd 21)

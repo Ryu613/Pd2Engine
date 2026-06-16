@@ -86,11 +86,51 @@ class GuiApplication extends CoreApplication {
 class Engine extends Object {}
 ....
 
-==== platform
+==== vulkan
 
 [plantuml]
 ....
+class VulkanGraphicsApi {
+    提供vulkan操作接口给外部使用,隐藏具体实现
+    注：抽象类，非纯接口，支持默认空构造
+    ==
+    - VulkanResourceManager m_vulkanResourceManager
+}
+class VulkanResourceManager {
+    vulkan资源管理器，负责统一管理vulkan句柄
+    每个对象都以pool形式管理，每种句柄都做了封装
+    ==
+    + Handle<Instance_t> createInstance(const InstanceOptions& options)
+    + void deleteInstance(const Handle<Instance_t>& handle)
+    ... 各种类似形式的资源创建和删除的操作 ...
+    --
+    - Pool<VulkanInstance, Instance_t> m_instance{1}
+    ... 其他类似形式的pool ...
+}
 
+class Handle <T : 资源类型> {
+    类型安全，带分代的句柄,由Pool构造(友元Pool<U,V>)
+    ==
+    --
+    构造函数受保护
+    ... 句柄操作 ...
+    --
+    - uint32_t m_index
+    - uint32_t m_generation
+}
+
+class Pool <T: 资源类型, H: 句柄类型>{
+    资源池: 同类vulkan资源放在一起
+    ==
+    --
+    - vector<T> m_data
+    - vector<GenerationEntry> m_generations
+    - vector<uint32_t> m_free_indices
+}
+
+VulkanGraphicsApi *-- VulkanResourceManager
+VulkanResourceManager "1"*--"n" Pool
+Pool *-- Handle
 ....
 
 == test目录
