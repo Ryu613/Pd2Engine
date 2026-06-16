@@ -1,6 +1,7 @@
 #include "pd/engine.hpp"
 
 #include "pd/platform/platform_factory.hpp"
+#include "pd/backend/backend_factory.hpp"
 
 namespace pd {
 using Error = Engine::Error;
@@ -26,6 +27,17 @@ Engine::EngineResult<void> Engine::initialize() noexcept {
           },
   };
   mPlatform = createPlatform(std::move(config));
+
+  // 初始化渲染后端
+  if (!mPlatform->window()->create()) {
+    log::error("window creation failed!");
+    return std::unexpected<Error>(Error::InitializeFailed);
+  }
+  // 初始化渲染后端
+  IBackend::Config backendConfig{
+      .pWindow = mPlatform->window(),
+  };
+  mBackend = createBackend(backendConfig);
   //   if (!mPlatform->initialize(mConfig.appName, mConfig.windowWidth,
   //   mConfig.windowHeight,
   //                              mConfig.enableDebug)) {

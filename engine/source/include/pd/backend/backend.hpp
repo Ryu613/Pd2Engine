@@ -1,11 +1,15 @@
 #pragma once
 
 namespace pd {
-class Backend {
+class IWindow;
+class IBackend {
  public:
-  struct Config {};
-  Backend() noexcept = default;
-  virtual ~Backend() = default;
-  MOVABLE_ONLY(Backend);
+  struct Config {
+    IWindow* pWindow = nullptr;
+    bool enableDebug = true;
+  };
+  IBackend() noexcept = default;
+  virtual ~IBackend() = default;
+  MOVABLE_ONLY(IBackend);
 };
 }  // namespace pd

@@ -42,10 +42,10 @@ class VulkanContext {
   // device info
   VkPhysicalDevice mPhysicalDevice{VK_NULL_HANDLE};
   VkDevice mDevice{VK_NULL_HANDLE};
-  // queue info
-  QueueInfo mQueueInfo;
   // vma
   VmaAllocator mVmaAllocator{nullptr};
+  // queue info
+  QueueInfo mQueueInfo;
 
   bool createSurface(void* nativeWindowHandle) noexcept;
   void init() noexcept;

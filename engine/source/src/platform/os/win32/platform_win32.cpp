@@ -18,5 +18,5 @@ PlatformWin32::PlatformWin32(IPlatform::Config config) noexcept
 
   mFileSystem = std::make_unique<StdFileSystem>();
 }
-PlatformWin32::~PlatformWin32() noexcept {}
+PlatformWin32::~PlatformWin32() = default;
 }  // namespace pd

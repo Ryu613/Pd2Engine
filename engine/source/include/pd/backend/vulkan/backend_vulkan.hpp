@@ -4,14 +4,15 @@
 
 #include "pd/backend/vulkan/vulkan_common.hpp"
 #include "pd/backend/vulkan/vulkan_context.hpp"
+#include "pd/backend/vulkan/vulkan_resource_manager.hpp"
 // #include "pd/backend/vulkan/vulkan_swapchain.hpp"
 // #include "pd/backend/vulkan/vulkan_frame.hpp"
 // #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
 
 namespace pd {
-class BackendVulkan : public Backend {
+class BackendVulkan : public IBackend {
  public:
-  explicit BackendVulkan(VulkanContext&& ctx) noexcept;
+  explicit BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept;
   ~BackendVulkan();
   MOVABLE_ONLY(BackendVulkan);
 
@@ -45,7 +46,8 @@ class BackendVulkan : public Backend {
   //   }
 
  private:
-  VulkanContext mVulkanContext;
+  std::unique_ptr<VulkanContext> mVulkanContext;
+  VulkanResourceManager mVulkanResourceManager;
   //   VulkanSwapchain mVulkanSwapchain;
   //   VulkanResourceManager mResourceManager;
   //   // frame info

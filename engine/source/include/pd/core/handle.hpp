@@ -10,8 +10,7 @@ class Handle {
   using HandleId = uint32_t;
   static constexpr HandleId nullId = HandleId{UINT32_MAX};
 
-  Handle() noexcept
-      : mId(nullId) {};
+  Handle() noexcept = default;
 
   explicit operator bool() const noexcept { return mId != nullId; };
 
@@ -22,17 +21,22 @@ class Handle {
   // 只能内部使用
   explicit Handle(HandleId id) noexcept
       : mId(id) {}
+  // 可拷可移
   Handle(const Handle&) = default;
   Handle& operator=(const Handle&) = default;
   Handle(Handle&& rhs) noexcept
-      : mId(std::exchange(rhs.mId, nullId)) {}
+      : mId(std::exchange(rhs.mId, nullId)),
+        mGen(std::exchange(rhs.mGen, 0)) {}
   Handle& operator=(Handle&& rhs) noexcept {
     mId = std::exchange(rhs.mId, nullId);
+    mGen = std::exchange(rhs.mGen, 0);
     return *this;
   }
-
-  ~Handle() noexcept = default;
-  bool operator==(const Handle& other) const { return mId == other.mId; }
+  // 可非虚，不会通过此类delete对象
+  ~Handle() = default;
+  bool operator==(const Handle& other) const {
+    return mId == other.mId && mGen == other.mGen;
+  }
 
  private:
   HandleId mId = nullId;

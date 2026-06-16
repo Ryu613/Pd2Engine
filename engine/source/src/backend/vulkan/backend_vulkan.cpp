@@ -3,7 +3,7 @@
 // #include "pd/platform/rhi/vulkan/vulkan_texture.hpp"
 
 namespace pd {
-BackendVulkan::BackendVulkan(VulkanContext&& ctx) noexcept
+BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
     : mVulkanContext(std::move(ctx)) {
   // create swapchain
   //   mVulkanSwapchain.initialize(mConfig.windowWidth, mConfig.windowHeight);

@@ -10,7 +10,6 @@
 #include "tlsf/tlsf.h"
 
 namespace pd {
-static constexpr size_t reserved_mem_bytes = 16;
 
 namespace ptr {
 // ensure pointer operates by bytes(mem address), not sizeof(T)
@@ -175,6 +174,7 @@ class FreeList {
 }  // namespace PoolType
 
 namespace AllocatorType {
+// TODO(author)
 class LinearAllocator {};
 
 /**
@@ -202,7 +202,9 @@ class HeapAllocator {
 };
 
 /**
- * @brief 池分配器,默认使用tlsf实现,注：tlsf实现目前不是无状态的
+ * @brief 池分配器,默认使用tlsf实现
+ *
+ * 注：tlsf实现目前不是无状态的
  *
  * @tparam ElementSize 元素个数
  * @tparam Alignment 元素对齐要求

@@ -12,7 +12,7 @@ namespace pd {
 class PlatformWin32 : public IPlatform {
  public:
   explicit PlatformWin32(IPlatform::Config config) noexcept;
-  ~PlatformWin32() noexcept;
+  ~PlatformWin32();
   MOVABLE_ONLY(PlatformWin32);
 
   IFileSystem* fileSystem() noexcept override { return mFileSystem.get(); }

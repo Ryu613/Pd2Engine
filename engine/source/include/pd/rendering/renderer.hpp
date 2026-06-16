@@ -9,7 +9,7 @@ class Renderer {
   Renderer() noexcept = default;
   ~Renderer();
 
-  NO_COPY_MOVE(Renderer);
+  MOVABLE_ONLY(Renderer);
 
   void beginFrame();
   void renderFrame(View& view);
