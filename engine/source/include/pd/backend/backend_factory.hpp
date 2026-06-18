@@ -16,12 +16,15 @@ std::unique_ptr<IBackend> createBackend(IBackend::Config config,
 #ifdef BACKEND_VULKAN
   VulkanContext::Config vulkanConfig{
       .appName = config.pWindow->windowTitle(),
+      .windowWidth = config.pWindow->windowWidth(),
+      .windowHeight = config.pWindow->windowHeight(),
+      .requiredInstanceExtensions = config.pWindow->getVulkanInstanceExtensions(),
       .nativeWindowHandle = config.pWindow->nativeHandle(),
-      .requiredInstanceExtensions = config.pWindow->getVulkanInstanceExtensions()};
+  };
   auto context = std::make_unique<VulkanContext>(vulkanConfig);
   return std::make_unique<BackendVulkan>(std::move(context));
 #else
   PD_ASSERT_MSG(false, "Backend Error!");
 #endif  // _WIN32
-}
+}  // namespace pd
 }  // namespace pd

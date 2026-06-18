@@ -10,7 +10,7 @@ using Handle = VulkanResourceManager::Handle<T>;
 VulkanResourceManager::VulkanResourceManager(VulkanContext* ctx) noexcept
     : mVulkanContext(ctx) {}
 
-Handle<Image_t> VulkanResourceManager::createImage(
+Handle<HwTexture> VulkanResourceManager::createImage(
     const TextureOptions& options) noexcept {
   auto* device = mVulkanContext->getDevice();
 
@@ -65,7 +65,7 @@ Handle<Image_t> VulkanResourceManager::createImage(
   return textureHandle;
 }
 
-void VulkanResourceManager::destroyImage(const Handle<Image_t>& handle) noexcept {
+void VulkanResourceManager::destroyImage(const Handle<HwTexture>& handle) noexcept {
   auto* vulkanImage = mTextures.get(handle);
   auto* allocator = mVulkanContext->getVmaAllocator();
   vmaDestroyImage(allocator, vulkanImage->handle, vulkanImage->allocation);
@@ -74,7 +74,18 @@ void VulkanResourceManager::destroyImage(const Handle<Image_t>& handle) noexcept
 }
 
 [[nodiscard]] VulkanImage* VulkanResourceManager::getImage(
-    const Handle<Image_t>& handle) noexcept {
+    const Handle<HwTexture>& handle) noexcept {
   return mTextures.get(handle);
+}
+
+Handle<HwSwapchain> VulkanResourceManager::createSwapchain(
+    const SwapchainOptions& options) noexcept {
+  return {};
+}
+void VulkanResourceManager::destroySwapchain(const Handle<HwSwapchain>& handle) noexcept {
+}
+[[nodiscard]] VulkanSwapchain* VulkanResourceManager::getSwapchain(
+    const Handle<HwSwapchain>& handle) noexcept {
+  return nullptr;
 }
 }  // namespace pd

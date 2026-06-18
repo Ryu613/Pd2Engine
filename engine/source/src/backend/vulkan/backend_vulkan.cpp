@@ -4,7 +4,8 @@
 
 namespace pd {
 BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
-    : mVulkanContext(std::move(ctx)) {
+    : mVulkanContext(std::move(ctx)),
+      mVulkanResourceManager(mVulkanContext.get()) {
   // create swapchain
   //   mVulkanSwapchain.initialize(mConfig.windowWidth, mConfig.windowHeight);
   //   PD_ASSERT_MSG(mVulkanSwapchain.initialized(), "create vulkan swapchain failed!");
@@ -18,6 +19,11 @@ BackendVulkan::~BackendVulkan() {
   // for (auto& frameData : mVulkanFrames) {
   //   frameData.shutdown();
   // }
+}
+
+HwHandle<HwSwapchain> BackendVulkan::createSwapchain(
+    const SwapchainOptions& options) noexcept {
+  return mVulkanResourceManager.createSwapchain(options);
 }
 
 /*

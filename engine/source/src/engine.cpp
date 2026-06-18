@@ -34,8 +34,9 @@ Engine::EngineResult<void> Engine::initialize() noexcept {
     return std::unexpected<Error>(Error::InitializeFailed);
   }
   // 初始化渲染后端
+  auto* pWindow = mPlatform->window();
   IBackend::Config backendConfig{
-      .pWindow = mPlatform->window(),
+      .pWindow = pWindow,
   };
   mBackend = createBackend(backendConfig);
   //   if (!mPlatform->initialize(mConfig.appName, mConfig.windowWidth,
@@ -55,6 +56,9 @@ Engine::EngineResult<void> Engine::initialize() noexcept {
   //     log::error("engine layer onAttach() failed!");
   //     return std::unexpected<Error>(Error::InitializeFailed);
   //   }
+
+  // 创建交换链
+  //   mBackend.createSwapchain(pWindow->windowWidth(), pWindow->windowHeight());
 
   mInitialized = true;
   return {};

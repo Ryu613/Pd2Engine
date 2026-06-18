@@ -2,7 +2,11 @@
 
 #include "pd/core/utils/pool.hpp"
 
+#include "pd/backend/hw_handle.hpp"
+#include "pd/backend/hw_swapchain.hpp"
+
 #include "pd/backend/vulkan/vulkan_image.hpp"
+#include "pd/backend/vulkan/vulkan_swapchain.hpp"
 
 namespace pd {
 class VulkanContext;
@@ -12,21 +16,26 @@ class VulkanContext;
  */
 class VulkanResourceManager {
  public:
-  template <typename T>
-  using Handle = TypedHandle<T>;
+  template <BaseOfHwResource T>
+  using Handle = HwHandle<T>;
 
   VulkanResourceManager() noexcept = default;
   explicit VulkanResourceManager(VulkanContext* ctx) noexcept;
   ~VulkanResourceManager() = default;
   MOVABLE_ONLY(VulkanResourceManager);
 
-  Handle<Image_t> createImage(const TextureOptions& options) noexcept;
-  void destroyImage(const Handle<Image_t>& handle) noexcept;
-  [[nodiscard]] VulkanImage* getImage(const Handle<Image_t>& handle) noexcept;
+  Handle<HwSwapchain> createSwapchain(const SwapchainOptions& options) noexcept;
+  void destroySwapchain(const Handle<HwSwapchain>& handle) noexcept;
+  [[nodiscard]] VulkanSwapchain* getSwapchain(const Handle<HwSwapchain>& handle) noexcept;
+
+  Handle<HwTexture> createImage(const TextureOptions& options) noexcept;
+  void destroyImage(const Handle<HwTexture>& handle) noexcept;
+  [[nodiscard]] VulkanImage* getImage(const Handle<HwTexture>& handle) noexcept;
 
  private:
   VulkanContext* mVulkanContext = nullptr;
-  Pool<VulkanImage, Image_t> mTextures{128};
+  Pool<VulkanImage, HwTexture> mTextures{128};
+  Pool<VulkanSwapchain, HwSwapchain> mSwapchains{2};
 
   template <typename T>
   void setObjectName(VkDevice device, VkObjectType type, T handle,

@@ -5,7 +5,6 @@
 #include "pd/backend/vulkan/vulkan_common.hpp"
 #include "pd/backend/vulkan/vulkan_context.hpp"
 #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
-// #include "pd/backend/vulkan/vulkan_swapchain.hpp"
 // #include "pd/backend/vulkan/vulkan_frame.hpp"
 // #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
 
@@ -15,6 +14,9 @@ class BackendVulkan : public IBackend {
   explicit BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept;
   ~BackendVulkan();
   MOVABLE_ONLY(BackendVulkan);
+
+  HwHandle<HwSwapchain> createSwapchain(
+      const SwapchainOptions& options) noexcept override;
 
   //   RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,
   //                                       uint32_t depth) noexcept override;

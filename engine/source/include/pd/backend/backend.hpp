@@ -1,5 +1,8 @@
 #pragma once
 
+#include "pd/backend/hw_handle.hpp"
+#include "pd/backend/hw_swapchain.hpp"
+
 namespace pd {
 class IWindow;
 class IBackend {
@@ -11,5 +14,10 @@ class IBackend {
   IBackend() noexcept = default;
   virtual ~IBackend() = default;
   MOVABLE_ONLY(IBackend);
+
+  virtual HwHandle<HwSwapchain> createSwapchain(
+      const SwapchainOptions& options) noexcept {
+    return HwHandle<HwSwapchain>{};
+  }
 };
 }  // namespace pd

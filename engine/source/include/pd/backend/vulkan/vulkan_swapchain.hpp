@@ -1,9 +1,13 @@
 #pragma once
 
-#include "pd/platform/rhi/vulkan/vulkan_common.hpp"
+#include "pd/backend/vulkan/vulkan_common.hpp"
+#include "pd/backend/vulkan/resource/vulkan_resource.hpp"
+#include "pd/backend/hw_swapchain.hpp"
 
 namespace pd {
 class VulkanContext;
+
+struct Swapchain_t;
 struct SwapChainInfo {
   VkFormat imageFormat{VK_FORMAT_B8G8R8A8_SRGB};
   VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
@@ -23,45 +27,31 @@ struct SwapChainInfo {
   // sync objects for each swapchain images
   std::vector<VkSemaphore> renderFinishedSemaphore;
 };
-class VulkanSwapchain {
- public:
-  explicit VulkanSwapchain(const VulkanContext& ctx) noexcept;
+struct VulkanSwapchain : public HwSwapchain, VulkanResource {
+  //   bool initialize(uint32_t width, uint32_t height) noexcept;
 
-  ~VulkanSwapchain();
+  //   bool initialized() const noexcept { return mInitialized; }
 
-  VulkanSwapchain(const VulkanSwapchain&) = delete;
-  VulkanSwapchain& operator=(const VulkanSwapchain&) = delete;
-  VulkanSwapchain(VulkanSwapchain&&) noexcept = delete;
-  VulkanSwapchain& operator=(VulkanSwapchain&&) noexcept = delete;
+  //   void shutdown() noexcept;
 
-  bool initialize(uint32_t width, uint32_t height) noexcept;
+  //   bool createSwapchain(uint32_t width, uint32_t height) noexcept;
 
-  bool initialized() const noexcept { return mInitialized; }
+  //   void destroySwapchain() noexcept;
 
-  void shutdown() noexcept;
+  //   size_t imageCount() const noexcept { return mSwapChainInfo.images.size(); }
 
-  bool createSwapchain(uint32_t width, uint32_t height) noexcept;
+  //   bool acquireNextImage(VkSemaphore imageAvailableSemaphore) noexcept;
 
-  void destroySwapchain() noexcept;
+  //   VkSemaphore getCurrentRenderFinishedSemaphore() noexcept {
+  //     return mSwapChainInfo.renderFinishedSemaphore[mCurrentImageIndex];
+  //   }
 
-  size_t imageCount() const noexcept { return mSwapChainInfo.images.size(); }
+  //   uint32_t getCurrentImageIndex() const noexcept { return mCurrentImageIndex; }
 
-  bool acquireNextImage(VkSemaphore imageAvailableSemaphore) noexcept;
+  //   void present() noexcept;
 
-  VkSemaphore getCurrentRenderFinishedSemaphore() noexcept {
-    return mSwapChainInfo.renderFinishedSemaphore[mCurrentImageIndex];
-  }
-
-  uint32_t getCurrentImageIndex() const noexcept { return mCurrentImageIndex; }
-
-  void present() noexcept;
-
- private:
-  bool mInitialized = false;
-
-  const VulkanContext& mContext;
   VkSwapchainKHR mSwapChain{VK_NULL_HANDLE};
   SwapChainInfo mSwapChainInfo;
-  uint32_t mCurrentImageIndex = 0;
+  //   uint32_t mCurrentImageIndex = 0;
 };
 }  // namespace pd

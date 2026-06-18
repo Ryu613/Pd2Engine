@@ -8,9 +8,11 @@ class VulkanContext {
  public:
   struct Config {
     std::string appName = global::DefaultWindowTitle;
-    bool enableValidationLayer = true;
-    void* nativeWindowHandle = nullptr;
+    uint32_t windowWidth = global::DefaultWindowWidth;
+    uint32_t windowHeight = global::DefaultWindowHeight;
     std::vector<const char*> requiredInstanceExtensions;
+    void* nativeWindowHandle = nullptr;
+    bool enableValidationLayer = true;
   };
   struct QueueInfo {
     uint32_t graphicsQueueFamilyIndex = global::VkInvalidIndex;

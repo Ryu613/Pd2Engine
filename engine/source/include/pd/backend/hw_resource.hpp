@@ -1,7 +1,7 @@
 #pragma once
 
 namespace pd {
-class HwResource {};
+struct HwResource {};
 
 template <typename T>
 concept BaseOfHwResource = std::derived_from<T, HwResource>;
