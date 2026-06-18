@@ -55,7 +55,8 @@ target_sources(engine_lib
         include/pd/backend/backend.hpp
         include/pd/backend/backend_factory.hpp
         include/pd/backend/hw_enums.hpp
-        include/pd/backend/texture_options.hpp
+        include/pd/backend/hw_handle.hpp
+        include/pd/backend/hw_swapchain.hpp
         include/pd/backend/hw_texture.hpp
         # resource
         include/pd/resource/resource_handle.hpp
@@ -123,6 +124,7 @@ target_sources(engine_lib
         include/pd/backend/vulkan/backend_vulkan.hpp
 		include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
 		include/pd/backend/vulkan/resource/vulkan_resource.hpp
+		include/pd/backend/vulkan/vulkan_swapchain.hpp
 		include/pd/backend/vulkan/vulkan_image.hpp
 		#include/pd/backend/vulkan/vulkan_swapchain.hpp
 		#include/pd/backend/vulkan/vulkan_frame.hpp
