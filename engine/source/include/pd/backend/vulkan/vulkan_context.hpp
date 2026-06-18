@@ -22,17 +22,19 @@ class VulkanContext {
   ~VulkanContext();
   MOVABLE_ONLY(VulkanContext);
 
-  //   VkInstance getVkInstance() const noexcept { return mInstance; }
+  [[nodiscard]] VkInstance getVkInstance() const noexcept { return mInstance; }
 
-  //   VkPhysicalDevice getPhysicalDevice() const noexcept { return mPhysicalDevice; }
+  [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const noexcept {
+    return mPhysicalDevice;
+  }
 
-  //   VkDevice getDevice() const noexcept { return mDevice; }
+  [[nodiscard]] VkDevice getDevice() const noexcept { return mDevice; }
 
-  //   VkSurfaceKHR getSurface() const noexcept { return mSurface; }
+  [[nodiscard]] VkSurfaceKHR getSurface() const noexcept { return mSurface; }
 
-  //   QueueInfo getQueueInfo() const noexcept { return mQueueInfo; }
+  [[nodiscard]] QueueInfo getQueueInfo() const noexcept { return mQueueInfo; }
 
-  //   VmaAllocator getVmaAllocator() const noexcept { return mVmaAllocator; }
+  [[nodiscard]] VmaAllocator getVmaAllocator() const noexcept { return mVmaAllocator; }
 
  private:
   Config mConfig;
@@ -50,5 +52,6 @@ class VulkanContext {
   bool createSurface(void* nativeWindowHandle) noexcept;
   void init() noexcept;
   void destroy() noexcept;
+  std::vector<const char*> getInstanceExtensions() const noexcept;
 };
 }  // namespace pd

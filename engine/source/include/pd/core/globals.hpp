@@ -23,6 +23,11 @@ namespace global {
 inline const std::string DefaultWindowTitle{"PDEngine"};
 inline constexpr uint32_t DefaultWindowWidth = 1024;
 inline constexpr uint32_t DefaultWindowHeight = 768;
+#ifdef NDEBUG
+inline constexprt bool enableDebug = false;
+#else
+inline constexpr bool enableDebug = true;
+#endif
 
 }  // namespace global
 

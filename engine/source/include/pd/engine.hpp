@@ -1,6 +1,8 @@
 #pragma once
 
 #include "pd/core/allocators.hpp"
+#include "pd/core/config.hpp"
+#include "pd/core/error.hpp"
 #include "pd/platform/platform.hpp"
 #include "pd/backend/backend.hpp"
 #include "pd/rendering/layer/layer.hpp"
@@ -11,17 +13,9 @@ namespace pd {
  */
 class Engine {
  public:
-  struct Config {
-    std::string appName = global::DefaultWindowTitle;
-    uint32_t windowWidth = global::DefaultWindowWidth;
-    uint32_t windowHeight = global::DefaultWindowHeight;
-    bool enableDebug = true;
-  };
-  enum class Error : uint8_t {
-    InitializeFailed,
-    RunFailed,
-    LayerNotFound,
-  };
+  using Config = EngineConfig;
+  using Error = EngineError;
+
   template <typename T>
   using EngineResult = Result<T, Error>;
 

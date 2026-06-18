@@ -7,6 +7,32 @@
 #include "vk_mem_alloc.h"
 
 namespace pd {
+namespace {
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+  switch (messageSeverity) {
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+      log::debug("validation layer: {}", pCallbackData->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+      log::info("validation layer: {}", pCallbackData->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+      log::warn("validation layer: {}", pCallbackData->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+      log::error("validation layer: {}", pCallbackData->pMessage);
+      break;
+    default:
+      log::trace("validation layer: {}", pCallbackData->pMessage);
+      break;
+  }
+
+  return VK_FALSE;
+}
+}  // namespace
 VulkanContext::VulkanContext(Config config) noexcept
     : mConfig(std::move(config)) {
   init();
@@ -16,11 +42,15 @@ VulkanContext::~VulkanContext() { destroy(); }
 
 void VulkanContext::init() noexcept {
   volkInitialize();
+
+  auto extenions = getInstanceExtensions();
+  //   auto layers = getInstanceLayers();
   vkb::InstanceBuilder instanceBuilder;
   auto builder = instanceBuilder.set_app_name(mConfig.appName.c_str())
                      .use_default_debug_messenger()
                      .require_api_version(1, 3, 0)
-                     .enable_extensions(mConfig.requiredInstanceExtensions);
+                     .enable_extensions(extenions)
+                     .set_debug_callback(debugCallback);
   if (mConfig.enableValidationLayer) {
     builder.request_validation_layers();
   }
@@ -157,5 +187,15 @@ bool VulkanContext::createSurface(void* nativeWindowHandle) noexcept {
   PD_ASSERT_MSG(false, "illegal operation!");
 #endif
   return true;
+}
+
+std::vector<const char*> VulkanContext::getInstanceExtensions() const noexcept {
+  std::vector<const char*> extensions = mConfig.requiredInstanceExtensions;
+#if VK_EXT_debug_utils
+  if (mConfig.enableValidationLayer) {
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  }
+#endif
+  return extensions;
 }
 }  // namespace pd

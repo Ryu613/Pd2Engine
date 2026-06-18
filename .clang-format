@@ -4,7 +4,7 @@ BasedOnStyle: Google
 # 代码一行最多多少个字符: 90
 ColumnLimit: 90
 
-# 对#include头文件在哪行(自动排序): 从不
+# 对#include头文件在哪一行进行自动排序: 从不
 SortIncludes: Never
 
 # 构造函数的初始化成员要不要放一起: 从不

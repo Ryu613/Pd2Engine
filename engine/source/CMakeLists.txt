@@ -35,7 +35,7 @@ target_sources(engine_lib
         include/pd/core/globals.hpp
         include/pd/core/logging.hpp
         include/pd/core/assert.hpp
-        include/pd/core/handle.hpp
+        include/pd/core/utils/handle.hpp
         include/pd/core/utils/memory.hpp
         include/pd/core/allocators.hpp
         # platform
@@ -51,6 +51,12 @@ target_sources(engine_lib
         include/pd/platform/file/std_file_system.hpp
         # platform:win32
         include/pd/platform/os/win32/platform_win32.hpp
+        # backend
+        include/pd/backend/backend.hpp
+        include/pd/backend/backend_factory.hpp
+        include/pd/backend/hw_enums.hpp
+        include/pd/backend/texture_options.hpp
+        include/pd/backend/hw_texture.hpp
         # resource
         include/pd/resource/resource_handle.hpp
         include/pd/resource/resource.hpp
@@ -111,14 +117,20 @@ target_sources(engine_lib
 if(${PD2_BACKEND} STREQUAL "VULKAN")
 target_sources(engine_lib
     PUBLIC
-        include/pd/backend/vulkan/backend_vulkan.hpp
+        include/pd/backend/vulkan/vulkan_common.hpp
+        include/pd/backend/vulkan/vulkan_types.hpp
 		include/pd/backend/vulkan/vulkan_context.hpp
+        include/pd/backend/vulkan/backend_vulkan.hpp
+		include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
+		include/pd/backend/vulkan/resource/vulkan_resource.hpp
+		include/pd/backend/vulkan/vulkan_image.hpp
 		#include/pd/backend/vulkan/vulkan_swapchain.hpp
 		#include/pd/backend/vulkan/vulkan_frame.hpp
 		#include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
     PRIVATE
         src/backend/vulkan/backend_vulkan.cpp
 		src/backend/vulkan/vulkan_context.cpp
+		src/backend/vulkan/resource/vulkan_resource_manager.cpp
 		#src/platform/rhi/vulkan/vulkan_swapchain.cpp
 		#src/platform/rhi/vulkan/vulkan_frame.cpp
 		#src/platform/rhi/vulkan/resource/vulkan_resource_manager.cpp
@@ -140,6 +152,7 @@ target_include_directories(engine_lib
     PUBLIC
         include
         ${PD2_ENGINE_LIB_PUBLIC_INCLUDE}
+        # export macro header file
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     PRIVATE
         src

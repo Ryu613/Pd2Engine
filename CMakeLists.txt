@@ -33,7 +33,7 @@ endif()
 
 project(PD2
     VERSION 0.1.0
-    DESCRIPTION "Pd2Engine: A modern C++ lightweight realtime 3D rendering engine"
+    DESCRIPTION "Pd2Engine: A modern C++ 3D realtime rendering engine"
 )
 
 include(GenerateExportHeader)
@@ -42,7 +42,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# put 3rd party libs in the same dir, should be set before including libs
+# put 3rd party libs in the same dir, must be set before including libs
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

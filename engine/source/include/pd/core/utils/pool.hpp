@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include "pd/core/utils/handle.hpp"
 
 namespace pd {
@@ -17,7 +16,7 @@ class Pool {
   using PoolType = std::vector<TPool>;
 
   explicit Pool(uint32_t capacity) noexcept
-      : mCapacity(size) {
+      : mCapacity(capacity) {
     mData.reserve(capacity);
     mGens.reserve(capacity);
     mFreeIndices.reserve(capacity);
@@ -28,7 +27,7 @@ class Pool {
       : mData(std::exchange(rhs.mData, {})),
         mGens(std::exchange(rhs.mGens, {})),
         mFreeIndices(std::exchange(rhs.mFreeIndices, {})),
-        mCapacity()(std::exchange(rhs.mCapacity, 0)) {}
+        mCapacity(std::exchange(rhs.mCapacity, 0)) {}
   Pool& operator=(Pool&& rhs) noexcept {
     mData = std::exchange(rhs.mData, {});
     mGens = std::exchange(rhs.mGens, {});
@@ -46,7 +45,7 @@ class Pool {
     if (!isValidHandle(handle)) {
       return nullptr;
     }
-    return const_cast<T*>(&mData[handle.mId]);
+    return const_cast<T*>(&mData[handle.id()]);
   }
 
   template <typename... Args>
@@ -55,19 +54,21 @@ class Pool {
       growCapacity();
     }
     TypedHandle<THandleTag> handle;
+    auto handleId = handle.id();
+    auto handleGen = handle.gen();
     // 有空位用空位，没有就加
     if (mFreeIndices.size() > 0) {
-      handle.mId = mFreeIndices.back();
+      handle.setId(mFreeIndices.back());
       mFreeIndices.pop_back();
       // 在清除时gen已经更新过了
-      handle.mGen = mGens[handle.mId].gen;
-      mGens[handle.mId].isAlive = true;
-      mData[handle.mId] = T(std::forward<Args>(args)...);
+      handle.setGen(mGens[handleId].gen);
+      mGens[handleId].isAlive = true;
+      mData[handleId] = T(std::forward<Args>(args)...);
     } else {
       mData.emplace_back(std::forward<Args>(args)...);
       mGens.emplace_back(GenerationEntry{1, true});
-      handle.mId = mData.size() - 1;
-      handle.mGen = 1;
+      handle.setId(mData.size() - 1);
+      handle.setGen(1);
     }
     return handle;
   }
@@ -83,11 +84,12 @@ class Pool {
     if (!isValidHandle(handle)) {
       return;
     }
-    auto& entry = mGens[handle.mId];
+    auto handleId = handle.id();
+    auto& entry = mGens[handleId];
     ++entry.gen;
     entry.isAlive = false;
 
-    mFreeIndices.push_back(handle.mId);
+    mFreeIndices.push_back(handleId);
   }
 
   /**
@@ -119,8 +121,10 @@ class Pool {
   uint32_t mCapacity = 0;
 
   bool isValidHandle(const TypedHandle<THandleTag>& handle) const noexcept {
-    return handle.isValid() && handle.mId < mData.size() &&
-           handle.mGen == mGens[handle.mId].gen && mGens[handle.mId].isAlive;
+    auto handleId = handle.id();
+    auto handleGen = handle.gen();
+    return handle.isValid() && handleId < mData.size() &&
+           handleGen == mGens[handleId].gen && mGens[handleId].isAlive;
   }
 
   void growCapacity() noexcept;

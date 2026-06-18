@@ -41,6 +41,9 @@ class BaseHandle {
     return mId == other.mId && mGen == other.mGen;
   }
 
+  void setId(HandleId id) noexcept { mId = id; }
+  void setGen(uint32_t gen) noexcept { mGen = gen; }
+
  private:
   HandleId mId = nullId;
   uint32_t mGen = 0;
@@ -50,8 +53,6 @@ template <typename T>
 class TypedHandle : public BaseHandle {
  public:
   TypedHandle() noexcept = default;
-  MOVABLE_ONLY(TypedHandle);
-  ~TypedHandle() = default;
 
  protected:
   TypedHandle(HandleId id, uint32_t gen)
