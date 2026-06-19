@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.31)
 
 include(cmake/ProjectBase.cmake)
 
-option(PD2_BUILD_TESTS "include test suit and build unit test code" ON)
-option(PD2_BUILD_SAMPLES "build engine samples(in directory: samples/)" OFF)
-option(PD2_BUILD_LIBS "build libs with using engine or used by engine" OFF)
-option(PD2_BUILD_DOCS "Build the API documentation" OFF)
+option(PD2_BUILD_TESTS "build unit test" ON)
+option(PD2_BUILD_SAMPLES "build engine samples" OFF)
+option(PD2_BUILD_LIBS "build libs" OFF)
+option(PD2_BUILD_DOCS "Build documentation" OFF)
 
 set(PD2_BACKEND "VULKAN")
 set(PD2_WINDOW "SDL3")
@@ -22,13 +22,13 @@ message(STATUS "USE_SHADER_LANG:${PD2_SHADER_LANG}")
 if(PD2_BACKEND STREQUAL "VULKAN")
     list(APPEND VCPKG_MANIFEST_FEATURES "backend-vulkan")
 else()
-    message(FATAL_ERROR "USE_BACKEND 不符合要求，当前值是: ${PD2_BACKEND}")
+    message(FATAL_ERROR "USE_BACKEND not correct: ${PD2_BACKEND}")
 endif()
 
 if(PD2_SHADER_LANG STREQUAL "SLANG")
     list(APPEND VCPKG_MANIFEST_FEATURES "slang")
 else()
-    message(FATAL_ERROR "PD2_SHADER_LANG 不符合要求，当前值是: ${PD2_SHADER_LANG}")
+    message(FATAL_ERROR "PD2_SHADER_LANG not correct: ${PD2_SHADER_LANG}")
 endif()
 
 project(PD2
