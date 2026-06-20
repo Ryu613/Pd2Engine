@@ -3,6 +3,6 @@
 namespace pd {
 namespace std {
 template <typename T>
-class vector {}
+class Vector {}
 }  // namespace std
 }  // namespace pd

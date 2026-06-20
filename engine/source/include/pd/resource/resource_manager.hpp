@@ -1,59 +1,52 @@
 #pragma once
 
 #include <typeindex>
-#include <unordered_map>
 
-#include "pd/core/allocators.hpp"
+#include "pd/core/utils/pool.hpp"
 #include "pd/resource/resource_handle.hpp"
+#include "pd/resource/resource/texture_resource.hpp"
 
 namespace pd {
 /**
- * @brief 负责资源的注册，加载，卸载，管理资源的生命周期
+ * @brief 统一管理运行时内存资源
  *
- * TODO:
- * 本版本不区分资产和运行时的资源
- * 前者应该包括资产处理成引擎内资源的过程,后者是对处理好的资产生成1个或多个资源方便在运行时使用
- * handle id暂时采用自增，未采用分代+freelist
  */
 class ResourceManager {
  public:
+  template <typename T>
+  using Handle = ResourceHandle<T>;
+
   ResourceManager() noexcept = default;
   ~ResourceManager() = default;
+  MOVABLE_ONLY(ResourceManager);
 
-  NO_COPY_MOVE(ResourceManager);
-
-  /**
-   * @brief 运行时资源注册
-   *
-   * @tparam T 资源类型
-   * @param t 具体资源实例
-   * @return ResourceHandle<T> 资源句柄
-   */
-  template <BaseOfResource T>
-  [[nodiscard]] ResourceHandle<T> registerResource(T& t) noexcept {
-    // 为resource生成id
-    t.mId = generateId();
-    const auto& resourceId = t.getId();
-    // 判断此资源是否已注册(根据resourcePath)
+  template <typename TTag, BaseOfResource T>
+  Handle<TTag> registerResource(T&& t) noexcept {
+    // 判重
     auto typeIndex = std::type_index(typeid(T));
-    // 若T不存在会创建一个map,故此处可以这么写
+    // 若T不存在会创建一个map,若存在则获取这个map
     auto& resourceTypeMap = mRegistry[typeIndex];
-    auto resourceIt = resourceTypeMap.find(resourceId);
+    auto resourceIt = resourceTypeMap.find(t.mId);
     // 若已注册，引用计数+1. 返回对应的句柄
     if (resourceIt != resourceTypeMap.end()) {
-      resourceIt->second.refCount++;
-      return ResourceHandle<T>{resourceIt->first};
-      // 若未注册，把其注册并返回句柄
+      auto& [handle, refCount] = resourceIt->second;
+      refCount++;
+      // 同一个资源多次注册，handle的id和gen是相同的
+      return Handle<TTag>{handle.id(), handle.gen()};
     }
-    // 写到注册表，key为此resource, value为Resource*
-    resourceTypeMap.emplace(resourceId, &t);
-    // 引用计数+1(若不存在会自动创建)
-    resourceTypeMap[resourceId].refCount++;
-
-    return ResourceHandle<T>(resourceId);
+    // 若未注册，把其注册并返回句柄
+    const auto newId = t.mId;
+    auto& pool = findPool<TTag>();
+    auto handle = pool.emplace(std::forward<T>(t));
+    // 写到注册表，key为此resource的id, value为handle的指针
+    resourceTypeMap.emplace(newId, ResourceEntry{
+                                       .handle = BaseHandle{handle.id(), handle.gen()},
+                                       .refCount = 1,
+                                   });
+    return handle;
   }
 
-  template <BaseOfResource T>
+  template <typename TTag, BaseOfResource T>
   bool hasResource(const Resource::IdType& resourceId) noexcept {
     auto typeIt = mRegistry.find(std::type_index(typeid(T)));
     if (typeIt == mRegistry.end()) {
@@ -64,9 +57,9 @@ class ResourceManager {
     return resourceIt != resourceMap.end();
   }
 
-  template <BaseOfResource T>
-  void release(ResourceHandle<T> handle) noexcept {
-    Resource* resource = getResource<T>(handle.getId());
+  template <typename TTag, BaseOfResource T>
+  void release(Handle<TTag> handle) noexcept {
+    Resource* resource = getResource<TTag>(handle.getId());
     if (resource == nullptr) {
       return;
     }
@@ -84,21 +77,18 @@ class ResourceManager {
   void gc() noexcept;
 
  private:
-  HeapAllocator mArena;
-  uint32_t mCurrentId = 0;
-
   struct ResourceEntry {
-    Resource* resource = nullptr;
-    uint32_t refCount = 0;
+    BaseHandle handle;
+    uint32_t refCount = 0u;
   };
-  // 两阶段存储,先按resource的类型查询，再按id查询
-  // 只负责维护资源注册表,不维护引用计数
+  // 两阶段存储, 先按resource的类型查询，再按id查询
   using Registry =
       std::unordered_map<std::type_index,
                          std::unordered_map<Resource::IdType, ResourceEntry>>;
   Registry mRegistry;
+  Pool<TextureResource, TextureResource_t> mTextures{1024};
 
-  template <BaseOfResource T>
+  template <typename TTag, BaseOfResource T>
   Resource* getResource(const Resource::IdType& resourceId) noexcept {
     auto typeIt = mRegistry.find(std::type_index(typeid(T)));
     if (typeIt == mRegistry.end()) {
@@ -106,9 +96,27 @@ class ResourceManager {
     }
     auto& resourceMap = typeIt->second;
     auto resourceIt = resourceMap.find(resourceId);
-    return resourceIt == resourceMap.end() ? nullptr : resourceIt->second.resource;
+    if (resourceIt == resourceMap.end()) {
+      return nullptr;
+    }
+    auto handle = resourceIt->second.handle;
+    if constexpr (std::is_same_v<TTag, TextureResource_t>) {
+      auto typedHandle = Handle<TTag>{handle.id(), handle.gen()};
+      auto* resource = mTextures.get(typedHandle);
+      return resource;
+    } else {
+      static_assert(false, "resource type not supported!");
+    }
+    return nullptr;
   }
 
-  [[nodiscard]] Resource::IdType generateId() noexcept { return mCurrentId++; }
+  template <typename TTag>
+  auto& findPool() {
+    if constexpr (std::is_same_v<TTag, TextureResource_t>) {
+      return mTextures;
+    } else {
+      static_assert(false, "resource type not supported!");
+    }
+  }
 };
 }  // namespace pd

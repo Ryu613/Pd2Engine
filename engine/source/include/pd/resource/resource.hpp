@@ -5,7 +5,7 @@
 namespace pd {
 class Resource {
  public:
-  using IdType = uint32_t;
+  using IdType = std::string;
 
   enum class Status : uint8_t {
     Unload = 1,
@@ -13,6 +13,7 @@ class Resource {
     Loaded,
   };
   Resource() noexcept = default;
+
   virtual ~Resource() = default;
 
   MOVABLE_ONLY(Resource);
@@ -40,13 +41,14 @@ class Resource {
   virtual void doLoad() noexcept = 0;
   virtual void doUnload() noexcept = 0;
 
-  explicit Resource(IdType id) noexcept
-      : mId(id) {}
+  explicit Resource(IdType id, Status status = Status::Unload) noexcept
+      : mId(std::move(id)),
+        mStatus(status) {}
 
  private:
   friend class ResourceManager;
 
-  IdType mId{};
+  IdType mId;
   Status mStatus = Status::Unload;
 };
 

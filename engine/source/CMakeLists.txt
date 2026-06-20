@@ -74,6 +74,7 @@ target_sources(engine_lib
         include/pd/scene/entity.hpp
         include/pd/scene/scene.hpp
         include/pd/scene/scene_descriptor.hpp
+        include/pd/scene/scene_manager.hpp
         include/pd/scene/skybox.hpp
         include/pd/scene/view.hpp
         include/pd/scene/component/components.hpp

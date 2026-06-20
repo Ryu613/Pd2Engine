@@ -1,12 +1,10 @@
 #pragma once
 
+#include "pd/backend/hw_enums.hpp"
 #include "pd/resource/resource.hpp"
 
 namespace pd {
-enum class TextureFormat : uint16_t {
-  RGBA8_UNORM,
-  RGBA8_SRGB,
-};
+struct TextureResource_t;
 /**
  * @brief 纹理资源，在运行时会用做渲染资源
  * @todo only vulkan supported now
@@ -16,16 +14,25 @@ class TextureResource : public Resource {
   struct Properties {
     std::string name;
     std::string path;
-    uint32_t width;
-    uint32_t height;
+    uint32_t width = 0;
+    uint32_t height = 0;
     uint32_t channel = 4;
-    TextureFormat format = TextureFormat::RGBA8_UNORM;
+    TextureFormat format = TextureFormat::RGBA8Unorm;
     void* pSourceData = nullptr;
   };
 
   explicit TextureResource(Properties props) noexcept;
   ~TextureResource();
-  MOVABLE_ONLY(TextureResource);
+
+  TextureResource(const TextureResource& other) = delete;
+  TextureResource& operator=(const TextureResource& other) = delete;
+  TextureResource(TextureResource&& rhs) noexcept = default;
+  TextureResource& operator=(TextureResource&& rhs) noexcept {
+    Resource::operator=(std::move(rhs));
+    mProperties = std::exchange(rhs.mProperties, {});
+    mSourceData = std::exchange(rhs.mSourceData, {});
+    return *this;
+  }
 
   std::string getPath() const noexcept { return mProperties.path; }
 

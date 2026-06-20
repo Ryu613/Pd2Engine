@@ -9,7 +9,7 @@ class Scene {
  public:
   Scene() noexcept = default;
   ~Scene() = default;
-  NO_COPY_MOVE(Scene);
+  MOVABLE_ONLY(Scene);
 
   Entity addEntity(Entity entity) noexcept;
   Entity removeEntity(Entity entity) noexcept;

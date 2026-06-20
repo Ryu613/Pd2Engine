@@ -6,6 +6,9 @@
 #include "pd/platform/platform.hpp"
 #include "pd/backend/backend.hpp"
 #include "pd/rendering/layer/layer.hpp"
+#include "pd/resource/resource_manager.hpp"
+#include "pd/asset/asset_manager.hpp"
+#include "pd/scene/scene_manager.hpp"
 #include "pd/rendering/renderer.hpp"
 
 namespace pd {
@@ -29,12 +32,10 @@ class Engine {
 
   void shutdown() noexcept;
 
-  //   template <DerivedSceneDescriptor T, typename... Args>
-  //   std::expected<void, EngineError> loadScene(Args&&... args) noexcept {
-  //     mSceneDescriptor = std::make_unique<T>(std::forward<Args>(args)...);
-  //     mSceneDescriptor->onLoad(*mAssetManager, mEntityManager, mTransformManager,
-  //                              mCameraManager, mScene);
-  //   }
+  template <BaseOfSceneDescriptor T, typename... Args>
+  EngineResult<void> createScene(Args&&... args) noexcept {
+    return mSceneManager.initializeScene<T>(std::forward<Args>(args)...);
+  }
 
   /**
    * @brief 创建界面层, 支持运行时创建和销毁
@@ -82,8 +83,12 @@ class Engine {
 
   std::unique_ptr<IPlatform> mPlatform;
   std::unique_ptr<IBackend> mBackend;
-
   std::vector<std::unique_ptr<ILayer>> mLayers;
+
+  ResourceManager mResourceManager;
+  //   AssetManager mAssetManager;
+  SceneManager mSceneManager;
+
   Renderer mRenderer;
 
   //   ResourceManager mResourceManager;

@@ -11,6 +11,22 @@ class BaseHandle {
   static constexpr HandleId nullId = HandleId{UINT32_MAX};
 
   BaseHandle() noexcept = default;
+  // 可拷可移
+  BaseHandle(const BaseHandle&) = default;
+  BaseHandle& operator=(const BaseHandle&) = default;
+  BaseHandle(BaseHandle&& rhs) noexcept
+      : mId(std::exchange(rhs.mId, nullId)),
+        mGen(std::exchange(rhs.mGen, 0)) {}
+  BaseHandle& operator=(BaseHandle&& rhs) noexcept {
+    if (this != &rhs) {
+      mId = std::exchange(rhs.mId, nullId);
+      mGen = std::exchange(rhs.mGen, 0);
+    }
+    return *this;
+  }
+  bool operator==(const BaseHandle& other) const {
+    return mId == other.mId && mGen == other.mGen;
+  }
 
   explicit operator bool() const noexcept { return mId != nullId; };
   [[nodiscard]] bool isValid() const noexcept { return mId != nullId && mGen != 0; };
@@ -24,27 +40,14 @@ class BaseHandle {
   explicit BaseHandle(HandleId id, uint32_t gen) noexcept
       : mId(id),
         mGen(gen) {}
-  // 可拷可移
-  BaseHandle(const BaseHandle&) = default;
-  BaseHandle& operator=(const BaseHandle&) = default;
-  BaseHandle(BaseHandle&& rhs) noexcept
-      : mId(std::exchange(rhs.mId, nullId)),
-        mGen(std::exchange(rhs.mGen, 0)) {}
-  BaseHandle& operator=(BaseHandle&& rhs) noexcept {
-    mId = std::exchange(rhs.mId, nullId);
-    mGen = std::exchange(rhs.mGen, 0);
-    return *this;
-  }
   // 可非虚，不会通过此类delete对象
   ~BaseHandle() = default;
-  bool operator==(const BaseHandle& other) const {
-    return mId == other.mId && mGen == other.mGen;
-  }
 
   void setId(HandleId id) noexcept { mId = id; }
   void setGen(uint32_t gen) noexcept { mGen = gen; }
 
  private:
+  friend class ResourceManager;
   HandleId mId = nullId;
   uint32_t mGen = 0;
 };
@@ -53,6 +56,18 @@ template <typename T>
 class TypedHandle : public BaseHandle {
  public:
   TypedHandle() noexcept = default;
+  ~TypedHandle() = default;
+  TypedHandle(const TypedHandle& handle) = default;
+  TypedHandle& operator=(const TypedHandle& handle) {
+    BaseHandle::operator=(handle);
+    return *this;
+  }
+
+  TypedHandle(TypedHandle&& rhs) noexcept = default;
+  TypedHandle& operator=(TypedHandle&& rhs) noexcept {
+    BaseHandle::operator=(std::move(rhs));
+    return *this;
+  }
 
  protected:
   TypedHandle(HandleId id, uint32_t gen)
@@ -61,6 +76,7 @@ class TypedHandle : public BaseHandle {
  private:
   template <typename U, typename V>
   friend class Pool;
+  friend class ResourceManager;
 };
 
 }  // namespace pd

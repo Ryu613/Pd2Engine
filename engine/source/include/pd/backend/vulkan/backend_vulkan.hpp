@@ -15,6 +15,10 @@ class BackendVulkan : public IBackend {
   ~BackendVulkan();
   MOVABLE_ONLY(BackendVulkan);
 
+  [[nodiscard]] GraphicsApi graphicsApi() const noexcept override {
+    return IBackend::GraphicsApi::Vulkan;
+  }
+
   HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
   void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
 

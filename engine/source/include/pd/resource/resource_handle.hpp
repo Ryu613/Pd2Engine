@@ -19,7 +19,7 @@ namespace pd {
 //       : BaseHandle(id, gen) {}
 // };
 
-template <BaseOfResource T>
+template <typename T>
 using ResourceHandle = TypedHandle<T>;
 
 }  // namespace pd

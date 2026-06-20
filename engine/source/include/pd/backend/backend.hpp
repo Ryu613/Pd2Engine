@@ -7,6 +7,12 @@ namespace pd {
 class IWindow;
 class IBackend {
  public:
+  enum class GraphicsApi : uint8_t {
+    Vulkan,
+    D3D12,
+    NOOP,
+    Unknown,
+  };
   struct Config {
     IWindow* pWindow = nullptr;
     bool enableDebug = true;
@@ -15,7 +21,12 @@ class IBackend {
   virtual ~IBackend() = default;
   MOVABLE_ONLY(IBackend);
 
-  virtual HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept {
+  [[nodiscard]] virtual GraphicsApi graphicsApi() const noexcept {
+    return GraphicsApi::Unknown;
+  }
+
+  [[nodiscard]] virtual HwHandle<Swapchain_t> createSwapchain(
+      const HwSwapchain& swapchain) noexcept {
     return HwHandle<Swapchain_t>{};
   }
   virtual void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {}

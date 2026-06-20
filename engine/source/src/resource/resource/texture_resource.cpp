@@ -15,7 +15,8 @@ void copySourceData(std::vector<uint8_t>& target, const void* pSource, size_t si
 using Status = TextureResource::Status;
 
 TextureResource::TextureResource(Properties props) noexcept
-    : mProperties(std::move(props)) {
+    : Resource(props.path),
+      mProperties(std::move(props)) {
   size_t dataSize =
       static_cast<size_t>(mProperties.width) * mProperties.height * mProperties.channel;
   copySourceData(mSourceData, mProperties.pSourceData, dataSize);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pd/core/entity.hpp"
+#include "pd/scene/entity.hpp"
 #include "pd/scene/component/components.hpp"
 
 namespace pd {
@@ -8,7 +8,7 @@ class CameraManager {
  public:
   CameraManager() noexcept = default;
   ~CameraManager() = default;
-  NO_COPY_MOVE(CameraManager);
+  MOVABLE_ONLY(CameraManager);
 
   Camera* create(Entity e) noexcept;
   Camera* getInstance(Entity e) noexcept;

@@ -60,7 +60,9 @@ Engine::EngineResult<void> Engine::initialize() noexcept {
   // 创建交换链
   //   mBackend.createSwapchain(pWindow->windowWidth(), pWindow->windowHeight());
 
-  mRenderer = Renderer{mBackend.get(), pWindow};
+  mRenderer = std::move(Renderer{mBackend.get(), pWindow});
+  //   mAssetManager = std::move(AssetManager{mPlatform->fileSystem(),
+  //   &mResourceManager}); mSceneManager = std::move(SceneManager{&mAssetManager});
 
   mInitialized = true;
   return {};
@@ -82,11 +84,18 @@ Engine::EngineResult<void> Engine::run() noexcept {
   if (!mInitialized) {
     return std::unexpected<Error>(Error::RunFailed);
   }
+  // prepare scene data
+  //   auto sceneLoadResult = mSceneManager.loadScene();
+  //   if (!sceneLoadResult) {
+  //     return sceneLoadResult;
+  //   }
   while (!mPlatform->window()->shouldClose()) {
     mPlatform->processEvents();
     for (const auto& eachLayer : mLayers) {
       eachLayer->onUpdate();
     }
+    mSceneManager.updateScene();
+
     mRenderer.beginFrame();
     // mRenderer.renderFrame();
     mRenderer.endFrame();
@@ -96,6 +105,7 @@ Engine::EngineResult<void> Engine::run() noexcept {
 
 Engine::EngineResult<ILayer*> Engine::attachLayer(
     std::unique_ptr<ILayer>&& layer) noexcept {
+  PD_ASSERT_MSG(!mInitialized, "layer should be attached before initialize()");
   mLayers.push_back(std::move(layer));
   auto* pLayer = mLayers.back().get();
   auto result = pLayer->onAttached();

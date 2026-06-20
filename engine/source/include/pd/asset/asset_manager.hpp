@@ -4,7 +4,6 @@
 
 namespace pd {
 class IFileSystem;
-class EntityManager;
 class ResourceManager;
 /**
  * @brief 负责离线资产文件的读取，解析，转换，产出和管理资产信息，供后续使用

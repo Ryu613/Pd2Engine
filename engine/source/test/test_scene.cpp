@@ -2,21 +2,19 @@
 #include "pd/engine.hpp"
 #include "pd/scene/scene_descriptor.hpp"
 
-#include <print>
-
 namespace pd {
 
-class DefaultScene : public SceneDescriptor {
+class TestScene : public SceneDescriptor {
  public:
   void onLoad(AssetManager& assetMgr, EntityManager& entityMgr,
-              TransformManager& transformMgr, CameraManager& cameraMgr,
-              Scene& scene) override {
+              TransformManager& transformMgr, LightManager& lightMgr,
+              CameraManager& cameraMgr, Scene& scene) override {
     /**
      * describe which assets should be used in the scene
      */
 
     // need a gltf model
-    pd::Asset::Info assetInfo{
+    Asset::CreateInfo assetInfo{
         .name = "box",
         .path = "assets/models/props/BoxTextured/BoxTextured.glb",
         .parseType = pd::Asset::Type::Gltf,
@@ -50,7 +48,7 @@ class DefaultScene : public SceneDescriptor {
     view.setMainCamera(cameraEntity);
   }
 
-  void onUnload(Scene& scene) override {
+  void onUnload() override {
     // clear resource which required before rendering
     // for (auto handle : mAssetHandles) {
     // resourceMgr.release(handle);
@@ -67,10 +65,13 @@ TEST_CASE("test_scene", "engine") {
       .enableDebug = true,
   };
   auto engine = std::make_unique<Engine>(config);
-  engine->initialize();
-  auto loadResult = engine->loadScene<pd::DefaultScene>();
-  if (!loadResult) {
-    pd::log::error("scene load failed: {}", loadResult.error());
+  auto engineInitResult = engine->initialize();
+  REQUIRE(engineInitResult);
+
+  auto sceneCreateResult = engine->createScene<pd::TestScene>();
+  if (!sceneCreateResult) {
+    pd::log::error("scene load failed: {}", sceneCreateResult.error());
+    REQUIRE(false);
   }
   auto runResult = engine->run();
 }

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <concepts>
-
 #include "pd/scene/scene.hpp"
 #include "pd/asset/asset_manager.hpp"
+#include "pd/scene/manager/entity_manager.hpp"
 #include "pd/scene/manager/transform_manager.hpp"
+#include "pd/scene/manager/light_manager.hpp"
 #include "pd/scene/manager/camera_manager.hpp"
 
 namespace pd {
@@ -25,16 +26,18 @@ class SceneDescriptor {
    * @brief 在渲染前需要准备好的资产，场景, 视窗
    */
   virtual void onLoad(AssetManager& assetMgr, EntityManager& entityMgr,
-                      TransformManager& transformMgr, CameraManager& cameraMgr,
-                      Scene& scene) = 0;
+                      TransformManager& transformMgr, LightManager& lightMgr,
+                      CameraManager& cameraMgr, Scene& scene) {}
+
+  virtual void unUpdate() noexcept {}
 
   /**
    * @brief 用于在渲染后处理自定义逻辑和清理此场景资源
    */
-  virtual void onUnload(Scene& scene) = 0;
+  virtual void onUnload() {}
 };
 
 // 只允许处理继承了此对象的场景描述类
 template <typename T>
-concept DerivedSceneDescriptor = std::derived_from<T, SceneDescriptor>;
+concept BaseOfSceneDescriptor = std::derived_from<T, SceneDescriptor>;
 }  // namespace pd

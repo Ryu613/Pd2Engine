@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pd/core/entity.hpp"
+#include "pd/scene/entity.hpp"
 #include "pd/scene/component/components.hpp"
 
 namespace pd {
@@ -8,7 +8,7 @@ class LightManager {
  public:
   LightManager() noexcept = default;
   ~LightManager() = default;
-  NO_COPY_MOVE(LightManager);
+  MOVABLE_ONLY(LightManager);
 
   Light* create(Entity e) noexcept;
   Light* getEntity(Entity e) noexcept;

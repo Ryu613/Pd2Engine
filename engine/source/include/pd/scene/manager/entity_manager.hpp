@@ -13,7 +13,7 @@ class EntityManager {
  public:
   EntityManager() noexcept = default;
   ~EntityManager() = default;
-  NO_COPY_MOVE(EntityManager);
+  MOVABLE_ONLY(EntityManager);
 
   /**
    * @brief Create a Entity object

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "pd/core/entity.hpp"
+#include "pd/scene/entity.hpp"
 #include "pd/resource/resource_handle.hpp"
-#include "pd/rendering/resource/mesh_resource.hpp"
-#include "pd/rendering/resource/material_resource.hpp"
+#include "pd/resource/resource/mesh_resource.hpp"
+#include "pd/resource/resource/material_resource.hpp"
 
 namespace pd {
 struct Name {
