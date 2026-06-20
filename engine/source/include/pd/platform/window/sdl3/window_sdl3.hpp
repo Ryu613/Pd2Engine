@@ -15,6 +15,7 @@ class WindowSDL3 : public IWindow {
 
   void resize(uint32_t width, uint32_t height) noexcept override;
   void setTitle(const std::string& title) noexcept override;
+  void processEvent() noexcept override;
 
   [[nodiscard]] void* nativeHandle() const noexcept override;
   [[nodiscard]] bool isRunning() const noexcept override { return !mClosed; }

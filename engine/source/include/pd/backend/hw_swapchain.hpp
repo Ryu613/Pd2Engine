@@ -1,14 +1,19 @@
 #pragma once
 
+#include "pd/backend/hw_handle.hpp"
+#include "pd/backend/hw_enums.hpp"
 #include "pd/backend/hw_resource.hpp"
 
 namespace pd {
-struct SwapchainOptions {
-  uint32_t width = 0;
-  uint32_t height = 0;
-};
+
+struct Swapchain_t;
 
 struct HwSwapchain : public HwResource {
-  SwapchainOptions options;
+  TextureFormat format = TextureFormat::RGBA8SRGB;
+  ColorSpace colorSpace = ColorSpace::SrgbNonLinear;
+  PresentMode presentMode = PresentMode::Fifo;
+  TextureUsage imageUsageFlags = TextureUsage::ColorAttachment;
+  Extent extent;
+  HwHandle<Swapchain_t> oldSwapchain;
 };
 }  // namespace pd

@@ -72,4 +72,21 @@ std::vector<const char*> WindowSDL3::getVulkanInstanceExtensions() noexcept {
   PD_ASSERT_MSG(false, "illegal operation!");
 #endif
 }
+
+void WindowSDL3::processEvent() noexcept {
+  for (SDL_Event event; SDL_PollEvent(&event);) {
+    // quit window
+    if (event.type == SDL_EVENT_QUIT) {
+      mClosed = true;
+      break;
+    }
+    if (event.type == SDL_EVENT_KEY_DOWN) {
+      // 按下esc退出
+      if (event.key.key == SDLK_ESCAPE) {
+        mClosed = true;
+        break;
+      }
+    }
+  }
+}
 }  // namespace pd

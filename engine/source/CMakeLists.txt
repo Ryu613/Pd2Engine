@@ -91,7 +91,6 @@ target_sources(engine_lib
     PRIVATE
         src/engine.cpp
         # core
-        src/core/utils/memory.cpp
         # platform
         src/platform/file/file_system.cpp
         src/platform/file/std_file_system.cpp

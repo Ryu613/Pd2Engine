@@ -6,6 +6,7 @@
 #include "pd/platform/platform.hpp"
 #include "pd/backend/backend.hpp"
 #include "pd/rendering/layer/layer.hpp"
+#include "pd/rendering/renderer.hpp"
 
 namespace pd {
 /**
@@ -83,7 +84,7 @@ class Engine {
   std::unique_ptr<IBackend> mBackend;
 
   std::vector<std::unique_ptr<ILayer>> mLayers;
-  //   Renderer mRenderer;
+  Renderer mRenderer;
 
   //   ResourceManager mResourceManager;
   //   EntityManager mEntityManager;

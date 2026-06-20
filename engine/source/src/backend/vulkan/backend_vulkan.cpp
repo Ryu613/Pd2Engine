@@ -21,9 +21,13 @@ BackendVulkan::~BackendVulkan() {
   // }
 }
 
-HwHandle<HwSwapchain> BackendVulkan::createSwapchain(
-    const SwapchainOptions& options) noexcept {
-  return mVulkanResourceManager.createSwapchain(options);
+HwHandle<Swapchain_t> BackendVulkan::createSwapchain(
+    const HwSwapchain& hwSwapchain) noexcept {
+  return mVulkanResourceManager.createSwapchain(hwSwapchain);
+}
+
+void BackendVulkan::destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {
+  mVulkanResourceManager.destroySwapchain(handle);
 }
 
 /*

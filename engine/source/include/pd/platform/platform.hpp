@@ -32,7 +32,7 @@ class IPlatform {
 
   //   virtual void shutdown() noexcept = 0;
 
-  //   virtual void processEvents() noexcept = 0;
+  virtual void processEvents() noexcept {}
 
   //   virtual bool shouldClose() noexcept = 0;
 

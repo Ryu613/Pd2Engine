@@ -23,12 +23,40 @@ inline VkImageType ToVkImageType(TextureType type) noexcept {
 inline VkFormat ToVkFormat(TextureFormat format) noexcept {
   switch (format) {
     using enum TextureFormat;
-    case RGBA8_Unorm:
+    case RGBA8Unorm:
       return VK_FORMAT_R8G8B8A8_UNORM;
+    case RGBA8SRGB:
+      return VK_FORMAT_R8G8B8A8_SRGB;
     case Undefined:
       return VK_FORMAT_UNDEFINED;
     default:
       PD_ASSERT_MSG(false, "texture format error!");
+  }
+}
+
+inline VkColorSpaceKHR ToVkColorSpaceKHR(ColorSpace colorspace) noexcept {
+  switch (colorspace) {
+    using enum ColorSpace;
+    case SrgbNonLinear:
+      return VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+    default:
+      PD_ASSERT_MSG(false, "color space error!");
+  }
+}
+
+inline VkPresentModeKHR ToVkPresentMode(PresentMode presentMode) noexcept {
+  switch (presentMode) {
+    using enum PresentMode;
+    case Immediate:
+      return VK_PRESENT_MODE_IMMEDIATE_KHR;
+    case Mailbox:
+      return VK_PRESENT_MODE_MAILBOX_KHR;
+    case Fifo:
+      return VK_PRESENT_MODE_FIFO_KHR;
+    case FifoRelaxed:
+      return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+    default:
+      PD_ASSERT_MSG(false, "present mode error!");
   }
 }
 
@@ -41,6 +69,8 @@ inline VkImageUsageFlags GetVkImageUsageFlagBits(TextureUsage usage) noexcept {
     using enum TextureUsage;
     case DefaultUsage:
       return VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    case ColorAttachment:
+      return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     default:
       PD_ASSERT_MSG(false, "texture usage error!");
   }

@@ -28,6 +28,12 @@ struct SwapChainInfo {
   std::vector<VkSemaphore> renderFinishedSemaphore;
 };
 struct VulkanSwapchain : public HwSwapchain, VulkanResource {
+  VulkanSwapchain(const HwSwapchain& swapchain, VulkanResourceManager* mgr,
+                  VkSwapchainKHR vkHandle, SwapChainInfo info) noexcept
+      : HwSwapchain(swapchain),
+        VulkanResource(mgr),
+        handle(vkHandle),
+        swapchainInfo(std::move(info)) {}
   //   bool initialize(uint32_t width, uint32_t height) noexcept;
 
   //   bool initialized() const noexcept { return mInitialized; }
@@ -50,8 +56,8 @@ struct VulkanSwapchain : public HwSwapchain, VulkanResource {
 
   //   void present() noexcept;
 
-  VkSwapchainKHR mSwapChain{VK_NULL_HANDLE};
-  SwapChainInfo mSwapChainInfo;
+  VkSwapchainKHR handle{VK_NULL_HANDLE};
+  SwapChainInfo swapchainInfo;
   //   uint32_t mCurrentImageIndex = 0;
 };
 }  // namespace pd

@@ -13,7 +13,7 @@ class BaseHandle {
   BaseHandle() noexcept = default;
 
   explicit operator bool() const noexcept { return mId != nullId; };
-  [[nodiscard]] bool isValid() const noexcept { return mId != nullId; };
+  [[nodiscard]] bool isValid() const noexcept { return mId != nullId && mGen != 0; };
 
   [[nodiscard]] HandleId id() const noexcept { return mId; }
   [[nodiscard]] uint32_t gen() const noexcept { return mGen; }

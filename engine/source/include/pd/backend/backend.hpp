@@ -15,9 +15,9 @@ class IBackend {
   virtual ~IBackend() = default;
   MOVABLE_ONLY(IBackend);
 
-  virtual HwHandle<HwSwapchain> createSwapchain(
-      const SwapchainOptions& options) noexcept {
-    return HwHandle<HwSwapchain>{};
+  virtual HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept {
+    return HwHandle<Swapchain_t>{};
   }
+  virtual void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {}
 };
 }  // namespace pd

@@ -24,6 +24,7 @@ class IWindow {
 
   virtual void resize(uint32_t width, uint32_t height) noexcept = 0;
   virtual void setTitle(const std::string& title) noexcept = 0;
+  virtual void processEvent() noexcept = 0;
 
   // common getter
   [[nodiscard]] virtual void* nativeHandle() const noexcept { return nullptr; };

@@ -1,8 +1,8 @@
 #pragma once
 
 namespace pd {
-struct HwResource {};
+struct HwResource {
+  std::string_view label;
+};
 
-template <typename T>
-concept BaseOfHwResource = std::derived_from<T, HwResource>;
 }  // namespace pd

@@ -23,7 +23,7 @@ class PlatformWin32 : public IPlatform {
 
   //   void shutdown() noexcept override;
 
-  //   void processEvents() noexcept override;
+  void processEvents() noexcept override;
 
   //   bool shouldClose() noexcept override;
 

@@ -4,10 +4,14 @@
 #include "pd/backend/hw_resource.hpp"
 
 namespace pd {
-struct TextureOptions {
-  std::string debugLabel;
+struct Texture_t;
+/**
+ * @brief gpu层texture表示,纯结构体，只用于记录跨backend的基本信息
+ *
+ */
+struct HwTexture : public HwResource {
   TextureType type = TextureType::TextureType2D;
-  TextureFormat format = TextureFormat::RGBA8_Unorm;
+  TextureFormat format = TextureFormat::RGBA8Unorm;
   Extent extent = {
       .width = 0,
       .height = 0,
@@ -19,15 +23,5 @@ struct TextureOptions {
   uint32_t samples = 1;
   TextureLayout initialLayout = TextureLayout::Undefined;
   bool isProtected = false;
-};
-/**
- * @brief gpu层texture表示,纯结构体，只用于记录跨backend的基本信息
- *
- */
-struct HwTexture : public HwResource {
-  explicit HwTexture(TextureOptions options) noexcept
-      : HwResource(),
-        options(std::move(options)) {}
-  TextureOptions options;
 };
 }  // namespace pd

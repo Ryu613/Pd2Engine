@@ -13,7 +13,7 @@ namespace pd {
 template <typename... Args>
 std::unique_ptr<IBackend> createBackend(IBackend::Config config,
                                         [[maybe_unused]] Args&&... args) {
-#ifdef BACKEND_VULKAN
+#if defined(BACKEND_VULKAN)
   VulkanContext::Config vulkanConfig{
       .appName = config.pWindow->windowTitle(),
       .windowWidth = config.pWindow->windowWidth(),

@@ -15,8 +15,8 @@ class BackendVulkan : public IBackend {
   ~BackendVulkan();
   MOVABLE_ONLY(BackendVulkan);
 
-  HwHandle<HwSwapchain> createSwapchain(
-      const SwapchainOptions& options) noexcept override;
+  HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
+  void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
 
   //   RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,
   //                                       uint32_t depth) noexcept override;

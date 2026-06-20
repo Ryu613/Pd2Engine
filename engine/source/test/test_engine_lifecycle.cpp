@@ -10,4 +10,7 @@ TEST_CASE("test_engine_lifecycle", "engine") {
   auto engine = std::make_unique<Engine>(config);
   auto initResult = engine->initialize();
   REQUIRE(initResult);
+
+  auto runResult = engine->run();
+  REQUIRE(runResult);
 }

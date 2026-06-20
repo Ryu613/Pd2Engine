@@ -18,7 +18,8 @@ enum class TextureType : uint8_t {
 
 enum class TextureFormat : uint16_t {
   Undefined,
-  RGBA8_Unorm,
+  RGBA8Unorm,
+  RGBA8SRGB,
 };
 
 enum class TextureUsage : uint16_t {
@@ -34,6 +35,17 @@ enum class TextureUsage : uint16_t {
 enum class TextureLayout : uint16_t {
   Undefined = 0,
   General = 1,
+};
+
+enum class ColorSpace : uint8_t {
+  SrgbNonLinear,
+};
+
+enum class PresentMode : uint8_t {
+  Immediate,
+  Mailbox,
+  Fifo,
+  FifoRelaxed,
 };
 
 struct Extent {

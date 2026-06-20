@@ -60,6 +60,8 @@ Engine::EngineResult<void> Engine::initialize() noexcept {
   // 创建交换链
   //   mBackend.createSwapchain(pWindow->windowWidth(), pWindow->windowHeight());
 
+  mRenderer = Renderer{mBackend.get(), pWindow};
+
   mInitialized = true;
   return {};
 }
@@ -81,13 +83,13 @@ Engine::EngineResult<void> Engine::run() noexcept {
     return std::unexpected<Error>(Error::RunFailed);
   }
   while (!mPlatform->window()->shouldClose()) {
-    //     mPlatform->processEvents();
+    mPlatform->processEvents();
     for (const auto& eachLayer : mLayers) {
       eachLayer->onUpdate();
     }
-    //     mRenderer->beginFrame();
-    //     // mRenderer->renderFrame();
-    //     mRenderer->endFrame();
+    mRenderer.beginFrame();
+    // mRenderer.renderFrame();
+    mRenderer.endFrame();
   }
   return {};
 }

@@ -16,7 +16,7 @@ class VulkanContext;
  */
 class VulkanResourceManager {
  public:
-  template <BaseOfHwResource T>
+  template <typename T>
   using Handle = HwHandle<T>;
 
   VulkanResourceManager() noexcept = default;
@@ -24,22 +24,23 @@ class VulkanResourceManager {
   ~VulkanResourceManager() = default;
   MOVABLE_ONLY(VulkanResourceManager);
 
-  Handle<HwSwapchain> createSwapchain(const SwapchainOptions& options) noexcept;
-  void destroySwapchain(const Handle<HwSwapchain>& handle) noexcept;
-  [[nodiscard]] VulkanSwapchain* getSwapchain(const Handle<HwSwapchain>& handle) noexcept;
+  Handle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept;
+  void destroySwapchain(const Handle<Swapchain_t>& handle) noexcept;
+  [[nodiscard]] VulkanSwapchain* getSwapchain(
+      const Handle<Swapchain_t>& handle) const noexcept;
 
-  Handle<HwTexture> createImage(const TextureOptions& options) noexcept;
-  void destroyImage(const Handle<HwTexture>& handle) noexcept;
-  [[nodiscard]] VulkanImage* getImage(const Handle<HwTexture>& handle) noexcept;
+  Handle<Texture_t> createImage(const HwTexture& texture) noexcept;
+  void destroyImage(const Handle<Texture_t>& handle) noexcept;
+  [[nodiscard]] VulkanImage* getImage(const Handle<Texture_t>& handle) const noexcept;
 
  private:
   VulkanContext* mVulkanContext = nullptr;
-  Pool<VulkanImage, HwTexture> mTextures{128};
-  Pool<VulkanSwapchain, HwSwapchain> mSwapchains{2};
+  Pool<VulkanImage, Texture_t> mTextures{128};
+  Pool<VulkanSwapchain, Swapchain_t> mSwapchains{1};
 
   template <typename T>
   void setObjectName(VkDevice device, VkObjectType type, T handle,
-                     const std::string& name) noexcept {
+                     std::string_view name) noexcept {
 #if VK_EXT_debug_utils
     if (device == VK_NULL_HANDLE || vkSetDebugUtilsObjectNameEXT == nullptr ||
         name.empty()) {
