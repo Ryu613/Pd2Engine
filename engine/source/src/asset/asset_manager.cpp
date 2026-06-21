@@ -23,10 +23,10 @@ Asset::AssetResult<Asset*> AssetManager::createAsset(
   const Asset::IdType& assetId = assetInfo.path;
   auto it = mAssets.find(assetId);
   if (it != mAssets.end()) {
-    return it->second;
+    return it->second.get();
   }
   // 1 创建资产实例
-  auto newAsset = std::make_unique<Asset>(assetId, assetInfo);
+  auto newAsset = std::unique_ptr<Asset>(new Asset(assetId, assetInfo));
   // 2. 生成资产实例
   auto parseResult = mParsers[static_cast<size_t>(assetInfo.parseType)]->parse(*newAsset);
   if (!parseResult) {
@@ -36,13 +36,12 @@ Asset::AssetResult<Asset*> AssetManager::createAsset(
   auto [insertedIt, success] = mAssets.emplace(assetId, std::move(newAsset));
   PD_ASSERT_MSG(success, "unexpected asset creations!");
 
-  return insertedIt->second;
+  return insertedIt->second.get();
 }
 
 void AssetManager::initParsers() noexcept {
   mParsers.reserve(8);
-  auto gltfParser =
-      std::make_unique<GltfParser>(mFileSystem, mEntityManger, mResourceManager);
+  auto gltfParser = std::make_unique<GltfParser>(mFileSystem, mResourceManager);
   mParsers.push_back(std::move(gltfParser));
 }
 }  // namespace pd

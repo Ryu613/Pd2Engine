@@ -47,6 +47,7 @@ class BaseHandle {
   void setGen(uint32_t gen) noexcept { mGen = gen; }
 
  private:
+  // 用于类型擦除并存储
   friend class ResourceManager;
   HandleId mId = nullId;
   uint32_t mGen = 0;
@@ -57,13 +58,15 @@ class TypedHandle : public BaseHandle {
  public:
   TypedHandle() noexcept = default;
   ~TypedHandle() = default;
-  TypedHandle(const TypedHandle& handle) = default;
+  TypedHandle(const TypedHandle& handle)
+      : BaseHandle(handle) {}
   TypedHandle& operator=(const TypedHandle& handle) {
     BaseHandle::operator=(handle);
     return *this;
   }
 
-  TypedHandle(TypedHandle&& rhs) noexcept = default;
+  TypedHandle(TypedHandle&& rhs) noexcept
+      : BaseHandle(std::move(rhs)) {}
   TypedHandle& operator=(TypedHandle&& rhs) noexcept {
     BaseHandle::operator=(std::move(rhs));
     return *this;

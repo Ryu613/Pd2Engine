@@ -84,11 +84,11 @@ target_sources(engine_lib
         include/pd/scene/manager/light_manager.hpp
         include/pd/scene/manager/camera_manager.hpp
         # asset
-        #include/pd/asset/asset.hpp
-        #include/pd/asset/asset_parser.hpp
-        #include/pd/asset/asset_manager.hpp
-        #include/pd/asset/parser/gltf_parser.hpp
-        #include/pd/asset/parser/mesh_processor.hpp
+        include/pd/asset/asset.hpp
+        include/pd/asset/asset_parser.hpp
+        include/pd/asset/asset_manager.hpp
+        include/pd/asset/parser/gltf_parser.hpp
+        include/pd/asset/parser/mesh_processor.hpp
     PRIVATE
         src/engine.cpp
         # core
@@ -110,9 +110,9 @@ target_sources(engine_lib
         # scene
         src/scene/scene.cpp
         # asset
-        #src/asset/asset_manager.cpp
-        #src/asset/parser/mesh_processor.cpp
-        #src/asset/parser/gltf_parser.cpp
+        src/asset/asset_manager.cpp
+        src/asset/parser/mesh_processor.cpp
+        src/asset/parser/gltf_parser.cpp
 )
 
 if(${PD2_BACKEND} STREQUAL "VULKAN")
@@ -126,7 +126,6 @@ target_sources(engine_lib
 		include/pd/backend/vulkan/resource/vulkan_resource.hpp
 		include/pd/backend/vulkan/vulkan_swapchain.hpp
 		include/pd/backend/vulkan/vulkan_image.hpp
-		#include/pd/backend/vulkan/vulkan_swapchain.hpp
 		#include/pd/backend/vulkan/vulkan_frame.hpp
 		#include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
     PRIVATE

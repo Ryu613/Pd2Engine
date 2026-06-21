@@ -6,7 +6,7 @@
 #include "pd/resource/resource/material_resource.hpp"
 
 namespace pd {
-using TextureHandle = ResourceHandle<TextureResource>;
-using MeshHandle = ResourceHandle<MeshResource>;
+using TextureHandle = ResourceHandle<TextureResource_t>;
+using MeshHandle = ResourceHandle<MeshResource_t>;
 using MaterialHandle = ResourceHandle<MaterialResource>;
 }  // namespace pd

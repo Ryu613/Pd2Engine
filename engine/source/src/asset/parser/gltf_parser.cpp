@@ -6,18 +6,15 @@
 #include "stb_image.h"
 
 #include "pd/platform/file/file_system.hpp"
-#include "pd/resource/resource/texture_resource.hpp"
-#include "pd/resource/resource/mesh_resource.hpp"
 #include "pd/resource/resource_manager.hpp"
+#include "pd/resource/resource_alias.hpp"
 #include "pd/asset/parser/mesh_processor.hpp"
-#include "pd/scene/component/components.hpp"
 
 namespace pd {
-using MeshHandle = ResourceHandle<MeshResource>;
 namespace {
 
-MeshResource::Properties convertMeshData(const fastgltf::Primitive& primitive,
-                                         const fastgltf::Asset& gltfAsset) noexcept {
+MeshPrimitive convertMeshData(const fastgltf::Primitive& primitive,
+                              const fastgltf::Asset& gltfAsset) noexcept {
   MeshProcessor::Input input{};
   const auto* posIt = primitive.findAttribute("POSITION");
   PD_ASSERT_MSG(posIt != primitive.attributes.end(),
@@ -63,6 +60,16 @@ MeshResource::Properties convertMeshData(const fastgltf::Primitive& primitive,
   }
   return MeshProcessor::process(input);
 }
+
+void copySourceData(std::vector<uint8_t>& target, const void* pSource, size_t size) {
+  if (pSource == nullptr) {
+    return;
+  }
+  const auto* pBegin = static_cast<const uint8_t*>(pSource);
+  const auto* pEnd = pBegin + size;
+
+  target.assign(pBegin, pEnd);
+}
 }  // namespace
 
 GltfParser::GltfParser(IFileSystem* fs, ResourceManager* rm) noexcept
@@ -105,42 +112,44 @@ Asset::AssetResult<void> GltfParser::parse(Asset& asset) noexcept {
 
 void GltfParser::parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept {
   auto& meshes = asset.mMeshes;
-  meshes.resize(gltfAsset.meshes.size());
+  meshes.reserve(gltfAsset.meshes.size());
   for (size_t i = 0; i < gltfAsset.meshes.size(); ++i) {
     const auto& mesh = gltfAsset.meshes[i];
-    meshes[i].reserve(mesh.primitives.size());
+    // meshes[i].reserve(mesh.primitives.size());
+    auto* newMesh = new MeshResource();
     for (const auto& primitive : mesh.primitives) {
-      auto meshProps = convertMeshData(primitive, gltfAsset);
-      auto newMesh = std::make_unique<MeshResource>(meshProps);
-      meshes[i].push_back(std::move(newMesh));
+      auto meshPrimitive = convertMeshData(primitive, gltfAsset);
+      newMesh->addPrimitive(meshPrimitive);
     }
+    auto handle = mResourceManager->registerResource<MeshResource_t>(std::move(*newMesh));
+    meshes.push_back(handle);
   }
 }
 
 void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept {
   // 根据材质用途确定纹理格式
   mTextureFormatCache.clear();
-  mTextureFormatCache.resize(gltfAsset.textures.size(), TextureFormat::RGBA8_UNORM);
+  mTextureFormatCache.resize(gltfAsset.textures.size(), TextureFormat::RGBA8Unorm);
   for (const auto& material : gltfAsset.materials) {
     if (material.pbrData.baseColorTexture.has_value()) {
       mTextureFormatCache[material.pbrData.baseColorTexture->textureIndex] =
-          TextureFormat::RGBA8_SRGB;
+          TextureFormat::RGBA8SRGB;
     }
     if (material.pbrData.metallicRoughnessTexture.has_value()) {
       mTextureFormatCache[material.pbrData.metallicRoughnessTexture->textureIndex] =
-          TextureFormat::RGBA8_UNORM;
+          TextureFormat::RGBA8Unorm;
     }
     if (material.normalTexture.has_value()) {
       mTextureFormatCache[material.normalTexture->textureIndex] =
-          TextureFormat::RGBA8_UNORM;
+          TextureFormat::RGBA8Unorm;
     }
     if (material.occlusionTexture.has_value()) {
       mTextureFormatCache[material.occlusionTexture->textureIndex] =
-          TextureFormat::RGBA8_UNORM;
+          TextureFormat::RGBA8Unorm;
     }
     if (material.emissiveTexture.has_value()) {
       mTextureFormatCache[material.emissiveTexture->textureIndex] =
-          TextureFormat::RGBA8_UNORM;
+          TextureFormat::RGBA8Unorm;
     }
   }
   // 解析，转换纹理，并添加到资产中
@@ -176,11 +185,19 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
                          .height = static_cast<uint32_t>(height),
                          .channel = static_cast<uint32_t>(nrChannels),
                          .format = mTextureFormatCache[i],
-                         .pSourceData = texels,
                      };
-                     auto texture = std::make_unique<TextureResource>(props);
+                     // copy data
+                     size_t dataSize =
+                         static_cast<size_t>(props.width) * props.height * props.channel;
+                     std::vector<uint8_t> copiedData;
+                     copiedData.reserve(dataSize);
+                     copySourceData(copiedData, texels, dataSize);
+
+                     auto* newTexture = new TextureResource(props, copiedData);
+                     auto handle = mResourceManager->registerResource<TextureResource_t>(
+                         std::move(*newTexture));
                      // 加入到asset中
-                     asset.mTextures.push_back(std::move(texture));
+                     asset.mTextures.push_back(handle);
                      // 清除使用后的image数据
                      stbi_image_free(texels);
                    },
@@ -193,6 +210,7 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
                      int width = 0;
                      int height = 0;
                      int nrChannels = 0;
+                     const auto path = mBasePath;
                      auto* texels =
                          stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imagePtr),
                                                bufferView.byteLength, &width, &height,
@@ -202,15 +220,24 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
                      }
                      TextureResource::Properties props{
                          .name = std::string(image.name),
+                         .path = path.string(),
                          .width = static_cast<uint32_t>(width),
                          .height = static_cast<uint32_t>(height),
                          .channel = static_cast<uint32_t>(nrChannels),
                          .format = mTextureFormatCache[i],
-                         .pSourceData = texels,
                      };
-                     auto texture = std::make_unique<TextureResource>(props);
+                     // copy data
+                     size_t dataSize =
+                         static_cast<size_t>(props.width) * props.height * props.channel;
+                     std::vector<uint8_t> copiedData;
+                     copiedData.reserve(dataSize);
+                     copySourceData(copiedData, texels, dataSize);
 
-                     asset.mTextures.push_back(std::move(texture));
+                     auto* newTexture = new TextureResource(props, copiedData);
+                     auto handle = mResourceManager->registerResource<TextureResource_t>(
+                         std::move(*newTexture));
+
+                     asset.mTextures.push_back(handle);
 
                      stbi_image_free(texels);
                    },
@@ -225,50 +252,51 @@ void GltfParser::parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) 
 void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
                             size_t gltfSceneIndex) noexcept {
   const auto& gltfScene = gltfAsset.scenes[gltfSceneIndex];
-  auto& em = mEntityManager;
-  auto& rm = mResourceManager;
-  // 根据node数创建对应数量的entity,遍历每个node
-  auto entityList = em.createEntity(gltfAsset.nodes.size());
-  for (size_t i = 0; i < gltfAsset.nodes.size(); ++i) {
-    const auto& node = gltfAsset.nodes[i];
-    const auto& trs = std::get<fastgltf::TRS>(node.transform);
-    const auto& currentEntity = entityList[i];
-    auto entityName =
-        node.name.empty() ? std::format("node_{}", i) : std::string(node.name);
-    auto position =
-        glm::vec3{trs.translation.x(), trs.translation.y(), trs.translation.z()};
-    auto rotation =
-        glm::quat{trs.rotation.w(), trs.rotation.x(), trs.rotation.y(), trs.rotation.z()};
-    auto scale = glm::vec3{trs.scale.x(), trs.scale.y(), trs.scale.z()};
+  //   auto& em = mEntityManager;
+  //   auto& rm = mResourceManager;
+  //   // 根据node数创建对应数量的entity,遍历每个node
+  //   auto entityList = em.createEntity(gltfAsset.nodes.size());
+  //   for (size_t i = 0; i < gltfAsset.nodes.size(); ++i) {
+  //     const auto& node = gltfAsset.nodes[i];
+  //     const auto& trs = std::get<fastgltf::TRS>(node.transform);
+  //     const auto& currentEntity = entityList[i];
+  //     auto entityName =
+  //         node.name.empty() ? std::format("node_{}", i) : std::string(node.name);
+  //     auto position =
+  //         glm::vec3{trs.translation.x(), trs.translation.y(), trs.translation.z()};
+  //     auto rotation =
+  //         glm::quat{trs.rotation.w(), trs.rotation.x(), trs.rotation.y(),
+  //         trs.rotation.z()};
+  //     auto scale = glm::vec3{trs.scale.x(), trs.scale.y(), trs.scale.z()};
 
-    em.addComponent<Name>(currentEntity, entityName);
-    // 设置每个entity的transform
-    em.addComponent<Transform>(currentEntity, position, rotation, scale);
-    // 若有mesh，则设置mesh
-    if (node.meshIndex.has_value()) {
-      const auto& submeshes = asset.mMeshes[*node.meshIndex];
-      const auto& gltfMesh = gltfAsset.meshes[*node.meshIndex];
-      // 遍历每个mesh的submesh
-      // 若此mesh只由一个submesh组成
-      if (submeshes.size() == 1) {
-        // rm 注册meshResource拿到MeshHandle
-        auto meshHandle = rm.registerResource<MeshResource>(*submeshes[0]);
-        // em添加MeshHandle作为组件
-        em.addComponent<MeshHandle>(currentEntity, meshHandle);
-        // TODO(author): 材质组件
-        // em.addComponent<Material>(submesh[0]);
-      } else {
-        auto childEntityList = em.createEntity(submeshes.size());
-        for (size_t j = 0; j < submeshes.size(); ++j) {
-          const auto& childEntity = childEntityList[j];
-          const auto& submesh = submeshes[j];
-          auto meshHandle = rm.registerResource<MeshResource>(*submesh);
-          em.addComponent<Name>(childEntity, std::format("{}_submesh_{}", entityName, j));
-          em.addComponent<MeshHandle>(childEntity, meshHandle);
-          // TODO(author): current entity add child
-        }
-      }
-    }
-  }
+  //     em.addComponent<Name>(currentEntity, entityName);
+  //     // 设置每个entity的transform
+  //     em.addComponent<Transform>(currentEntity, position, rotation, scale);
+  //     // 若有mesh，则设置mesh
+  //     if (node.meshIndex.has_value()) {
+  //       const auto& submeshes = asset.mMeshes[*node.meshIndex];
+  //       const auto& gltfMesh = gltfAsset.meshes[*node.meshIndex];
+  //       // 遍历每个mesh的submesh
+  //       // 若此mesh只由一个submesh组成
+  //       if (submeshes.size() == 1) {
+  //         // rm 注册meshResource拿到MeshHandle
+  //         auto meshHandle = rm.registerResource<MeshResource>(*submeshes[0]);
+  //         // em添加MeshHandle作为组件
+  //         em.addComponent<MeshHandle>(currentEntity, meshHandle);
+  //         // TODO(author): 材质组件
+  //         // em.addComponent<Material>(submesh[0]);
+  //       } else {
+  //         auto childEntityList = em.createEntity(submeshes.size());
+  //         for (size_t j = 0; j < submeshes.size(); ++j) {
+  //           const auto& childEntity = childEntityList[j];
+  //           const auto& submesh = submeshes[j];
+  //           auto meshHandle = rm.registerResource<MeshResource>(*submesh);
+  //           em.addComponent<Name>(childEntity, std::format("{}_submesh_{}", entityName,
+  //           j)); em.addComponent<MeshHandle>(childEntity, meshHandle);
+  //           // TODO(author): current entity add child
+  //         }
+  //       }
+  //     }
+  //}
 }
 }  // namespace pd

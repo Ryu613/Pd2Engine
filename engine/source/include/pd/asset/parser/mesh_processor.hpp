@@ -13,9 +13,9 @@ class MeshProcessor {
     std::vector<uint32_t> indices;
   };
 
-  static MeshResource::Properties process(Input& input) noexcept;
+  static MeshPrimitive process(Input& input) noexcept;
 
  private:
-  static std::vector<MeshResource::Vertex> interleave(const Input& input) noexcept;
+  static std::vector<Vertex> interleave(const Input& input) noexcept;
 };
 }  // namespace pd

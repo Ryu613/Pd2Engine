@@ -5,6 +5,7 @@
 #include "pd/core/utils/pool.hpp"
 #include "pd/resource/resource_handle.hpp"
 #include "pd/resource/resource/texture_resource.hpp"
+#include "pd/resource/resource/mesh_resource.hpp"
 
 namespace pd {
 /**
@@ -87,6 +88,7 @@ class ResourceManager {
                          std::unordered_map<Resource::IdType, ResourceEntry>>;
   Registry mRegistry;
   Pool<TextureResource, TextureResource_t> mTextures{1024};
+  Pool<MeshResource, MeshResource_t> mMeshes{1024};
 
   template <typename TTag, BaseOfResource T>
   Resource* getResource(const Resource::IdType& resourceId) noexcept {
@@ -114,6 +116,8 @@ class ResourceManager {
   auto& findPool() {
     if constexpr (std::is_same_v<TTag, TextureResource_t>) {
       return mTextures;
+    } else if constexpr (std::is_same_v<TTag, MeshResource_t>) {
+      return mMeshes;
     } else {
       static_assert(false, "resource type not supported!");
     }

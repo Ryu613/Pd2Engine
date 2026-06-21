@@ -72,9 +72,11 @@ void Engine::shutdown() noexcept {
   if (!mInitialized) {
     return;
   }
-  // explicit destroy subsystem
-  //   mRenderer.reset();
-  //   mAssetManager.reset();
+  for (auto& layer : mLayers) {
+    layer->onDetached();
+    layer.reset();
+  }
+  mBackend.reset();
   mPlatform.reset();
 
   mInitialized = false;

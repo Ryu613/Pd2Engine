@@ -9,7 +9,7 @@ namespace pd {
  */
 class Asset {
  public:
-  // 路径字符串实现id,保持运行时id稳定
+  // 当前为路径字符串
   using IdType = std::string;
   /**
    * @brief 资产类型
@@ -52,7 +52,6 @@ class Asset {
   friend class GltfParser;
   CreateInfo mInfo;
   IdType mId{};
-  bool mLoaded = false;
   // TODO(author): scene node
   //  转换后的资源数据
   std::vector<TextureHandle> mTextures;

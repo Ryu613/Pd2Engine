@@ -3,12 +3,13 @@
 #include "pd/api/api.hpp"
 
 namespace pd {
-class Engine : public Api {
+class EngineApi : public Api {
  public:
-  static Engine* create() noexcept;
+  static EngineApi* create() noexcept;
+  static void destroy(EngineApi* pEngine) noexcept;
 
  protected:
-  Engine() noexcept = default;
-  ~Engine() = default;
+  EngineApi() noexcept = default;
+  ~EngineApi() = default;
 };
 }  // namespace pd

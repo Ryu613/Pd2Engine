@@ -8,6 +8,7 @@ class ResourceManager;
 /**
  * @brief 负责离线资产文件的读取，解析，转换，产出和管理资产信息，供后续使用
  * @note 不负责运行时资源
+ * @todo 目前解析完直接注册到resource manager，当前阶段没进一步拆分
  */
 class AssetManager {
  public:

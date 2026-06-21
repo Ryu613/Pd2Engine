@@ -18,15 +18,16 @@ class TextureResource : public Resource {
     uint32_t height = 0;
     uint32_t channel = 4;
     TextureFormat format = TextureFormat::RGBA8Unorm;
-    void* pSourceData = nullptr;
   };
 
-  explicit TextureResource(Properties props) noexcept;
+  explicit TextureResource(Properties props, const std::vector<uint8_t>& data) noexcept;
   ~TextureResource();
 
-  TextureResource(const TextureResource& other) = delete;
-  TextureResource& operator=(const TextureResource& other) = delete;
-  TextureResource(TextureResource&& rhs) noexcept = default;
+  TextureResource(const TextureResource&) = delete;
+  TextureResource& operator=(const TextureResource&) = delete;
+  TextureResource(TextureResource&& rhs) noexcept
+      : mProperties(std::move(rhs.mProperties)),
+        mSourceData(std::exchange(rhs.mSourceData, {})) {}
   TextureResource& operator=(TextureResource&& rhs) noexcept {
     Resource::operator=(std::move(rhs));
     mProperties = std::exchange(rhs.mProperties, {});
