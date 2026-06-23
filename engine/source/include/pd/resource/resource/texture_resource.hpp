@@ -38,8 +38,8 @@ class TextureResource : public Resource {
   std::string getPath() const noexcept { return mProperties.path; }
 
  protected:
-  void doLoad() noexcept override;
-  void doUnload() noexcept override;
+  void doLoad(IBackend& backend) noexcept override;
+  void doUnload(IBackend& backend) noexcept override;
 
  private:
   Properties mProperties;

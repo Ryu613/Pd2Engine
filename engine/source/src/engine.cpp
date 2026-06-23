@@ -58,9 +58,9 @@ Result<void, Error::Engine> Engine::initialize() noexcept {
 
   // 创建交换链
   //   mBackend.createSwapchain(pWindow->windowWidth(), pWindow->windowHeight());
-
-  mRenderer = std::move(Renderer{mBackend.get(), pWindow});
-  mSceneManager = std::move(SceneManager{&mAssetManager, &mResourceManager});
+  mResourceManager = ResourceManager{mBackend.get()};
+  mRenderer = Renderer{mBackend.get(), pWindow};
+  mSceneManager = SceneManager{&mAssetManager, &mResourceManager};
   //   mAssetManager = std::move(AssetManager{mPlatform->fileSystem(),
   //   &mResourceManager}); mSceneManager = std::move(SceneManager{&mAssetManager});
 

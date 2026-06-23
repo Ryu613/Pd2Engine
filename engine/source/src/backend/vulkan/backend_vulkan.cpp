@@ -30,6 +30,10 @@ void BackendVulkan::destroySwapchain(const HwHandle<Swapchain_t>& handle) noexce
   mVulkanResourceManager.destroySwapchain(handle);
 }
 
+HwHandle<Buffer_t> BackendVulkan::createBuffer(const HwBuffer& buffer) noexcept {
+  return mVulkanResourceManager.createBuffer(buffer);
+}
+
 /*
 void BackendVulkan::acquireNextFrame() noexcept {
   auto device = mVulkanContext.getDevice();

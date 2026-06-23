@@ -89,4 +89,10 @@ inline VkImageLayout ToVkImageLayout(TextureLayout layout) noexcept {
       PD_ASSERT_MSG(false, "texture layout error!");
   }
 }
+
+inline VkBufferUsageFlags ToVkBufferUsage(BufferUsage usage) noexcept {
+  return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+}
+inline VkSharingMode ToVkSharingMode(SharingMode sharingMode) noexcept { return {}; }
+inline VmaMemoryUsage ToVkMemoryUsage(MemoryUsage memUsage) noexcept { return {}; }
 }  // namespace pd

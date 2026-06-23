@@ -33,6 +33,7 @@ class Pool {
     mGens = std::exchange(rhs.mGens, {});
     mFreeIndices = std::exchange(rhs.mFreeIndices, {});
     mCapacity = std::exchange(rhs.mCapacity, 0);
+    return *this;
   }
   ~Pool() = default;
 

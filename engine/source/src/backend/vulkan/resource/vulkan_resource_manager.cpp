@@ -253,4 +253,28 @@ void VulkanResourceManager::destroySwapchain(const Handle<Swapchain_t>& handle) 
     const Handle<Swapchain_t>& handle) const noexcept {
   return mSwapchains.get(handle);
 }
+
+HwHandle<Buffer_t> VulkanResourceManager::createBuffer(const HwBuffer& buffer) noexcept {
+  auto device = mVulkanContext->getDevice();
+
+  VkBufferCreateInfo cinfo{
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .size = buffer.deviceSize,
+      .usage = ToVkBufferUsage(buffer.usage),
+      .sharingMode = ToVkSharingMode(buffer.sharingMode),
+  };
+  VmaAllocationCreateInfo allocInfo{
+      .usage = ToVkMemoryUsage(buffer.memoryUsage),
+  };
+  auto allocator = mVulkanContext->getVmaAllocator();
+  // external memory buffer ?
+
+  VkBuffer vkBuffer;
+  VmaAllocation allocation;
+
+  auto createResult =
+      vmaCreateBuffer(allocator, &cinfo, &allocInfo, &vkBuffer, &allocation, nullptr);
+  PD_ASSERT_MSG(createResult == VK_SUCCESS, "buffer create failed!");
+  return {};
+}
 }  // namespace pd

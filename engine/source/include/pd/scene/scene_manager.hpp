@@ -35,23 +35,24 @@ class SceneManager {
 
   EntityManager& getEntityManager() noexcept { return mEntityManager; }
 
-  RenderableManager& getRenderableManager() noexcept { return mRenderableManager; }
+  //   RenderableManager& getRenderableManager() noexcept { return mRenderableManager; }
 
-  TransformManager& getTransformManager() noexcept { return mTransformManager; }
+  //   TransformManager& getTransformManager() noexcept { return mTransformManager; }
 
-  LightManager& getLightManager() noexcept { return mLightManager; }
+  //   LightManager& getLightManager() noexcept { return mLightManager; }
 
-  CameraManager& getCameraManager() noexcept { return mCameraManager; }
+  //   CameraManager& getCameraManager() noexcept { return mCameraManager; }
 
  private:
   Scene mWorld;
-  AssetManager* mAssetManager = nullptr;
-  ResourceManager* mResourceManager = nullptr;
   EntityManager mEntityManager;
-  TransformManager mTransformManager;
-  RenderableManager mRenderableManager;
-  LightManager mLightManager;
-  CameraManager mCameraManager;
+  AssetManager* mAssetManager = nullptr;
+  // FIXME: put resource manager here is for debug testing only!
+  ResourceManager* mResourceManager = nullptr;
+  //   TransformManager mTransformManager;
+  //   RenderableManager mRenderableManager;
+  //   LightManager mLightManager;
+  //   CameraManager mCameraManager;
   std::unique_ptr<SceneDescriptor> mSceneDescriptor;
 };
 }  // namespace pd

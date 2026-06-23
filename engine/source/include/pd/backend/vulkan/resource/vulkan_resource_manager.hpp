@@ -4,9 +4,11 @@
 
 #include "pd/backend/hw_handle.hpp"
 #include "pd/backend/hw_swapchain.hpp"
+#include "pd/backend/hw_buffer.hpp"
 
 #include "pd/backend/vulkan/vulkan_image.hpp"
 #include "pd/backend/vulkan/vulkan_swapchain.hpp"
+#include "pd/backend/vulkan/vulkan_buffer.hpp"
 
 namespace pd {
 class VulkanContext;
@@ -33,10 +35,13 @@ class VulkanResourceManager {
   void destroyImage(const Handle<Texture_t>& handle) noexcept;
   [[nodiscard]] VulkanImage* getImage(const Handle<Texture_t>& handle) const noexcept;
 
+  HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept;
+
  private:
   VulkanContext* mVulkanContext = nullptr;
   Pool<VulkanImage, Texture_t> mTextures{128};
   Pool<VulkanSwapchain, Swapchain_t> mSwapchains{1};
+  Pool<VulkanBuffer, Buffer_t> mBuffers{128};
 
   template <typename T>
   void setObjectName(VkDevice device, VkObjectType type, T handle,

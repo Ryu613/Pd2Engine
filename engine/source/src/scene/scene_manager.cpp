@@ -1,16 +1,20 @@
 #include "pd/scene/scene_manager.hpp"
 
+#include "pd/resource/resource_manager.hpp"
+
 namespace pd {
 SceneManager::SceneManager(AssetManager* assetMgr, ResourceManager* rscMgr) noexcept
     : mAssetManager(assetMgr),
       mResourceManager(rscMgr) {}
 
 Result<void, Error::Scene> SceneManager::loadScene() noexcept {
+  mResourceManager->clearAll();
   auto sceneLoadResult = mSceneDescriptor->loadScene(*this);
   if (!sceneLoadResult) {
     log::error("scene cannot be loaded!", sceneLoadResult.error());
     return sceneLoadResult;
   }
+  mResourceManager->loadAll();
   return {};
 }
 

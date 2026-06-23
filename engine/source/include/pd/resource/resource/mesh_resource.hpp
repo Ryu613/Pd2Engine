@@ -2,6 +2,8 @@
 
 #include "pd/core/math/math.hpp"
 #include "pd/resource/resource.hpp"
+#include "pd/backend/hw_handle.hpp"
+#include "pd/backend/hw_buffer.hpp"
 
 namespace pd {
 struct MeshResource_t;
@@ -18,7 +20,9 @@ struct MeshPrimitive {
 };
 class MeshResource : public Resource {
  public:
-  MeshResource() noexcept;
+  struct Properties {};
+  MeshResource() noexcept = default;
+  explicit MeshResource(Properties props) noexcept;
   ~MeshResource();
   MOVABLE_ONLY(MeshResource);
 
@@ -27,12 +31,15 @@ class MeshResource : public Resource {
   }
 
  protected:
-  void doLoad() noexcept override;
-  void doUnload() noexcept override;
+  void doLoad(IBackend& backend) noexcept override;
+  void doUnload(IBackend& backend) noexcept override;
 
  private:
+  Properties mProps;
   std::vector<MeshPrimitive> mPrimitives;
+  HwHandle<Buffer_t> mVertexBuffer;
+  HwHandle<Buffer_t> mIndexBuffer;
 
-  void init() noexcept;
+  uint64_t getVertexDataSize() noexcept;
 };
 }  // namespace pd

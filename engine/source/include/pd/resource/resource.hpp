@@ -3,6 +3,7 @@
 #include <concepts>
 
 namespace pd {
+class IBackend;
 class Resource {
  public:
   using IdType = std::string;
@@ -22,24 +23,32 @@ class Resource {
 
   [[nodiscard]] bool isLoaded() const noexcept { return mStatus == Status::Loaded; }
 
-  void load() noexcept {
+  void load(IBackend& backend) noexcept {
     log::debug("loading resource: {}", mId);
+    if (mStatus != Status::Unload) {
+      return;
+    }
     mStatus = Status::Loading;
-    doLoad();
+    doLoad(backend);
     mStatus = Status::Loaded;
   }
 
-  void unload() noexcept {
+  void unload(IBackend& backend) noexcept {
     log::debug("unloading resource: {}", mId);
-    doUnload();
+    if (mStatus != Status::Loaded) {
+      return;
+    }
+    doUnload(backend);
     mStatus = Status::Unload;
   }
 
-  Status getStatus() const noexcept { return mStatus; }
+  [[nodiscard]] Status status() const noexcept { return mStatus; }
+
+  [[nodiscard]] IdType id() const noexcept { return mId; }
 
  protected:
-  virtual void doLoad() noexcept = 0;
-  virtual void doUnload() noexcept = 0;
+  virtual void doLoad(IBackend& backend) noexcept = 0;
+  virtual void doUnload(IBackend& backend) noexcept = 0;
 
   explicit Resource(IdType id, Status status = Status::Unload) noexcept
       : mId(std::move(id)),

@@ -3,6 +3,7 @@
 #include <typeindex>
 
 #include "pd/core/utils/pool.hpp"
+#include "pd/backend/backend.hpp"
 #include "pd/resource/resource_handle.hpp"
 #include "pd/resource/resource/texture_resource.hpp"
 #include "pd/resource/resource/mesh_resource.hpp"
@@ -18,6 +19,7 @@ class ResourceManager {
   using Handle = ResourceHandle<T>;
 
   ResourceManager() noexcept = default;
+  explicit ResourceManager(IBackend* pBackend) noexcept;
   ~ResourceManager() = default;
   MOVABLE_ONLY(ResourceManager);
 
@@ -73,6 +75,12 @@ class ResourceManager {
   void clearAll() noexcept;
 
   /**
+   * @brief 加载注册表中的全部资源
+   *
+   */
+  void loadAll() noexcept;
+
+  /**
    * @brief 检测资源引用记录并清除无引用的资源
    */
   void gc() noexcept;
@@ -89,6 +97,7 @@ class ResourceManager {
   Registry mRegistry;
   Pool<TextureResource, TextureResource_t> mTextures{1024};
   Pool<MeshResource, MeshResource_t> mMeshes{1024};
+  IBackend* mBackend = nullptr;
 
   template <typename TTag, BaseOfResource T>
   Resource* getResource(const Resource::IdType& resourceId) noexcept {
@@ -120,6 +129,28 @@ class ResourceManager {
       return mMeshes;
     } else {
       static_assert(false, "resource type not supported!");
+    }
+  }
+
+  template <typename TResourceType, typename TTag>
+  void loadResources() noexcept {
+    auto typeId = std::type_index(typeid(TResourceType));
+    auto typeIt = mRegistry.find(typeId);
+    if (typeIt == mRegistry.end()) {
+      return;
+    }
+    auto& resources = typeIt->second;
+    auto& pool = findPool<TTag>();
+    for (auto& [id, entry] : resources) {
+      if (entry.refCount == 0) {
+        continue;
+      }
+      TypedHandle<TTag> handle{entry.handle.id(), entry.handle.gen()};
+      auto* pResource = pool.get(handle);
+      if (pResource == nullptr) {
+        continue;
+      }
+      pResource->load(*mBackend);
     }
   }
 };

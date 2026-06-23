@@ -48,6 +48,21 @@ enum class PresentMode : uint8_t {
   FifoRelaxed,
 };
 
+enum class BufferUsage : uint8_t {
+  VertexBuffer,
+  IndexBuffer,
+};
+
+enum class SharingMode : uint8_t {
+  Exclusive,
+  Concurrent,
+};
+
+enum class MemoryUsage : uint8_t {
+  GpuOnly,
+  CpuOnly,
+};
+
 struct Extent {
   uint32_t width = 0;
   uint32_t height = 0;

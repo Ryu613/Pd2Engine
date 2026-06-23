@@ -2,6 +2,7 @@
 
 #include "pd/backend/hw_handle.hpp"
 #include "pd/backend/hw_swapchain.hpp"
+#include "pd/backend/hw_buffer.hpp"
 
 namespace pd {
 class IWindow;
@@ -27,8 +28,12 @@ class IBackend {
 
   [[nodiscard]] virtual HwHandle<Swapchain_t> createSwapchain(
       const HwSwapchain& swapchain) noexcept {
-    return HwHandle<Swapchain_t>{};
+    return {};
   }
   virtual void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {}
+
+  [[nodiscard]] virtual HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept {
+    return {};
+  }
 };
 }  // namespace pd

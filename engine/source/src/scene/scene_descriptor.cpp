@@ -12,6 +12,7 @@ Result<void, Error::Scene> SceneDescriptor::loadScene(
     log::error("scene load failed!", GetEnumName(loadResult.error()));
     return loadResult;
   }
+  log::info("load scene complete!");
   return {};
 }
 
