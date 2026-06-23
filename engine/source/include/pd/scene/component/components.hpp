@@ -1,9 +1,7 @@
 #pragma once
 
 #include "pd/scene/entity.hpp"
-#include "pd/resource/resource_handle.hpp"
-#include "pd/resource/resource/mesh_resource.hpp"
-#include "pd/resource/resource/material_resource.hpp"
+#include "/pd/resource/resource_alias.hpp"
 
 namespace pd {
 struct Name {
@@ -11,11 +9,13 @@ struct Name {
 };
 
 struct Transform {
-  glm::vec3 location{0.0f, 0.0f, 0.0f};
-  glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
-  glm::vec3 scale{1.0f, 1.0f, 1.0f};
-  Entity parent;
-  std::vector<Entity> children;
+  math::vec3 location{0.0f, 0.0f, 0.0f};
+  math::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+  math::vec3 scale{1.0f, 1.0f, 1.0f};
+  Entity parent{};
+  // 左孩子右兄弟
+  Entity firstChild{};
+  Entity nextSibling{};
 };
 
 struct Light {
@@ -28,8 +28,7 @@ struct Light {
 };
 
 struct Renderable {
-  ResourceHandle<MeshResource> meshHandle;
-  ResourceHandle<MaterialResource> materialHandle;
+  MeshHandle meshHandle;
 };
 
 struct Camera {

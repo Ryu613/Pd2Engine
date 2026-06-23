@@ -74,6 +74,8 @@ inline VkImageUsageFlags GetVkImageUsageFlagBits(TextureUsage usage) noexcept {
     default:
       PD_ASSERT_MSG(false, "texture usage error!");
   }
+
+  return {};
 }
 
 inline VkImageLayout ToVkImageLayout(TextureLayout layout) noexcept {

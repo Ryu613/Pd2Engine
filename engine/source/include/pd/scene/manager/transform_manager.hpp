@@ -2,6 +2,7 @@
 
 #include "pd/scene/entity.hpp"
 #include "pd/scene/component/components.hpp"
+#include "pd/scene/manager/components_registry.hpp"
 
 namespace pd {
 class TransformManager {
@@ -10,12 +11,17 @@ class TransformManager {
   ~TransformManager() = default;
   MOVABLE_ONLY(TransformManager);
 
-  Transform* create(Entity e) noexcept;
-  Transform* getEntity(Entity e) noexcept;
+  void create(Entity e, Transform transform) noexcept;
+  void getEntity(Entity e) noexcept;
   bool hasEntity(Entity e) noexcept;
   void destroy(Entity e) noexcept;
 
+  void setTransform(Entity e, Transform transform) noexcept;
+  void setParent(Entity e, Entity parent) noexcept;
+  void setChild(Entity e, Entity child) noexcept;
+
  private:
-  // SOA container
+  using Registry = ComponentsRegistry<Transform>;
+  Registry mRegistry;
 };
 }  // namespace pd

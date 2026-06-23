@@ -1,14 +1,15 @@
 #pragma once
 
+#include "pd/core/math/math.hpp"
 #include "pd/resource/resource.hpp"
 
 namespace pd {
 struct MeshResource_t;
 struct Vertex {
-  glm::vec3 position;
-  glm::vec3 normal;
-  glm::vec2 uv;
-  glm::vec3 color;
+  math::vec3 position;
+  math::vec3 normal;
+  math::vec2 uv;
+  math::vec3 color;
 };
 struct Aabb {};
 struct MeshPrimitive {

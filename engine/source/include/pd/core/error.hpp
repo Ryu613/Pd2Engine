@@ -1,15 +1,21 @@
 #pragma once
 
 namespace pd {
-enum class EngineError : uint8_t {
-  InitializeFailed,
-  RunFailed,
-  LayerNotFound,
-  LayerAttachFailed,
-  LayerUpdateFailed,
-  LayerDetachFailed,
-  SceneLoadFailed,
-  SceneUpdateFailed,
-  SceneUnloadFailed,
+struct Error {
+  enum class Engine : uint8_t {
+    InitializeFailed,
+    RunFailed,
+  };
+  enum class Layer : uint8_t {
+    LayerNotFound,
+    LayerAttachFailed,
+    LayerUpdateFailed,
+    LayerDetachFailed,
+  };
+  enum class Scene : uint8_t {
+    SceneLoadFailed,
+    SceneUpdateFailed,
+    SceneUnloadFailed,
+  };
 };
-}
+}  // namespace pd

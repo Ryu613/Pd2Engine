@@ -11,19 +11,7 @@ class BaseHandle {
   static constexpr HandleId nullId = HandleId{UINT32_MAX};
 
   BaseHandle() noexcept = default;
-  // 可拷可移
-  BaseHandle(const BaseHandle&) = default;
-  BaseHandle& operator=(const BaseHandle&) = default;
-  BaseHandle(BaseHandle&& rhs) noexcept
-      : mId(std::exchange(rhs.mId, nullId)),
-        mGen(std::exchange(rhs.mGen, 0)) {}
-  BaseHandle& operator=(BaseHandle&& rhs) noexcept {
-    if (this != &rhs) {
-      mId = std::exchange(rhs.mId, nullId);
-      mGen = std::exchange(rhs.mGen, 0);
-    }
-    return *this;
-  }
+
   bool operator==(const BaseHandle& other) const {
     return mId == other.mId && mGen == other.mGen;
   }
@@ -40,8 +28,6 @@ class BaseHandle {
   explicit BaseHandle(HandleId id, uint32_t gen) noexcept
       : mId(id),
         mGen(gen) {}
-  // 可非虚，不会通过此类delete对象
-  ~BaseHandle() = default;
 
   void setId(HandleId id) noexcept { mId = id; }
   void setGen(uint32_t gen) noexcept { mGen = gen; }
@@ -57,20 +43,6 @@ template <typename T>
 class TypedHandle : public BaseHandle {
  public:
   TypedHandle() noexcept = default;
-  ~TypedHandle() = default;
-  TypedHandle(const TypedHandle& handle)
-      : BaseHandle(handle) {}
-  TypedHandle& operator=(const TypedHandle& handle) {
-    BaseHandle::operator=(handle);
-    return *this;
-  }
-
-  TypedHandle(TypedHandle&& rhs) noexcept
-      : BaseHandle(std::move(rhs)) {}
-  TypedHandle& operator=(TypedHandle&& rhs) noexcept {
-    BaseHandle::operator=(std::move(rhs));
-    return *this;
-  }
 
  protected:
   TypedHandle(HandleId id, uint32_t gen)

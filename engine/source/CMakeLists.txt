@@ -78,6 +78,7 @@ target_sources(engine_lib
         include/pd/scene/skybox.hpp
         include/pd/scene/view.hpp
         include/pd/scene/component/components.hpp
+        include/pd/scene/manager/components_registry.hpp
         include/pd/scene/manager/entity_manager.hpp
         include/pd/scene/manager/transform_manager.hpp
         include/pd/scene/manager/renderable_manager.hpp
@@ -109,6 +110,9 @@ target_sources(engine_lib
         src/resource/resource/mesh_resource.cpp
         # scene
         src/scene/scene.cpp
+        src/scene/scene_manager.cpp
+        src/scene/scene_descriptor.cpp
+        src/scene/manager/transform_manager.cpp
         # asset
         src/asset/asset_manager.cpp
         src/asset/parser/mesh_processor.cpp

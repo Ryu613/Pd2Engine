@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pd/core/utils/handle.hpp"
-#include "pd/resource/resource.hpp"
 
 namespace pd {
 /**

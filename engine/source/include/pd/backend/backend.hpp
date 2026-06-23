@@ -10,7 +10,7 @@ class IBackend {
   enum class GraphicsApi : uint8_t {
     Vulkan,
     D3D12,
-    NOOP,
+    Noop,
     Unknown,
   };
   struct Config {

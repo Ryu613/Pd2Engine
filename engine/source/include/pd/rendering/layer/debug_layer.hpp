@@ -10,8 +10,8 @@ class DebugLayer : public ILayer {
   MOVABLE_ONLY(DebugLayer);
 
  protected:
-  LayerResult<void> onAttached() noexcept override;
-  LayerResult<void> onDetached() noexcept override;
+  Result<void, Error::Layer> onAttached() noexcept override;
+  Result<void, Error::Layer> onDetached() noexcept override;
   void onUpdate() noexcept override;
 };
 }  // namespace pd

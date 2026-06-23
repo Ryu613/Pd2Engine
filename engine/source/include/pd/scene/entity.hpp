@@ -14,11 +14,16 @@ class Entity {
 
   Entity() noexcept = default;
 
+  // implicit cast to entt::entity
+  explicit operator entt::entity() const { return mId; }
+
   [[nodiscard]] bool isNull() const noexcept { return mId != entt::null; }
 
   [[nodiscard]] IdType GetId() const noexcept { return mId; }
 
   bool operator==(const Entity& e) const noexcept { return mId == e.mId; }
+
+  explicit operator bool() const noexcept { return mId != entt::null; }
 
  private:
   friend class EntityManager;
@@ -26,6 +31,5 @@ class Entity {
       : mId(id) {}
 
   IdType mId;
-  // TODO(author): entt has generation?
 };
 }  // namespace pd

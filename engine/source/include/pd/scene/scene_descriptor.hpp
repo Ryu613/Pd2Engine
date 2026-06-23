@@ -1,14 +1,11 @@
 #pragma once
 
 #include <concepts>
-#include "pd/scene/scene.hpp"
-#include "pd/asset/asset_manager.hpp"
-#include "pd/scene/manager/entity_manager.hpp"
-#include "pd/scene/manager/transform_manager.hpp"
-#include "pd/scene/manager/light_manager.hpp"
-#include "pd/scene/manager/camera_manager.hpp"
+#include "pd/core/error.hpp"
 
 namespace pd {
+class SceneManager;
+class Scene;
 /**
  * @brief
  * 负责对整个场景进行描述，包括需要哪些资产，如何使用这些资产布置场景，窗口怎么"看"场景等
@@ -22,19 +19,30 @@ class SceneDescriptor {
   virtual ~SceneDescriptor() = default;
 
   MOVABLE_ONLY(SceneDescriptor);
+
   /**
    * @brief 在渲染前需要准备好的资产，场景, 视窗
    */
-  virtual void onLoad(AssetManager& assetMgr, EntityManager& entityMgr,
-                      TransformManager& transformMgr, LightManager& lightMgr,
-                      CameraManager& cameraMgr, Scene& scene) {}
-
-  virtual void unUpdate() noexcept {}
+  Result<void, Error::Scene> loadScene(SceneManager& sceneManager) noexcept;
 
   /**
-   * @brief 用于在渲染后处理自定义逻辑和清理此场景资源
+   * @brief 帧内更新场景数据
+   * @todo not implemented
+   *
    */
-  virtual void onUnload() {}
+  void updateScene() noexcept;
+
+  /**
+   * @brief 卸载场景
+   *
+   * @return SceneResult<void>
+   */
+  Result<void, Error::Scene> unloadScene() noexcept;
+
+ private:
+  virtual Result<void, Error::Scene> onLoadScene(SceneManager& sceneManager) noexcept = 0;
+  virtual void onUpdateScene() noexcept = 0;
+  virtual Result<void, Error::Scene> onUnloadScene() noexcept = 0;
 };
 
 // 只允许处理继承了此对象的场景描述类

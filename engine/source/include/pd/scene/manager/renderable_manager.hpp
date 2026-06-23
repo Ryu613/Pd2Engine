@@ -1,6 +1,7 @@
 #pragma once
 
-#include "pd/core/entity.hpp"
+#include "pd/scene/entity.hpp"
+#include "pd/scene/manager/components_registry.hpp"
 #include "pd/scene/component/components.hpp"
 
 namespace pd {
@@ -8,14 +9,19 @@ class RenderableManager {
  public:
   RenderableManager() noexcept = default;
   ~RenderableManager() = default;
-  NO_COPY_MOVE(RenderableManager);
+  MOVABLE_ONLY(RenderableManager);
 
-  Renderable* create(Entity e) noexcept;
-  Renderable* getEntity(Entity e) noexcept;
+  void create(Entity e, Renderable renderable) noexcept;
+  void getEntity(Entity e) noexcept;
   bool hasEntity(Entity e) noexcept;
   void destroy(Entity e) noexcept;
 
+  void setTransform(Entity e, Transform transform) noexcept;
+  void setParent(Entity e, Entity parent) noexcept;
+  void setChild(Entity e, Entity child) noexcept;
+
  private:
-  // SOA container
+  using Registry = ComponentsRegistry<Renderable>;
+  Registry mRegistry;
 };
 }  // namespace pd

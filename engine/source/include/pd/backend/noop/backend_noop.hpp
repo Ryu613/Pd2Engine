@@ -3,7 +3,7 @@
 #include "pd/backend/backend.hpp"
 
 namespace pd {
-// TODO(author): interested in D3DX but have no time for now!
+// TODO(author): want to integrate my soft renderer but not now
 class BackendNoop : public IBackend {
  public:
   BackendNoop() noexcept = default;
