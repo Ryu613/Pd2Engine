@@ -10,14 +10,19 @@ MeshResource::~MeshResource() {}
 
 void MeshResource::doLoad(IBackend& backend) noexcept {
   log::debug("loading mesh: {}", this->id());
+  auto bufferSize = getVertexDataSize();
   HwBuffer hwBuffer{
       .usage = BufferUsage::VertexBuffer,
-      .deviceSize = getVertexDataSize(),
+      .deviceSize = bufferSize,
   };
   hwBuffer.label = "vertex_buffer";
 
   mVertexBuffer = backend.createBuffer(hwBuffer);
-  //   backend.uploadBuffer(mVertexBuffer);
+  BufferWriteOptions writeOptions{
+      .dstBuffer = mVertexBuffer,
+      .byteSize = bufferSize,
+  };
+  backend.writeBuffer(writeOptions);
 }
 void MeshResource::doUnload(IBackend& backend) noexcept {
   backend.destroyBuffer(mVertexBuffer);

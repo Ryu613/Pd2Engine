@@ -26,6 +26,8 @@ class BackendVulkan : public IBackend {
 
   void destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept override;
 
+  void writeBuffer(const BufferWriteOptions& writeOptions) noexcept override;
+
   //   RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,
   //                                       uint32_t depth) noexcept override;
 

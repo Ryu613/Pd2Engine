@@ -37,5 +37,7 @@ class IBackend {
   }
 
   virtual void destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {}
+
+  virtual void writeBuffer(const BufferWriteOptions& writeOptions) noexcept {}
 };
 }  // namespace pd
