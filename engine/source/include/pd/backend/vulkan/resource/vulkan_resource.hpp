@@ -7,5 +7,6 @@ class VulkanResourceManager;
 struct VulkanResource {
   VulkanResourceManager* resourceManager = nullptr;
   VmaAllocation allocation{VK_NULL_HANDLE};
+  VmaAllocationInfo allocationInfo{};
 };
 }  // namespace pd

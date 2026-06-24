@@ -7,9 +7,9 @@
 namespace pd {
 struct VulkanBuffer : public HwBuffer, VulkanResource {
   VulkanBuffer(const HwBuffer& hwBuffer, VulkanResourceManager* mgr, VkBuffer vkBuffer,
-               VmaAllocation vmaAllocation) noexcept
+               VmaAllocation vmaAllocation, VmaAllocationInfo vmaAllocationInfo) noexcept
       : HwBuffer(hwBuffer),
-        VulkanResource(mgr, vmaAllocation),
+        VulkanResource(mgr, vmaAllocation, vmaAllocationInfo),
         handle(vkBuffer) {}
 
   VkBuffer handle{VK_NULL_HANDLE};

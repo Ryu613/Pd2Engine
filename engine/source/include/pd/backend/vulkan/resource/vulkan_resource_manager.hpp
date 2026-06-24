@@ -37,6 +37,7 @@ class VulkanResourceManager {
 
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept;
   void destroyBuffer(const Handle<Buffer_t>& handle) noexcept;
+  void writeBuffer(const BufferWriteOptions& writeOptions) noexcept;
 
  private:
   VulkanContext* mVulkanContext = nullptr;

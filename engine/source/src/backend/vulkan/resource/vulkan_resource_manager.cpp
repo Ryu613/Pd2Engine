@@ -263,8 +263,12 @@ HwHandle<Buffer_t> VulkanResourceManager::createBuffer(const HwBuffer& buffer) n
       .usage = ToVkBufferUsage(buffer.usage),
       .sharingMode = ToVkSharingMode(buffer.sharingMode),
   };
+  // 利用ReBar,不需staging buffer
   VmaAllocationCreateInfo allocInfo{
-      .usage = ToVkMemoryUsage(buffer.memoryUsage),
+      .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+               VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
+               VMA_ALLOCATION_CREATE_MAPPED_BIT,
+      .usage = VMA_MEMORY_USAGE_AUTO,
   };
   auto allocator = mVulkanContext->getVmaAllocator();
   // external memory buffer ?
@@ -276,9 +280,13 @@ HwHandle<Buffer_t> VulkanResourceManager::createBuffer(const HwBuffer& buffer) n
       vmaCreateBuffer(allocator, &cinfo, &allocInfo, &vkBuffer, &allocation, nullptr);
   PD_ASSERT_MSG(createResult == VK_SUCCESS, "buffer create failed!");
 
+  VmaAllocationInfo allocationInfo;
+  vmaGetAllocationInfo(allocator, allocation, &allocationInfo);
+
   setObjectName(device, VK_OBJECT_TYPE_BUFFER, vkBuffer, buffer.label);
+
   const auto bufferHandle =
-      mBuffers.emplace(VulkanBuffer{buffer, this, vkBuffer, std::move(allocation)});
+      mBuffers.emplace(VulkanBuffer{buffer, this, vkBuffer, allocation, allocationInfo});
   return bufferHandle;
 
   return {};
@@ -291,5 +299,13 @@ void VulkanResourceManager::destroyBuffer(const HwHandle<Buffer_t>& handle) noex
   vmaDestroyBuffer(vmaAllocator, vulkanBuffer->handle, vulkanBuffer->allocation);
 
   mBuffers.remove(handle);
+}
+
+void VulkanResourceManager::writeBuffer(const BufferWriteOptions& writeOptions) noexcept {
+  auto* vulkanBuffer = mBuffers.get(writeOptions.dstBuffer);
+  auto* vmaAllocator = mVulkanContext->getVmaAllocator();
+
+  std::memcpy(vulkanBuffer->allocationInfo.pMappedData, writeOptions.pData,
+              writeOptions.byteSize);
 }
 }  // namespace pd

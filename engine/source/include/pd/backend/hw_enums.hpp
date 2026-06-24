@@ -59,8 +59,13 @@ enum class SharingMode : uint8_t {
 };
 
 enum class MemoryUsage : uint8_t {
+  Unknow,
   GpuOnly,
   CpuOnly,
+  CpuToGpu,
+  GpuToCpu,
+  CpuCopy,
+  GpuLazilyAllocated,
 };
 
 struct Extent {
