@@ -19,7 +19,10 @@ void MeshResource::doLoad(IBackend& backend) noexcept {
   mVertexBuffer = backend.createBuffer(hwBuffer);
   //   backend.uploadBuffer(mVertexBuffer);
 }
-void MeshResource::doUnload(IBackend& backend) noexcept {}
+void MeshResource::doUnload(IBackend& backend) noexcept {
+  backend.destroyBuffer(mVertexBuffer);
+  // backend.destroyBuffer(mIndexBuffer);
+}
 
 uint64_t MeshResource::getVertexDataSize() noexcept {
   uint64_t size = 0;

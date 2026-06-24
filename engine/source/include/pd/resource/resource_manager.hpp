@@ -19,9 +19,12 @@ class ResourceManager {
   using Handle = ResourceHandle<T>;
 
   ResourceManager() noexcept = default;
-  explicit ResourceManager(IBackend* pBackend) noexcept;
-  ~ResourceManager() = default;
+  ~ResourceManager();
   MOVABLE_ONLY(ResourceManager);
+
+  void initialize(IBackend* pBackend) noexcept;
+
+  void destroy() noexcept;
 
   template <typename TTag, BaseOfResource T>
   Handle<TTag> registerResource(T&& t) noexcept {
@@ -98,6 +101,7 @@ class ResourceManager {
   Pool<TextureResource, TextureResource_t> mTextures{1024};
   Pool<MeshResource, MeshResource_t> mMeshes{1024};
   IBackend* mBackend = nullptr;
+  bool mInitialized = false;
 
   template <typename TTag, BaseOfResource T>
   Resource* getResource(const Resource::IdType& resourceId) noexcept {
@@ -151,6 +155,27 @@ class ResourceManager {
         continue;
       }
       pResource->load(*mBackend);
+    }
+  }
+
+  template <typename TResourceType, typename TTag>
+  void unloadResources(bool isAllClear = false) noexcept {
+    auto typeId = std::type_index(typeid(TResourceType));
+    auto typeIt = mRegistry.find(typeId);
+    if (typeIt == mRegistry.end()) {
+      return;
+    }
+    auto& resources = typeIt->second;
+    auto& pool = findPool<TTag>();
+    for (auto& [id, entry] : resources) {
+      if (entry.refCount == 0 || isAllClear) {
+        TypedHandle<TTag> handle{entry.handle.id(), entry.handle.gen()};
+        auto* pResource = pool.get(handle);
+        if (pResource == nullptr) {
+          continue;
+        }
+        pResource->unload(*mBackend);
+      }
     }
   }
 };

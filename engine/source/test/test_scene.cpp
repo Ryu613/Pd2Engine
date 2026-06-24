@@ -39,6 +39,8 @@ class TriangleScene : public SceneDescriptor {
     Renderable renderable;
     renderable.meshHandle = meshHandle;
     entityMgr.addComponent<Renderable>(entity, renderable);
+    // auto& scene = sceneManager.getScene();
+    // auto& view = scene.createView();
     // auto& renderableMgr = sceneManager.getRenderableManager();
     // renderableMgr.create(entity, renderable);
 

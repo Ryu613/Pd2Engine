@@ -38,31 +38,10 @@ Result<void, Error::Engine> Engine::initialize() noexcept {
       .pWindow = pWindow,
   };
   mBackend = createBackend(backendConfig);
-  //   if (!mPlatform->initialize(mConfig.appName, mConfig.windowWidth,
-  //   mConfig.windowHeight,
-  //                              mConfig.enableDebug)) {
-  //     log::error("platform creation failed!");
-  //     return std::unexpected<EngineError>(EngineError::InitializeFailed);
-  //   }
-  //   mAssetManager = std::make_unique<AssetManager>(mPlatform->getFileSystem(),
-  //                                                  mEntityManager, mResourceManager);
 
-  // 初始化 engine layer
-  //   auto engineLayer = std::make_unique<EngineLayer>(mPlatform->window());
-
-  //   auto result = attachLayer(std::move(engineLayer));
-  //   if (!result) {
-  //     log::error("engine layer onAttach() failed!");
-  //     return std::unexpected<Error>(Error::InitializeFailed);
-  //   }
-
-  // 创建交换链
-  //   mBackend.createSwapchain(pWindow->windowWidth(), pWindow->windowHeight());
-  mResourceManager = ResourceManager{mBackend.get()};
-  mRenderer = Renderer{mBackend.get(), pWindow};
-  mSceneManager = SceneManager{&mAssetManager, &mResourceManager};
-  //   mAssetManager = std::move(AssetManager{mPlatform->fileSystem(),
-  //   &mResourceManager}); mSceneManager = std::move(SceneManager{&mAssetManager});
+  mResourceManager.initialize(mBackend.get());
+  mRenderer.initialize(mBackend.get(), pWindow);
+  mSceneManager.initialize(&mAssetManager, &mResourceManager);
 
   mInitialized = true;
   return {};
@@ -79,10 +58,7 @@ void Engine::shutdown() noexcept {
                  result.error());
       continue;
     }
-    layer.reset();
   }
-  mBackend.reset();
-  mPlatform.reset();
 
   mInitialized = false;
 }
@@ -107,6 +83,12 @@ Result<void, Error::Engine> Engine::run() noexcept {
     mRenderer.beginFrame();
     // mRenderer.renderFrame();
     mRenderer.endFrame();
+  }
+
+  auto sceneUnloadResult = mSceneManager.unloadScene();
+  if (!sceneUnloadResult) {
+    log::error("scene unload error: {}", sceneUnloadResult.error());
+    return std::unexpected<Error::Engine>(Error::Engine::ResourceGCFailed);
   }
   return {};
 }

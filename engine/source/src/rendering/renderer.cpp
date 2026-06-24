@@ -6,10 +6,22 @@
 
 namespace pd {
 
-Renderer::Renderer(IBackend* pBackend, IWindow* pWindow) noexcept
-    : mBackend(pBackend),
-      mWindow(pWindow) {
-  init();
+void Renderer::initialize(IBackend* pBackend, IWindow* pWindow) noexcept {
+  if (mInitialized) {
+    return;
+  }
+  mBackend = pBackend;
+  mWindow = pWindow;
+  // create swapchain
+  const HwSwapchain swapchainOptions{
+      .extent =
+          {
+              .width = mWindow->windowWidth(),
+              .height = mWindow->windowHeight(),
+          },
+  };
+  mSwapchain = mBackend->createSwapchain(swapchainOptions);
+  mInitialized = true;
 }
 
 Renderer::~Renderer() { destroy(); }
@@ -43,20 +55,13 @@ void Renderer::renderFrame(View& view) {
   // execute render graph(record all rendering commands)
 }
 
-void Renderer::init() noexcept {
-  // create swapchain
-  const HwSwapchain swapchainOptions{
-      .extent =
-          {
-              .width = mWindow->windowWidth(),
-              .height = mWindow->windowHeight(),
-          },
-  };
-  mSwapchain = mBackend->createSwapchain(swapchainOptions);
-}
-
 void Renderer::destroy() noexcept {
+  if (!mInitialized) {
+    return;
+  }
   // destroy swapchain
   mBackend->destroySwapchain(mSwapchain);
+
+  mInitialized = false;
 }
 }  // namespace pd

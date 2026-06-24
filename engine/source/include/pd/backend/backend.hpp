@@ -35,5 +35,7 @@ class IBackend {
   [[nodiscard]] virtual HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept {
     return {};
   }
+
+  virtual void destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {}
 };
 }  // namespace pd

@@ -19,7 +19,7 @@ class Scene {
 
  private:
   std::vector<Entity> mEntities;
-  std::vector<View*> mViews;
+  std::vector<View> mViews;
   Skybox mSkyBox;
 };
 }  // namespace pd

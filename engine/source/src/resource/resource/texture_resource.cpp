@@ -12,9 +12,6 @@ TextureResource::TextureResource(Properties props,
 
 TextureResource::~TextureResource() {}
 
-void TextureResource::doLoad(IBackend& backend) noexcept {
-  // auto rhiHandle = rhiApi.createTexture(...);
-  // rhiApi.updateTexture(rhiHandle, pSourceData);
-}
+void TextureResource::doLoad(IBackend& backend) noexcept {}
 void TextureResource::doUnload(IBackend& backend) noexcept {}
 }  // namespace pd

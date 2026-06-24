@@ -11,8 +11,11 @@ class Renderer {
  public:
   struct Config {};
   Renderer() noexcept = default;
-  explicit Renderer(IBackend* pBackend, IWindow* pWindow) noexcept;
   ~Renderer();
+
+  void initialize(IBackend* pBackend, IWindow* pWindow) noexcept;
+
+  void destroy() noexcept;
 
   MOVABLE_ONLY(Renderer);
 
@@ -25,8 +28,6 @@ class Renderer {
   IWindow* mWindow = nullptr;
   HwHandle<Swapchain_t> mSwapchain;
   bool mSwapchainDirty = false;
-
-  void init() noexcept;
-  void destroy() noexcept;
+  bool mInitialized = false;
 };
 }  // namespace pd

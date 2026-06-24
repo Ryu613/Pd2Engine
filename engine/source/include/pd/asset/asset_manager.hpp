@@ -13,9 +13,12 @@ class ResourceManager;
 class AssetManager {
  public:
   AssetManager() noexcept = default;
-  explicit AssetManager(IFileSystem* fs, ResourceManager* rm) noexcept;
-  ~AssetManager() = default;
+  ~AssetManager();
   MOVABLE_ONLY(AssetManager);
+
+  void initialize(IFileSystem* fs, ResourceManager* rm) noexcept;
+
+  void destroy() noexcept;
 
   /**
    * @brief 解析并转换资产文件，保存资产元数据信息
@@ -30,6 +33,7 @@ class AssetManager {
   ResourceManager* mResourceManager = nullptr;
   std::vector<std::unique_ptr<IAssetParser>> mParsers;
   std::unordered_map<Asset::IdType, std::unique_ptr<Asset>> mAssets;
+  bool mInitialized = false;
 
   void initParsers() noexcept;
 };

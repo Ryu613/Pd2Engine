@@ -275,6 +275,21 @@ HwHandle<Buffer_t> VulkanResourceManager::createBuffer(const HwBuffer& buffer) n
   auto createResult =
       vmaCreateBuffer(allocator, &cinfo, &allocInfo, &vkBuffer, &allocation, nullptr);
   PD_ASSERT_MSG(createResult == VK_SUCCESS, "buffer create failed!");
+
+  setObjectName(device, VK_OBJECT_TYPE_BUFFER, vkBuffer, buffer.label);
+  const auto bufferHandle =
+      mBuffers.emplace(VulkanBuffer{buffer, this, vkBuffer, std::move(allocation)});
+  return bufferHandle;
+
   return {};
+}
+
+void VulkanResourceManager::destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {
+  auto* vulkanBuffer = mBuffers.get(handle);
+  auto* vmaAllocator = mVulkanContext->getVmaAllocator();
+
+  vmaDestroyBuffer(vmaAllocator, vulkanBuffer->handle, vulkanBuffer->allocation);
+
+  mBuffers.remove(handle);
 }
 }  // namespace pd

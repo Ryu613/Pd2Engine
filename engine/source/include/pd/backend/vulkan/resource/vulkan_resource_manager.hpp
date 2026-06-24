@@ -36,6 +36,7 @@ class VulkanResourceManager {
   [[nodiscard]] VulkanImage* getImage(const Handle<Texture_t>& handle) const noexcept;
 
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept;
+  void destroyBuffer(const Handle<Buffer_t>& handle) noexcept;
 
  private:
   VulkanContext* mVulkanContext = nullptr;

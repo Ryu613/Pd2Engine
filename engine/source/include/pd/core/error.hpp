@@ -5,6 +5,7 @@ struct Error {
   enum class Engine : uint8_t {
     InitializeFailed,
     RunFailed,
+    ResourceGCFailed,
   };
   enum class Layer : uint8_t {
     LayerNotFound,

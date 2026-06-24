@@ -13,9 +13,13 @@ class AssetManager;
 class SceneManager {
  public:
   SceneManager() noexcept = default;
-  ~SceneManager() = default;
+  ~SceneManager();
   explicit SceneManager(AssetManager* assetMgr, ResourceManager* rscMgr) noexcept;
   MOVABLE_ONLY(SceneManager);
+
+  void initialize(AssetManager* assetMgr, ResourceManager* rscMgr) noexcept;
+
+  void destroy() noexcept;
 
   template <BaseOfSceneDescriptor T, typename... Args>
   Result<void, Error::Scene> initializeScene(Args&&... args) noexcept {
@@ -35,6 +39,7 @@ class SceneManager {
 
   EntityManager& getEntityManager() noexcept { return mEntityManager; }
 
+  Scene& getScene() noexcept { return mWorld; }
   //   RenderableManager& getRenderableManager() noexcept { return mRenderableManager; }
 
   //   TransformManager& getTransformManager() noexcept { return mTransformManager; }
@@ -54,5 +59,6 @@ class SceneManager {
   //   LightManager mLightManager;
   //   CameraManager mCameraManager;
   std::unique_ptr<SceneDescriptor> mSceneDescriptor;
+  bool mInitialized = false;
 };
 }  // namespace pd

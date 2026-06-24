@@ -6,11 +6,11 @@
 
 namespace pd {
 struct VulkanBuffer : public HwBuffer, VulkanResource {
-  VulkanBuffer(const HwBuffer& texture, VulkanResourceManager* mgr, VkBuffer buffer,
+  VulkanBuffer(const HwBuffer& hwBuffer, VulkanResourceManager* mgr, VkBuffer vkBuffer,
                VmaAllocation vmaAllocation) noexcept
-      : HwBuffer(texture),
+      : HwBuffer(hwBuffer),
         VulkanResource(mgr, vmaAllocation),
-        handle(buffer) {}
+        handle(vkBuffer) {}
 
   VkBuffer handle{VK_NULL_HANDLE};
 };

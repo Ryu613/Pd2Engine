@@ -34,6 +34,10 @@ HwHandle<Buffer_t> BackendVulkan::createBuffer(const HwBuffer& buffer) noexcept 
   return mVulkanResourceManager.createBuffer(buffer);
 }
 
+void BackendVulkan::destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {
+  mVulkanResourceManager.destroyBuffer(handle);
+}
+
 /*
 void BackendVulkan::acquireNextFrame() noexcept {
   auto device = mVulkanContext.getDevice();

@@ -4,10 +4,25 @@
 #include "pd/asset/parser/gltf_parser.hpp"
 
 namespace pd {
-AssetManager::AssetManager(IFileSystem* fs, ResourceManager* rm) noexcept
-    : mFileSystem(fs),
-      mResourceManager(rm) {
+
+void AssetManager::initialize(IFileSystem* fs, ResourceManager* rm) noexcept {
+  if (mInitialized) {
+    return;
+  }
+  mFileSystem = fs;
+  mResourceManager = rm;
+
   initParsers();
+  mInitialized = true;
+}
+
+AssetManager::~AssetManager() { destroy(); }
+
+void AssetManager::destroy() noexcept {
+  if (!mInitialized) {
+    return;
+  }
+  mInitialized = false;
 }
 
 Asset::AssetResult<Asset*> AssetManager::createAsset(

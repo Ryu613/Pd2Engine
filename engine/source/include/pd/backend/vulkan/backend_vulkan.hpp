@@ -24,6 +24,8 @@ class BackendVulkan : public IBackend {
 
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept override;
 
+  void destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept override;
+
   //   RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,
   //                                       uint32_t depth) noexcept override;
 
@@ -50,7 +52,8 @@ class BackendVulkan : public IBackend {
   //   // 结束当前帧
   //   void endFrame() noexcept;
 
-  //   VulkanFrame& getCurrentFrame() noexcept { return mVulkanFrames[mCurrentFrameIndex];
+  //   VulkanFrame& getCurrentFrame() noexcept { return
+  //   mVulkanFrames[mCurrentFrameIndex];
   //   }
 
  private:
