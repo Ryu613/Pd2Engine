@@ -11,7 +11,7 @@ class BackendNoop : public IBackend {
   MOVABLE_ONLY(BackendNoop);
 
   [[nodiscard]] GraphicsApi graphicsApi() const noexcept override {
-    return IBackend::GraphicsApi::NOOP;
+    return IBackend::GraphicsApi::Noop;
   }
 };
 }  // namespace pd

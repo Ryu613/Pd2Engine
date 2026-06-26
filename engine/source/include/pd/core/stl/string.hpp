@@ -1,7 +1,7 @@
 #pragma once
 
 namespace pd {
-namespace std {
-class string {};
-}  // namespace std
+namespace stl {
+class StaticString {};
+}  // namespace stl
 }  // namespace pd
