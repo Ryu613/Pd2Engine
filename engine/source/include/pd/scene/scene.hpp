@@ -11,8 +11,8 @@ class Scene {
   ~Scene() = default;
   MOVABLE_ONLY(Scene);
 
-  Entity addEntity(Entity entity) noexcept;
-  Entity removeEntity(Entity entity) noexcept;
+  void addEntity(Entity entity) noexcept;
+  void removeEntity(Entity entity) noexcept;
   [[nodiscard]] bool hasEntity(Entity entity) const noexcept;
 
   View& createView() noexcept;

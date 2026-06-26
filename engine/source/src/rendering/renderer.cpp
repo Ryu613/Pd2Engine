@@ -80,7 +80,7 @@ void Renderer::initializeRenderGraph() noexcept {
     using enum RenderPipeline;
     case Forward:
       //   mRenderGraph.addPass<GBufferPass>();
-      mRenderGraph.addPass<ForwardPass>();
+      //   mRenderGraph.addPass<ForwardPass>();
       //   mRenderGraph.addPass<SkyBoxPass>();
       break;
     case Deferred:
