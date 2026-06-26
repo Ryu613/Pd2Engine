@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pd/backend/vulkan/vulkan_common.hpp"
+
 namespace pd {
 class VulkanContext;
 class VulkanFrame {

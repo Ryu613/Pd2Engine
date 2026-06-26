@@ -44,9 +44,7 @@ target_sources(engine_lib
         include/pd/platform/window/window.hpp
         #platform:sdl3
         include/pd/platform/window/sdl3/window_sdl3.hpp
-        #include/pd/platform/rhi/rhi_api.hpp
-        #include/pd/platform/rhi/rhi_handle.hpp
-        #include/pd/platform/rhi/rhi_resource.hpp
+        #platform:filesystem
         include/pd/platform/file/file_system.hpp
         include/pd/platform/file/std_file_system.hpp
         # platform:win32
@@ -58,6 +56,7 @@ target_sources(engine_lib
         include/pd/backend/hw_handle.hpp
         include/pd/backend/hw_swapchain.hpp
         include/pd/backend/hw_texture.hpp
+        include/pd/backend/hw_buffer.hpp
         # resource
         include/pd/resource/resource_handle.hpp
         include/pd/resource/resource.hpp
@@ -70,6 +69,9 @@ target_sources(engine_lib
         include/pd/rendering/layer/layer.hpp
         # include/pd/rendering/layer/engine_layer.hpp
         include/pd/rendering/renderer.hpp
+        include/pd/rendering/render_pass/render_pass.hpp
+        include/pd/rendering/render_pass/present_pass.hpp
+        include/pd/rendering/render_graph/render_graph.hpp
         # scene
         include/pd/scene/entity.hpp
         include/pd/scene/scene.hpp
@@ -104,6 +106,8 @@ target_sources(engine_lib
         # rendering
         # src/rendering/layer/engine_layer.cpp
         src/rendering/renderer.cpp
+        src/rendering/render_pass/present_pass.cpp
+        src/rendering/render_graph/render_graph.cpp
         # resource
         src/resource/resource_manager.cpp
         src/resource/resource/texture_resource.cpp
@@ -131,7 +135,6 @@ target_sources(engine_lib
 		include/pd/backend/vulkan/vulkan_swapchain.hpp
 		include/pd/backend/vulkan/vulkan_image.hpp
 		#include/pd/backend/vulkan/vulkan_frame.hpp
-		#include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
     PRIVATE
         src/backend/vulkan/backend_vulkan.cpp
 		src/backend/vulkan/vulkan_context.cpp

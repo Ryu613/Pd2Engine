@@ -27,6 +27,7 @@ struct SwapChainInfo {
   // sync objects for each swapchain images
   std::vector<VkSemaphore> renderFinishedSemaphore;
 };
+
 struct VulkanSwapchain : public HwSwapchain, VulkanResource {
   VulkanSwapchain(const HwSwapchain& swapchain, VulkanResourceManager* mgr,
                   VkSwapchainKHR vkHandle, SwapChainInfo info) noexcept

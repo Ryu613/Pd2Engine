@@ -6,7 +6,6 @@
 #include "pd/backend/vulkan/vulkan_context.hpp"
 #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
 // #include "pd/backend/vulkan/vulkan_frame.hpp"
-// #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
 
 namespace pd {
 class BackendVulkan : public IBackend {
@@ -21,6 +20,8 @@ class BackendVulkan : public IBackend {
 
   HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
   void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
+  Result<void, Error::Rendering> acquireNextFrame(
+      HwHandle<Swapchain_t>& handle) noexcept override;
 
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept override;
 
@@ -61,8 +62,6 @@ class BackendVulkan : public IBackend {
  private:
   std::unique_ptr<VulkanContext> mVulkanContext;
   VulkanResourceManager mVulkanResourceManager;
-  //   VulkanSwapchain mVulkanSwapchain;
-  //   VulkanResourceManager mResourceManager;
   //   // frame info
   //   std::array<VulkanFrame, global::InFlightFrameCount> mVulkanFrames;
   //   size_t mCurrentFrameIndex = 0;

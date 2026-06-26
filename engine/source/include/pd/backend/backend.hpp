@@ -3,6 +3,7 @@
 #include "pd/backend/hw_handle.hpp"
 #include "pd/backend/hw_swapchain.hpp"
 #include "pd/backend/hw_buffer.hpp"
+#include "pd/core/error.hpp"
 
 namespace pd {
 class IWindow;
@@ -26,11 +27,19 @@ class IBackend {
     return GraphicsApi::Unknown;
   }
 
+  // swapchain
   [[nodiscard]] virtual HwHandle<Swapchain_t> createSwapchain(
       const HwSwapchain& swapchain) noexcept {
     return {};
   }
   virtual void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {}
+
+  virtual Result<void, Error::Rendering> acquireNextFrame(
+      HwHandle<Swapchain_t>& handle) noexcept {
+    return std::unexpected<Error::Rendering>{Error::Rendering::NotImplemented};
+  }
+
+  // buffer
 
   [[nodiscard]] virtual HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept {
     return {};

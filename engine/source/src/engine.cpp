@@ -7,7 +7,8 @@ namespace pd {
 
 Engine::Engine(Config config) noexcept
     : mConfig{std::move(config)},
-      mArena{"Engine Heap Allocator", ResourceType::NullResource{}} {
+      mArena{"Engine Heap Allocator", ResourceType::NullResource{}},
+      mRenderer(Renderer::Config{}) {
   log::info("Engine created!");
   mLayers.reserve(4);
   log::logo();
@@ -81,7 +82,7 @@ Result<void, Error::Engine> Engine::run() noexcept {
     mSceneManager.updateScene();
 
     mRenderer.beginFrame();
-    // mRenderer.renderFrame();
+    mRenderer.renderFrame();
     mRenderer.endFrame();
   }
 

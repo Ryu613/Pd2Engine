@@ -18,5 +18,10 @@ struct Error {
     SceneUpdateFailed,
     SceneUnloadFailed,
   };
+  enum class Rendering : uint8_t {
+    SwapchainOutDate,
+    Timeout,
+    NotImplemented,
+  };
 };
 }  // namespace pd

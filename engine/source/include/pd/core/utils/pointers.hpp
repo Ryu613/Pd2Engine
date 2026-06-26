@@ -16,7 +16,7 @@ template <typename T, typename Arena>
 using uptr = std::unique_ptr<T, ArenaDeleter<T, Arena>>;
 
 template <typename T, typename Arena, typename... Args>
-inline uptr<T, Arena> make_uptr(Arena& arena, Args&&... args) {
+[[nodiscard]] inline uptr<T, Arena> make_uptr(Arena& arena, Args&&... args) {
   T* t = arena.make<T>(std::forward<Args>(args)...);
 
   return uptr<T, Arena>(t, ArenaDeleter<T, Arena>{&arena});

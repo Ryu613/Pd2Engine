@@ -6,12 +6,8 @@ namespace pd {
 BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
     : mVulkanContext(std::move(ctx)),
       mVulkanResourceManager(mVulkanContext.get()) {
-  // create swapchain
-  //   mVulkanSwapchain.initialize(mConfig.windowWidth, mConfig.windowHeight);
-  //   PD_ASSERT_MSG(mVulkanSwapchain.initialized(), "create vulkan swapchain failed!");
-  //   // create frame data
   //   for (auto& frame : mVulkanFrames) {
-  //     frame.initialize(mVulkanContext);
+  //     frame.initialize(*mVulkanContext);
   //   }
 }
 
@@ -40,6 +36,12 @@ void BackendVulkan::destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {
 
 void BackendVulkan::writeBuffer(const BufferWriteOptions& writeOptions) noexcept {
   mVulkanResourceManager.writeBuffer(writeOptions);
+}
+
+Result<void, Error::Rendering> BackendVulkan::acquireNextFrame(
+    HwHandle<Swapchain_t>& handle) noexcept {
+  auto device = mVulkanContext->getDevice();
+  return {};
 }
 
 /*

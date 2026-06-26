@@ -2,9 +2,14 @@
 
 #include "pd/backend/backend.hpp"
 #include "pd/platform/window/window.hpp"
-// #include "pd/platform/rhi/rhi_api.hpp"
+
+#include "pd/rendering/render_pass/skybox_pass.hpp"
+#include "pd/rendering/render_pass/present_pass.hpp"
 
 namespace pd {
+
+Renderer::Renderer(Config config) noexcept
+    : mConfig(config) {}
 
 void Renderer::initialize(IBackend* pBackend, IWindow* pWindow) noexcept {
   if (mInitialized) {
@@ -21,6 +26,10 @@ void Renderer::initialize(IBackend* pBackend, IWindow* pWindow) noexcept {
           },
   };
   mSwapchain = mBackend->createSwapchain(swapchainOptions);
+
+  // create render graph based on shading path
+  initializeRenderGraph();
+
   mInitialized = true;
 }
 
@@ -30,15 +39,11 @@ void Renderer::beginFrame() {
   if (mSwapchainDirty) {
     // TODO(author): swapchain resize
   }
-  //   mBackend->acquireNextFrame();
-  // 指令重置及开始录制
-  //   mBackend->startCmdRecording();
+  auto result = mBackend->acquireNextFrame(mSwapchain);
+  // TODO(author): deal with swapchain resize & outdate & fail
 }
 
 void Renderer::endFrame() {
-  //   auto& driver = static_cast<VulkanDriver&>(mDriver);
-  // 停止指令录制
-  //   driver.endCmdRecording();
   // 提交指令
   //   driver.submitFrame();
   // 呈现
@@ -47,12 +52,15 @@ void Renderer::endFrame() {
   //   driver.endFrame();
 }
 
-void Renderer::renderFrame(View& view) {
-  // prepare in-frame view & scene data(using job system)
-  // view.prepare();
-  // build render graph
-  // compile render graph(build dependency graph)
-  // execute render graph(record all rendering commands)
+void Renderer::renderFrame() {
+  // 指令重置及开始录制
+  //   mBackend->startCmdRecording();
+  /*
+   * TODO: render graph
+   */
+  mRenderGraph.execute();
+  // 停止指令录制
+  //   mBackend->endCmdRecording();
 }
 
 void Renderer::destroy() noexcept {
@@ -63,5 +71,25 @@ void Renderer::destroy() noexcept {
   mBackend->destroySwapchain(mSwapchain);
 
   mInitialized = false;
+}
+
+void Renderer::initializeRenderGraph() noexcept {
+  mRenderGraph.reset();
+  switch (mConfig.shadingPath) {
+    using enum ShadingPath;
+    case Forward:
+      //   mRenderGraph.addPass<SkyBoxPass>();
+      break;
+    case ForwardPlus:
+      PD_ASSERT_MSG(false, "forward+ shading path not supported!");
+    case Deferred:
+      PD_ASSERT_MSG(false, "deferred shading not implemented");
+    case ClusterDeferred:
+      PD_ASSERT_MSG(false, "cluster shading path not supported!");
+    default:
+      PD_ASSERT_MSG(false, "initialize render graph failed! shading path error!");
+  }
+  mRenderGraph.addPass<PresentPass>();
+  mRenderGraph.compile();
 }
 }  // namespace pd
