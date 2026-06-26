@@ -8,17 +8,33 @@ namespace pd {
 class IWindow;
 class IBackend;
 class View;
+struct FrameContext {};
 class Renderer {
  public:
-  enum class ShadingPath : uint8_t {
+  enum class RenderPipeline : uint8_t {
     Forward,
-    ForwardPlus,
     Deferred,
-    ClusterDeferred,
+    PathTracing,
+  };
+  enum class LightCulling : uint8_t {
+    None,
+    Tiled,
+    Clustered,
+  };
+  enum class ShadingModel : uint8_t {
+    Unlit,
+    BlinnPhong,
+    StandardPBR,
+    SpectralPBR,
+    Toon,
+    Neural,
+
   };
 
   struct Config {
-    ShadingPath shadingPath = ShadingPath::Forward;
+    RenderPipeline renderPipeline = RenderPipeline::Forward;
+    LightCulling lightCulling = Renderer::LightCulling::None;
+    ShadingModel shadingModel = Renderer::ShadingModel::StandardPBR;
   };
 
   explicit Renderer(Config config) noexcept;

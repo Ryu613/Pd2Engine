@@ -8,6 +8,7 @@ class RenderPass {
   virtual ~RenderPass() = default;
   MOVABLE_ONLY(RenderPass);
 
+  virtual void setup() noexcept = 0;
   virtual void execute() noexcept = 0;
 };
 

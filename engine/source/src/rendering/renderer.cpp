@@ -4,6 +4,7 @@
 #include "pd/platform/window/window.hpp"
 
 #include "pd/rendering/render_pass/skybox_pass.hpp"
+#include "pd/rendering/render_pass/forward_pass.hpp"
 #include "pd/rendering/render_pass/present_pass.hpp"
 
 namespace pd {
@@ -75,19 +76,19 @@ void Renderer::destroy() noexcept {
 
 void Renderer::initializeRenderGraph() noexcept {
   mRenderGraph.reset();
-  switch (mConfig.shadingPath) {
-    using enum ShadingPath;
+  switch (mConfig.renderPipeline) {
+    using enum RenderPipeline;
     case Forward:
+      //   mRenderGraph.addPass<GBufferPass>();
+      mRenderGraph.addPass<ForwardPass>();
       //   mRenderGraph.addPass<SkyBoxPass>();
       break;
-    case ForwardPlus:
-      PD_ASSERT_MSG(false, "forward+ shading path not supported!");
     case Deferred:
       PD_ASSERT_MSG(false, "deferred shading not implemented");
-    case ClusterDeferred:
-      PD_ASSERT_MSG(false, "cluster shading path not supported!");
+    case PathTracing:
+      PD_ASSERT_MSG(false, "path tracing not implemented");
     default:
-      PD_ASSERT_MSG(false, "initialize render graph failed! shading path error!");
+      PD_ASSERT_MSG(false, "initialize render graph failed! RenderPipeline error!");
   }
   mRenderGraph.addPass<PresentPass>();
   mRenderGraph.compile();

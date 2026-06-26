@@ -70,6 +70,8 @@ target_sources(engine_lib
         # include/pd/rendering/layer/engine_layer.hpp
         include/pd/rendering/renderer.hpp
         include/pd/rendering/render_pass/render_pass.hpp
+        include/pd/rendering/render_pass/gbuffer_pass.hpp
+        include/pd/rendering/render_pass/forward_pass.hpp
         include/pd/rendering/render_pass/present_pass.hpp
         include/pd/rendering/render_graph/render_graph.hpp
         # scene

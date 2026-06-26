@@ -28,7 +28,7 @@ Result<void, Error::Engine> Engine::initialize() noexcept {
   };
   mPlatform = createPlatform(std::move(config));
 
-  // 初始化渲染后端
+  // 创建窗口
   if (!mPlatform->window()->create()) {
     log::error("window creation failed!");
     return std::unexpected<Error::Engine>(Error::Engine::InitializeFailed);
@@ -40,6 +40,7 @@ Result<void, Error::Engine> Engine::initialize() noexcept {
   };
   mBackend = createBackend(backendConfig);
 
+  // 初始化其他子系统
   mResourceManager.initialize(mBackend.get());
   mRenderer.initialize(mBackend.get(), pWindow);
   mSceneManager.initialize(&mAssetManager, &mResourceManager);
