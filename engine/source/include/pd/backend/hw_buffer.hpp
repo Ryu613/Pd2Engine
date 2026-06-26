@@ -12,8 +12,8 @@ struct Buffer_t;
  */
 struct BufferWriteOptions {
   HwHandle<Buffer_t> dstBuffer;
-  const void* pData = nullptr;
   uint64_t byteSize = 0;
+  const void* pData = nullptr;
   uint64_t dstOffset = 0;
 };
 struct HwBuffer : public HwResource {

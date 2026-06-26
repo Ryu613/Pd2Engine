@@ -17,6 +17,17 @@ struct Aabb {};
 struct MeshPrimitive {
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
+  //   HwHandle<Material_t> material;
+};
+struct MeshOutput {
+  std::vector<Vertex> vertices;
+  std::vector<uint32_t> indices;
+  struct PrimitiveInfo {
+    uint32_t indexOffset = 0;
+    uint32_t indexCount = 0;
+    // Material material;  // 材质信息
+  };
+  std::vector<PrimitiveInfo> primitives;
 };
 class MeshResource : public Resource {
  public:
@@ -30,6 +41,8 @@ class MeshResource : public Resource {
     mPrimitives.push_back(primitive);
   }
 
+  MeshOutput outputData() noexcept;
+
  protected:
   void doLoad(IBackend& backend) noexcept override;
   void doUnload(IBackend& backend) noexcept override;
@@ -41,5 +54,6 @@ class MeshResource : public Resource {
   HwHandle<Buffer_t> mIndexBuffer;
 
   uint64_t getVertexDataSize() noexcept;
+  uint64_t getIndexDataSize() noexcept;
 };
 }  // namespace pd

@@ -91,6 +91,15 @@ inline VkImageLayout ToVkImageLayout(TextureLayout layout) noexcept {
 }
 
 inline VkBufferUsageFlags ToVkBufferUsage(BufferUsage usage) noexcept {
+  switch (usage) {
+    using enum BufferUsage;
+    case VertexBuffer:
+      return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    case IndexBuffer:
+      return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    default:
+      PD_ASSERT_MSG(false, "buffer usage type error!");
+  }
   return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 }
 inline VkSharingMode ToVkSharingMode(SharingMode sharingMode) noexcept {
