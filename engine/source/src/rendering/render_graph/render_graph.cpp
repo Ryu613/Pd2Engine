@@ -7,11 +7,30 @@ void RenderGraph::reset() noexcept {
   mNodes.clear();
 }
 
-void RenderGraph::compile() noexcept {
-  // TODO(author)
+void RenderGraph::setup() noexcept {
   mNodes.clear();
-  for (auto& pass : mRenderPasses) {
-    mNodes.emplace_back(pass.get());
+  // shortcut: simplefield for testing
+  // TODO(author): node culling, resources and passes dependencies analysis, build dag
+  PassNode currentNode{
+      .id = 0,
+      .pPass = mRenderPasses[0].get(),
+  };
+  mNodes.push_back(currentNode);
+  for (size_t i = 1; i < mRenderPasses.size(); ++i) {
+    auto tailIt = mNodes.end();
+    PassNode node{
+      .id = static_cast<uint32_t>(i),
+      .pPass = mRenderPasses[i].get(),
+    };
+    tailIt->pNext = node.pPass;
+    mNodes.push_back(node);
+  }
+}
+
+void RenderGraph::compile() noexcept {
+  // TODO(author): dag's nodes resources allocation
+  for (auto& node : mNodes) {
+    node.pPass->setup();
   }
 }
 

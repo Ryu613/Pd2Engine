@@ -17,11 +17,13 @@ class RenderGraph {
     mRenderPasses.push_back(std::move(pass));
   }
 
-  void reset() noexcept;
+  void setup() noexcept;
 
   void compile() noexcept;
 
   void execute() noexcept;
+
+  void reset() noexcept;
 
  private:
   std::vector<std::unique_ptr<RenderPass>> mRenderPasses;

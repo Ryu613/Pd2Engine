@@ -28,6 +28,9 @@ void Renderer::initialize(IBackend* pBackend, IWindow* pWindow) noexcept {
   };
   mSwapchain = mBackend->createSwapchain(swapchainOptions);
 
+  // TODO(author): initialize frame context
+  mFrames.reserve(static_cast<size_t>(mConfig.inFlightFrame));
+
   // create render graph based on shading path
   initializeRenderGraph();
 
@@ -42,6 +45,7 @@ void Renderer::beginFrame() {
   }
   auto result = mBackend->acquireNextFrame(mSwapchain);
   // TODO(author): deal with swapchain resize & outdate & fail
+  mRenderGraph.compile();
 }
 
 void Renderer::endFrame() {
@@ -56,9 +60,6 @@ void Renderer::endFrame() {
 void Renderer::renderFrame() {
   // 指令重置及开始录制
   //   mBackend->startCmdRecording();
-  /*
-   * TODO: render graph
-   */
   mRenderGraph.execute();
   // 停止指令录制
   //   mBackend->endCmdRecording();
@@ -80,7 +81,7 @@ void Renderer::initializeRenderGraph() noexcept {
     using enum RenderPipeline;
     case Forward:
       //   mRenderGraph.addPass<GBufferPass>();
-      //   mRenderGraph.addPass<ForwardPass>();
+      // mRenderGraph.addPass<ForwardPass>();
       //   mRenderGraph.addPass<SkyBoxPass>();
       break;
     case Deferred:
@@ -88,9 +89,9 @@ void Renderer::initializeRenderGraph() noexcept {
     case PathTracing:
       PD_ASSERT_MSG(false, "path tracing not implemented");
     default:
-      PD_ASSERT_MSG(false, "initialize render graph failed! RenderPipeline error!");
+      PD_ASSERT_MSG(false, "initialize render graph failed!");
   }
   mRenderGraph.addPass<PresentPass>();
-  mRenderGraph.compile();
+  mRenderGraph.setup();
 }
 }  // namespace pd

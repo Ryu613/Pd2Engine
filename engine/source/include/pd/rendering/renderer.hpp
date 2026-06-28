@@ -11,6 +11,10 @@ class View;
 struct FrameContext {};
 class Renderer {
  public:
+  enum class InFlightFrame : uint8_t {
+    Double = 2,
+    Triple = 3,
+  };
   enum class RenderPipeline : uint8_t {
     Forward,
     Deferred,
@@ -35,6 +39,7 @@ class Renderer {
     RenderPipeline renderPipeline = RenderPipeline::Forward;
     LightCulling lightCulling = Renderer::LightCulling::None;
     ShadingModel shadingModel = Renderer::ShadingModel::StandardPBR;
+    InFlightFrame inFlightFrame = InFlightFrame::Double;
   };
 
   explicit Renderer(Config config) noexcept;
@@ -56,6 +61,7 @@ class Renderer {
   Config mConfig;
   RenderGraph mRenderGraph;
   HwHandle<Swapchain_t> mSwapchain;
+  std::vector<FrameContext> mFrames;
   bool mSwapchainDirty = false;
   bool mInitialized = false;
 

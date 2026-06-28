@@ -7,5 +7,8 @@ class ForwardPass : public RenderPass {
  public:
   void setup() noexcept override;
   void execute() noexcept override;
+
+ private:
+ 
 };
 }  // namespace pd
