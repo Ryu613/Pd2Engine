@@ -73,7 +73,7 @@ target_sources(engine_lib
         #include/pd/rendering/render_pass/gbuffer_pass.hpp
         #include/pd/rendering/render_pass/forward_pass.hpp
         #include/pd/rendering/render_pass/present_pass.hpp
-        #include/pd/rendering/render_graph/render_graph.hpp
+        include/pd/rendering/render_graph/render_graph.hpp
         # scene
         include/pd/scene/entity.hpp
         include/pd/scene/scene.hpp
@@ -109,7 +109,7 @@ target_sources(engine_lib
         # src/rendering/layer/engine_layer.cpp
         src/rendering/renderer.cpp
         #src/rendering/render_pass/present_pass.cpp
-        #src/rendering/render_graph/render_graph.cpp
+        src/rendering/render_graph/render_graph.cpp
         # resource
         src/resource/resource_manager.cpp
         src/resource/resource/texture_resource.cpp
@@ -167,6 +167,8 @@ target_include_directories(engine_lib
     PRIVATE
         src
 )
+
+CompileShader(${PD2_SHADER_LANG} engine_lib examples/pyramid.slang examples/pyramid.spv)
 
 generate_export_header(engine_lib BASE_NAME pd2_engine)
 configure_file(
