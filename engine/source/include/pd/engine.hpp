@@ -17,7 +17,6 @@ namespace pd {
  */
 class Engine {
  public:
-
   explicit Engine(EngineConfig config) noexcept;
   ~Engine() noexcept;
 

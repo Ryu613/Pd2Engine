@@ -10,7 +10,7 @@ class ILayer {
   MOVABLE_ONLY(ILayer);
 
  protected:
-  virtual str name() const noexcept { return "base layer"; }
+  virtual cstr name() const noexcept { return "base layer"; }
   virtual Result<void> onAttached() noexcept { return {}; }
   virtual Result<void> onDetached() noexcept { return {}; }
   virtual void onUpdate() noexcept {}

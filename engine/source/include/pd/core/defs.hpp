@@ -24,8 +24,6 @@ inline constexpr i8 i8_max = INT8_MAX;
 
 // string
 using cstr = const char*;
-using str = std::string;
-using str_view = std::string_view;
 
 // containers
 // template <typename T>

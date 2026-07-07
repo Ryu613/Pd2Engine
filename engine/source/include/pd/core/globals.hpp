@@ -35,10 +35,10 @@ inline constexpr bool enableDebug = true;
 // helper functions
 template <typename Enum>
   requires std::is_enum_v<Enum>
-inline str GetEnumName(Enum e) {
+inline std::string GetEnumName(Enum e) {
   auto name = magic_enum::enum_name(e);
   if (!name.empty()) {
-    return str(name);
+    return std::string(name);
   }
   // 如果枚举值超出了反射范围，则降级打印其底层的数字
   return std::to_string(std::to_underlying(e));

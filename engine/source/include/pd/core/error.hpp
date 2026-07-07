@@ -65,11 +65,11 @@ constexpr cstr default_msg(ErrorCode code) noexcept {
     case RenderingNotImplemented:
       return "Rendering not implemented";
     case AssetFileNotFound:
-      return "Rendering not implemented";
+      return "Asset file not found";
     case AssetFileLoadError:
-      return "Rendering not implemented";
+      return "Asset file load error";
     case AssetParseFailed:
-      return "Rendering not implemented";
+      return "Asset parse failed";
     case UnknownError:
       return "Unknown error";
   }

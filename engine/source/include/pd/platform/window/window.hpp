@@ -10,7 +10,7 @@ class IWindow {
     Android,
   };
   struct Config {
-    std::string title = str(global::DefaultWindowTitle);
+    std::string title = global::DefaultWindowTitle;
     uint32_t width = global::DefaultWindowWidth;
     uint32_t height = global::DefaultWindowHeight;
   };
