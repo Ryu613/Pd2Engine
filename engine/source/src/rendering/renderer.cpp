@@ -91,7 +91,7 @@ void Renderer::initializeRenderGraph() noexcept {
     default:
       PD_ASSERT_MSG(false, "initialize render graph failed!");
   }
-  mRenderGraph.addPass<PresentPass>();
-  mRenderGraph.setup();
+  // mRenderGraph.addPass<PresentPass>();
+  // mRenderGraph.setup();
 }
 }  // namespace pd
