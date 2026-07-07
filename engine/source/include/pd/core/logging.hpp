@@ -31,12 +31,17 @@ inline void init() {
 
     std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
 
-    // create logger
-    spdlog::init_thread_pool(8192, 1);
+// create logger
+#ifndef NDEBUG
     logger = std::make_shared<spdlog::logger>("pd2", sinks.begin(), sinks.end());
-    // logger = std::make_shared<spdlog::async_logger>("pd2", sinks.begin(), sinks.end(),
-    // spdlog::thread_pool(), spdlog::async_overflow_policy::block);
     logger->set_level(spdlog::level::debug);
+#else
+    spdlog::init_thread_pool(8192, 1);
+    logger = std::make_shared<spdlog::async_logger>("pd2", sinks.begin(), sinks.end(),
+                                                    spdlog::thread_pool(),
+                                                    spdlog::async_overflow_policy::block);
+    logger->set_level(spdlog::level::info);
+#endif
     spdlog::set_default_logger(logger);
 
     // err handler

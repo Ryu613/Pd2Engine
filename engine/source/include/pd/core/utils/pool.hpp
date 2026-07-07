@@ -29,10 +29,12 @@ class Pool {
         mFreeIndices(std::exchange(rhs.mFreeIndices, {})),
         mCapacity(std::exchange(rhs.mCapacity, 0)) {}
   Pool& operator=(Pool&& rhs) noexcept {
-    mData = std::exchange(rhs.mData, {});
-    mGens = std::exchange(rhs.mGens, {});
-    mFreeIndices = std::exchange(rhs.mFreeIndices, {});
-    mCapacity = std::exchange(rhs.mCapacity, 0);
+    if (this != &rhs) {
+      mData = std::exchange(rhs.mData, {});
+      mGens = std::exchange(rhs.mGens, {});
+      mFreeIndices = std::exchange(rhs.mFreeIndices, {});
+      mCapacity = std::exchange(rhs.mCapacity, 0);
+    }
     return *this;
   }
   ~Pool() = default;
