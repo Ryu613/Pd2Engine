@@ -76,7 +76,7 @@ GltfParser::GltfParser(IFileSystem* fs, ResourceManager* rm) noexcept
     : mFileSystem(fs),
       mResourceManager(rm) {}
 
-Asset::AssetResult<void> GltfParser::parse(Asset& asset) noexcept {
+Result<void> GltfParser::parse(Asset& asset) noexcept {
   const auto& assetPath = asset.getPath();
   // 读取gltf文件
   std::filesystem::path gltfFilePath{assetPath};
@@ -86,15 +86,15 @@ Asset::AssetResult<void> GltfParser::parse(Asset& asset) noexcept {
   fastgltf::Parser parser;
   auto data = fastgltf::GltfDataBuffer::FromPath(gltfFilePath);
   if (data.error() != fastgltf::Error::None) {
-    log::error("asset cannot be loaded: {}", gltfFilePath.string());
-    return std::unexpected(Asset::Error::FileLoadError);
+    LOG_ERROR("asset cannot be loaded: {}", gltfFilePath.string());
+    return make_error<void>(ErrorCode::AssetFileLoadError);
   }
   auto options =
       fastgltf::Options::LoadExternalBuffers | fastgltf::Options::DecomposeNodeMatrices;
   auto gltfAssetRes = parser.loadGltf(data.get(), gltfFilePath.parent_path(), options);
   if (auto error = gltfAssetRes.error(); error != fastgltf::Error::None) {
-    log::error("gltf asset file parse failed: {}", gltfFilePath.string());
-    return std::unexpected(Asset::Error::ParseFailed);
+    LOG_ERROR("gltf asset file parse failed: {}", gltfFilePath.string());
+    return make_error<void>(ErrorCode::AssetParseFailed);
   }
   // 2.1 创建gltf Asset
   auto& gltfAsset = gltfAssetRes.get();
@@ -161,7 +161,7 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
     const auto& image = gltfAsset.images[texture.imageIndex.value()];
     std::visit(fastgltf::visitor{
                    [](auto& arg) {
-                     log::warn("reach!");
+                     LOG_WARN("reach!");
                      PD_ASSERT_MSG(false, "texture parse error!");
                    },
                    [&](const fastgltf::sources::URI& filePath) {
@@ -201,7 +201,7 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
                      // 清除使用后的image数据
                      stbi_image_free(texels);
                    },
-                   [&](const fastgltf::sources::Array& vector) { log::warn("reach!"); },
+                   [&](const fastgltf::sources::Array& vector) { LOG_WARN("reach!"); },
                    [&](const fastgltf::sources::BufferView& view) {
                      const auto& bufferView = gltfAsset.bufferViews[view.bufferViewIndex];
                      const auto& buffer = gltfAsset.buffers[bufferView.bufferIndex];

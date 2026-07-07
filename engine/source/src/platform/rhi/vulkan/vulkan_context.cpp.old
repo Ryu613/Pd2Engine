@@ -23,7 +23,7 @@ bool VulkanContext::initialize(const VulkanConfig& vulkanConfig) noexcept {
   }
   auto initRet = builder.build();
   if (!initRet) {
-    log::error(initRet.error().message().data());
+    LOG_ERROR(initRet.error().message().data());
     return false;
   }
   vkb::Instance instance = initRet.value();
@@ -33,7 +33,7 @@ bool VulkanContext::initialize(const VulkanConfig& vulkanConfig) noexcept {
   volkLoadInstance(mInstance);
 
   if (!createSurface(vulkanConfig.nativeWindowHandle)) {
-    log::error("vulkan surface creation failed!");
+    LOG_ERROR("vulkan surface creation failed!");
     return false;
   }
 
@@ -69,13 +69,13 @@ bool VulkanContext::initialize(const VulkanConfig& vulkanConfig) noexcept {
                           .set_surface(mSurface)
                           .select();
   if (!phyDeviceRet) {
-    log::error(phyDeviceRet.error().message().data());
+    LOG_ERROR(phyDeviceRet.error().message().data());
     if (phyDeviceRet.error() == vkb::PhysicalDeviceError::no_suitable_device) {
       const auto& detailed_reasons = phyDeviceRet.detailed_failure_reasons();
       if (!detailed_reasons.empty()) {
-        log::error("GPU Selection failure reasons:\n");
+        LOG_ERROR("GPU Selection failure reasons:\n");
         for (const std::string& reason : detailed_reasons) {
-          log::error(reason + "\n");
+          LOG_ERROR(reason + "\n");
         }
       }
     }
@@ -89,7 +89,7 @@ bool VulkanContext::initialize(const VulkanConfig& vulkanConfig) noexcept {
 
   auto deviceRet = deviceBuilder.build();
   if (!deviceRet) {
-    log::error(deviceRet.error().message().data());
+    LOG_ERROR(deviceRet.error().message().data());
     return false;
   }
   const auto& device = deviceRet.value();
@@ -100,7 +100,7 @@ bool VulkanContext::initialize(const VulkanConfig& vulkanConfig) noexcept {
   // get queue info
   auto graphicsQueueRet = device.get_queue(vkb::QueueType::graphics);
   if (!graphicsQueueRet) {
-    log::error(graphicsQueueRet.error().message().data());
+    LOG_ERROR(graphicsQueueRet.error().message().data());
     return false;
   }
   mQueueInfo.graphicsQueue = graphicsQueueRet.value();
@@ -109,7 +109,7 @@ bool VulkanContext::initialize(const VulkanConfig& vulkanConfig) noexcept {
 
   auto presentQueueRet = device.get_queue(vkb::QueueType::present);
   if (!presentQueueRet) {
-    log::error(graphicsQueueRet.error().message().data());
+    LOG_ERROR(graphicsQueueRet.error().message().data());
     return false;
   }
   mQueueInfo.presentQueue = presentQueueRet.value();
@@ -140,7 +140,7 @@ void VulkanContext::shutdown() noexcept {
   if (!mInitialized) {
     return;
   }
-  log::info("destroying Vulkan");
+  LOG_INFO("destroying Vulkan");
 
   vkDeviceWaitIdle(mDevice);
   vmaDestroyAllocator(mVmaAllocator);

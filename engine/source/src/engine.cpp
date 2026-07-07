@@ -5,18 +5,18 @@
 
 namespace pd {
 
-Engine::Engine(Config config) noexcept
+Engine::Engine(EngineConfig config) noexcept
     : mConfig{std::move(config)},
       mArena{"Engine Heap Allocator", ResourceType::NullResource{}},
       mRenderer(Renderer::Config{}) {
-  log::info("Engine created!");
+  LOG_INFO("Engine created!");
   mLayers.reserve(4);
   log::logo();
 }
 
 Engine::~Engine() noexcept { shutdown(); }
 
-Result<void, Error::Engine> Engine::initialize() noexcept {
+Result<void> Engine::initialize() noexcept {
   // 初始化平台层
   IPlatform::Config config{
       .window =
@@ -30,8 +30,8 @@ Result<void, Error::Engine> Engine::initialize() noexcept {
 
   // 创建窗口
   if (!mPlatform->window()->create()) {
-    log::error("window creation failed!");
-    return std::unexpected<Error::Engine>(Error::Engine::InitializeFailed);
+    LOG_ERROR("window creation failed!");
+    return make_error<void>(ErrorCode::EngineInitializeFailed);
   }
   // 初始化渲染后端
   auto* pWindow = mPlatform->window();
@@ -56,7 +56,7 @@ void Engine::shutdown() noexcept {
   for (auto& layer : mLayers) {
     auto result = layer->onDetached();
     if (!result) {
-      log::error("layer detach failed! layer: {}, error: {}", layer->name(), result.error());
+      LOG_ERROR("layer detach failed! layer: {}, error: {}", layer->name(), result.error().code);
       continue;
     }
   }
@@ -64,15 +64,15 @@ void Engine::shutdown() noexcept {
   mInitialized = false;
 }
 
-Result<void, Error::Engine> Engine::run() noexcept {
+Result<void> Engine::run() noexcept {
   if (!mInitialized) {
-    return std::unexpected<Error::Engine>(Error::Engine::RunFailed);
+    return make_error<void>(ErrorCode::EngineRunFailed);
   }
   // prepare scene data
   auto sceneLoadResult = mSceneManager.loadScene();
   if (!sceneLoadResult) {
-    log::error("scene load failed!, error: {}", sceneLoadResult.error());
-    return std::unexpected<Error::Engine>(Error::Engine::RunFailed);
+    LOG_ERROR("scene load failed!, error: {}", default_msg(sceneLoadResult.error().code));
+    return make_error<void>(ErrorCode::SceneLoadFailed);
   }
 
   while (!mPlatform->window()->shouldClose()) {
@@ -89,13 +89,13 @@ Result<void, Error::Engine> Engine::run() noexcept {
 
   auto sceneUnloadResult = mSceneManager.unloadScene();
   if (!sceneUnloadResult) {
-    log::error("scene unload error: {}", sceneUnloadResult.error());
-    return std::unexpected<Error::Engine>(Error::Engine::ResourceGCFailed);
+    LOG_ERROR("scene unload error: {}", default_msg(sceneUnloadResult.error().code));
+    return make_error<void>(ErrorCode::EngineResourceGCFailed);
   }
   return {};
 }
 
-Result<ILayer*, Error::Layer> Engine::attachLayer(std::unique_ptr<ILayer>&& layer) noexcept {
+Result<void> Engine::attachLayer(std::unique_ptr<ILayer>&& layer) noexcept {
   PD_ASSERT_MSG(!mInitialized, "layer should be attached before initialize()");
   mLayers.push_back(std::move(layer));
   auto* pLayer = mLayers.back().get();
@@ -104,11 +104,11 @@ Result<ILayer*, Error::Layer> Engine::attachLayer(std::unique_ptr<ILayer>&& laye
   return {};
 }
 
-Result<std::unique_ptr<ILayer>, Error::Layer> Engine::detachLayer(ILayer* layer) noexcept {
+Result<std::unique_ptr<ILayer>> Engine::detachLayer(ILayer* layer) noexcept {
   auto findLayer = [layer](const auto& v) { return v.get() == layer; };
   auto layerIt = std::ranges::find_if(mLayers.begin(), mLayers.end(), findLayer);
   if (layerIt == mLayers.end()) {
-    return std::unexpected(Error::Layer::LayerNotFound);
+    return make_error<std::unique_ptr<ILayer>>(ErrorCode::SceneLoadFailed);
   }
   auto returnLayer = std::move(*layerIt);
   auto result = returnLayer->onDetached();

@@ -17,19 +17,18 @@ namespace pd {
  */
 class Engine {
  public:
-  using Config = EngineConfig;
 
-  explicit Engine(Config config) noexcept;
+  explicit Engine(EngineConfig config) noexcept;
   ~Engine() noexcept;
 
   NO_COPY_MOVE(Engine);
 
-  Result<void, Error::Engine> initialize() noexcept;
+  Result<void> initialize() noexcept;
 
   void shutdown() noexcept;
 
   template <BaseOfSceneDescriptor T, typename... Args>
-  Result<void, Error::Scene> loadScene(Args&&... args) noexcept {
+  Result<void> loadScene(Args&&... args) noexcept {
     return mSceneManager.initializeScene<T>(std::forward<Args>(args)...);
   }
 
@@ -42,7 +41,7 @@ class Engine {
    * @return EngineResult<void>
    */
   template <BaseOfLayer TLayer, typename... Args>
-  Result<void, Error::Layer> createLayer(Args... args) noexcept {
+  Result<void> createLayer(Args... args) noexcept {
     auto layer = std::make_unique<TLayer>(std::forward<Args>(args)...);
     return attachLayer(std::move(layer));
   }
@@ -54,7 +53,7 @@ class Engine {
    * @param layer
    * @return EngineResult<Layer*>
    */
-  Result<ILayer*, Error::Layer> attachLayer(std::unique_ptr<ILayer>&& layer) noexcept;
+  Result<void> attachLayer(std::unique_ptr<ILayer>&& layer) noexcept;
 
   /**
    * @brief 把界面层从引擎中拔下，拥有权转出
@@ -62,17 +61,17 @@ class Engine {
    * @param layer
    * @return EngineResult<std::unique_ptr<Layer>>
    */
-  Result<std::unique_ptr<ILayer>, Error::Layer> detachLayer(ILayer* layer) noexcept;
+  Result<std::unique_ptr<ILayer>> detachLayer(ILayer* layer) noexcept;
 
   /**
    * @brief 开始运行
    *
    * @return EngineResult<void>
    */
-  Result<void, Error::Engine> run() noexcept;
+  Result<void> run() noexcept;
 
  private:
-  Config mConfig;
+  EngineConfig mConfig;
   bool mInitialized = false;
 
   HeapAllocator mArena;

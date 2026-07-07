@@ -11,21 +11,21 @@ PlatformWin32::PlatformWin32() noexcept {}
 PlatformWin32 ::~PlatformWin32() noexcept { shutdown(); }
 bool PlatformWin32::initialize(const std::string& appName, uint32_t width,
                                uint32_t height, bool enableDebug) noexcept {
-  log::info("initializing file system...");
+  LOG_INFO("initializing file system...");
   mFileSystem = std::make_unique<StdFileSystem>();
-  log::info("initializing WSI...");
+  LOG_INFO("initializing WSI...");
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    log::error("SDL init failed! {}", SDL_GetError());
+    LOG_ERROR("SDL init failed! {}", SDL_GetError());
     return false;
   }
   mWindow = SDL_CreateWindow(
       appName.c_str(), static_cast<int>(width), static_cast<int>(height),
       SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY);
   if (mWindow == nullptr) {
-    log::error("SDL create window failed! {}", SDL_GetError());
+    LOG_ERROR("SDL create window failed! {}", SDL_GetError());
     return false;
   }
-  log::info("initializing backend driver...");
+  LOG_INFO("initializing backend driver...");
   VulkanConfig vkConfig{
       .appName = appName,
       .enableValidationLayer = enableDebug,
@@ -39,10 +39,10 @@ bool PlatformWin32::initialize(const std::string& appName, uint32_t width,
   return true;
 }
 void PlatformWin32::shutdown() noexcept {
-  log::info("destroying Driver...");
+  LOG_INFO("destroying Driver...");
   mRhiApi.reset();
 
-  log::info("destroying SDL3...");
+  LOG_INFO("destroying SDL3...");
   if (mWindow == nullptr) {
     return;
   }

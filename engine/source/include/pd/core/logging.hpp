@@ -10,62 +10,54 @@
 
 namespace pd {
 namespace log {
-static std::shared_ptr<spdlog::logger> logger = nullptr;
+
+inline std::shared_ptr<spdlog::logger>& logger_storage() {
+  static std::shared_ptr<spdlog::logger> instance;
+  return instance;
+}
+
 inline void init() {
-  if (logger) {
-    return;
-  }
-  try {
-    // console
-    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    console_sink->set_level(spdlog::level::debug);
-    console_sink->set_pattern(
-        "[%Y-%m-%d %H:%M:%S.%e]\033[36m[p-%P][t-%t]\033[35m[%n]\033[0m%^[%l]%$ %v");
+  static std::once_flag flag;
+  std::call_once(flag, []() {
+    try {
+      auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+      console_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e]\033[36m[p-%P][t-%t]\033[35m[%n]\033[0m%^[%l]%$ [%s:%#] %v");
 
-    // file
-    auto max_size = 1048576 * 5;
-    auto max_files = 3;
-    auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-        "logs/engine.log", max_size, max_files);
-    file_sink->set_level(spdlog::level::debug);
+      auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+          "logs/engine.log", 1048576 * 5, 3);
 
-    std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
+      std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
 
-// create logger
 #ifndef NDEBUG
-    logger = std::make_shared<spdlog::logger>("pd2", sinks.begin(), sinks.end());
-    logger->set_level(spdlog::level::debug);
+      auto logger = std::make_shared<spdlog::logger>("pd2", sinks.begin(), sinks.end());
+      logger->set_level(spdlog::level::debug);
 #else
-    spdlog::init_thread_pool(8192, 1);
-    logger = std::make_shared<spdlog::async_logger>("pd2", sinks.begin(), sinks.end(),
-                                                    spdlog::thread_pool(),
-                                                    spdlog::async_overflow_policy::block);
-    logger->set_level(spdlog::level::info);
+            spdlog::init_thread_pool(8192, 1);
+            auto logger = std::make_shared<spdlog::async_logger>("pd2", sinks.begin(), sinks.end(),
+                                                                 spdlog::thread_pool(),
+                                                                 spdlog::async_overflow_policy::block);
+            logger->set_level(spdlog::level::info);
 #endif
-    spdlog::set_default_logger(logger);
-
-    // err handler
-    spdlog::set_error_handler(
-        [](const std::string& msg) { std::cerr << "SPDLOG ERROR:" << msg << "\n"; });
-
-  } catch (const spdlog::spdlog_ex& ex) {
-    std::cerr << "Log initialization failed: " << ex.what() << "\n";
-  }
+      logger_storage() = logger;
+      spdlog::set_default_logger(logger);
+      spdlog::set_error_handler([](const std::string& msg) {
+        // 输出到 stderr 或系统调试器
+        std::cerr << "SPDLOG ERROR: " << msg << "\n";
+      });
+    } catch (const spdlog::spdlog_ex& ex) {
+      std::cerr << "Log init failed: " << ex.what() << "\n";
+    }
+  });
 }
 
 inline std::shared_ptr<spdlog::logger> get() {
-  if (!logger) {
-    init();
-  }
-  return logger;
+  init();
+  return logger_storage();
 }
 
 inline void shutdown() noexcept {
-  try {
-    logger.reset();
-  } catch (const spdlog::spdlog_ex& ex) {
-    std::cerr << " log destroy failed!" << ex.what() << "\n";
-  }
+  spdlog::shutdown();
+  logger_storage().reset();
 }
 
 // 对enum打印枚举名
@@ -79,29 +71,29 @@ struct fmt::formatter<Enum> {
   }
 };
 
-template <typename Str, typename... Args>
-inline void trace(Str&& str, Args&&... args) {
-  get()->trace(fmt::runtime(std::forward<Str>(str)), std::forward<Args>(args)...);
+template <typename... Args>
+inline void trace(fmt::format_string<Args...> fmt, Args&&... args) {
+  get()->trace(fmt, std::forward<Args>(args)...);
 }
 
-template <typename Str, typename... Args>
-inline void debug(Str&& str, Args&&... args) {
-  get()->debug(fmt::runtime(std::forward<Str>(str)), std::forward<Args>(args)...);
+template <typename... Args>
+inline void debug(fmt::format_string<Args...> fmt, Args&&... args) {
+  get()->debug(fmt, std::forward<Args>(args)...);
 }
 
-template <typename Str, typename... Args>
-inline void info(Str&& str, Args&&... args) {
-  get()->info(fmt::runtime(std::forward<Str>(str)), std::forward<Args>(args)...);
+template <typename... Args>
+inline void info(fmt::format_string<Args...> fmt, Args&&... args) {
+  get()->info(fmt, std::forward<Args>(args)...);
 }
 
-template <typename Str, typename... Args>
-inline void warn(Str&& str, Args&&... args) {
-  get()->warn(fmt::runtime(std::forward<Str>(str)), std::forward<Args>(args)...);
+template <typename... Args>
+inline void warn(fmt::format_string<Args...> fmt, Args&&... args) {
+  get()->warn(fmt, std::forward<Args>(args)...);
 }
 
-template <typename Str, typename... Args>
-inline void error(Str&& str, Args&&... args) {
-  get()->error(fmt::runtime(std::forward<Str>(str)), std::forward<Args>(args)...);
+template <typename... Args>
+inline void error(fmt::format_string<Args...> fmt, Args&&... args) {
+  get()->error(fmt, std::forward<Args>(args)...);
 }
 
 inline void logo() {
@@ -114,4 +106,9 @@ inline void logo() {
 )");
 }
 }  // namespace log
+#define LOG_TRACE(...) SPDLOG_LOGGER_TRACE(log::get().get(), __VA_ARGS__)
+#define LOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(log::get().get(), __VA_ARGS__)
+#define LOG_INFO(...) SPDLOG_LOGGER_INFO(log::get().get(), __VA_ARGS__)
+#define LOG_WARN(...) SPDLOG_LOGGER_WARN(log::get().get(), __VA_ARGS__)
+#define LOG_ERROR(...) SPDLOG_LOGGER_ERROR(log::get().get(), __VA_ARGS__)
 }  // namespace pd

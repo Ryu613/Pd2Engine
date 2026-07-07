@@ -16,7 +16,7 @@ bool WindowSDL3::create() noexcept {
     return true;
   }
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    log::error("SDL init failed! {}", SDL_GetError());
+    LOG_ERROR("SDL init failed! {}", SDL_GetError());
     return false;
   }
   mWindow = SDL_CreateWindow(
@@ -24,7 +24,7 @@ bool WindowSDL3::create() noexcept {
       static_cast<int>(mConfig.height),
       SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY);
   if (mWindow == nullptr) {
-    log::error("SDL create window failed! {}", SDL_GetError());
+    LOG_ERROR("SDL create window failed! {}", SDL_GetError());
     return false;
   }
 

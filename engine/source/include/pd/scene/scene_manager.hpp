@@ -22,16 +22,16 @@ class SceneManager {
   void destroy() noexcept;
 
   template <BaseOfSceneDescriptor T, typename... Args>
-  Result<void, Error::Scene> initializeScene(Args&&... args) noexcept {
+  Result<void> initializeScene(Args&&... args) noexcept {
     mSceneDescriptor = std::make_unique<T>(std::forward<Args>(args)...);
     return {};
   }
 
-  Result<void, Error::Scene> loadScene() noexcept;
+  Result<void> loadScene() noexcept;
 
   void updateScene() noexcept;
 
-  Result<void, Error::Scene> unloadScene() noexcept;
+  Result<void> unloadScene() noexcept;
 
   AssetManager& getAssetManager() noexcept { return *mAssetManager; }
 

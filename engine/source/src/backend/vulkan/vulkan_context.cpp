@@ -14,19 +14,19 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
   switch (messageSeverity) {
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-      log::debug("validation layer: {}", pCallbackData->pMessage);
+      LOG_DEBUG("validation layer: {}", pCallbackData->pMessage);
       break;
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-      log::info("validation layer: {}", pCallbackData->pMessage);
+      LOG_INFO("validation layer: {}", pCallbackData->pMessage);
       break;
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-      log::warn("validation layer: {}", pCallbackData->pMessage);
+      LOG_WARN("validation layer: {}", pCallbackData->pMessage);
       break;
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-      log::error("validation layer: {}", pCallbackData->pMessage);
+      LOG_ERROR("validation layer: {}", pCallbackData->pMessage);
       break;
     default:
-      log::trace("validation layer: {}", pCallbackData->pMessage);
+      LOG_TRACE("validation layer: {}", pCallbackData->pMessage);
       break;
   }
 
@@ -56,7 +56,7 @@ void VulkanContext::init() noexcept {
   }
   auto initRet = builder.build();
   if (!initRet) {
-    log::error(initRet.error().message().data());
+    LOG_ERROR(initRet.error().message().data());
     PD_ASSERT_MSG(false, "vulkan instance create failed!");
   }
   vkb::Instance instance = initRet.value();
@@ -101,13 +101,13 @@ void VulkanContext::init() noexcept {
                           .set_surface(mSurface)
                           .select();
   if (!phyDeviceRet) {
-    log::error(phyDeviceRet.error().message().data());
+    LOG_ERROR(phyDeviceRet.error().message().data());
     if (phyDeviceRet.error() == vkb::PhysicalDeviceError::no_suitable_device) {
       const auto& detailed_reasons = phyDeviceRet.detailed_failure_reasons();
       if (!detailed_reasons.empty()) {
-        log::error("GPU Selection failure reasons:\n");
+        LOG_ERROR("GPU Selection failure reasons:\n");
         for (const std::string& reason : detailed_reasons) {
-          log::error(reason + "\n");
+          LOG_ERROR(reason + "\n");
         }
       }
     }
@@ -120,7 +120,7 @@ void VulkanContext::init() noexcept {
 
   auto deviceRet = deviceBuilder.build();
   if (!deviceRet) {
-    log::error(deviceRet.error().message().data());
+    LOG_ERROR(deviceRet.error().message().data());
     PD_ASSERT_MSG(false, "vulkan device create failed!");
   }
   const auto& device = deviceRet.value();
@@ -131,7 +131,7 @@ void VulkanContext::init() noexcept {
   // get queue info
   auto graphicsQueueRet = device.get_queue(vkb::QueueType::graphics);
   if (!graphicsQueueRet) {
-    log::error(graphicsQueueRet.error().message().data());
+    LOG_ERROR(graphicsQueueRet.error().message().data());
     PD_ASSERT_MSG(false, "vulkan graphics queue info fetch failed!");
   }
   mQueueInfo.graphicsQueue = graphicsQueueRet.value();
@@ -140,7 +140,7 @@ void VulkanContext::init() noexcept {
 
   auto presentQueueRet = device.get_queue(vkb::QueueType::present);
   if (!presentQueueRet) {
-    log::error(graphicsQueueRet.error().message().data());
+    LOG_ERROR(graphicsQueueRet.error().message().data());
     PD_ASSERT_MSG(false, "vulkan present queue info fetch failed!");
   }
   mQueueInfo.presentQueue = presentQueueRet.value();

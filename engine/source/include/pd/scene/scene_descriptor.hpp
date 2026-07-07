@@ -23,7 +23,7 @@ class SceneDescriptor {
   /**
    * @brief 在渲染前需要准备好的资产，场景, 视窗
    */
-  Result<void, Error::Scene> loadScene(SceneManager& sceneManager) noexcept;
+  Result<void> loadScene(SceneManager& sceneManager) noexcept;
 
   /**
    * @brief 帧内更新场景数据
@@ -37,12 +37,12 @@ class SceneDescriptor {
    *
    * @return SceneResult<void>
    */
-  Result<void, Error::Scene> unloadScene() noexcept;
+  Result<void> unloadScene() noexcept;
 
  private:
-  virtual Result<void, Error::Scene> onLoadScene(SceneManager& sceneManager) noexcept = 0;
+  virtual Result<void> onLoadScene(SceneManager& sceneManager) noexcept = 0;
   virtual void onUpdateScene() noexcept = 0;
-  virtual Result<void, Error::Scene> onUnloadScene() noexcept = 0;
+  virtual Result<void> onUnloadScene() noexcept = 0;
 };
 
 // 只允许处理继承了此对象的场景描述类

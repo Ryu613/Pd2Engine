@@ -20,15 +20,18 @@ void SceneManager::destroy() noexcept {
   if (!mInitialized) {
     return;
   }
-  unloadScene();
+  auto unloadResult = unloadScene();
+  if(!unloadResult) {
+    LOG_ERROR("scene unload error: {}", default_msg(unloadResult.error().code));
+  }
   mInitialized = false;
 }
 
-Result<void, Error::Scene> SceneManager::loadScene() noexcept {
+Result<void> SceneManager::loadScene() noexcept {
   mResourceManager->clearAll();
   auto sceneLoadResult = mSceneDescriptor->loadScene(*this);
   if (!sceneLoadResult) {
-    log::error("scene cannot be loaded!", sceneLoadResult.error());
+    LOG_ERROR("scene cannot be loaded {}", default_msg(sceneLoadResult.error().code));
     return sceneLoadResult;
   }
   mResourceManager->loadAll();
@@ -37,10 +40,10 @@ Result<void, Error::Scene> SceneManager::loadScene() noexcept {
 
 void SceneManager::updateScene() noexcept {}
 
-Result<void, Error::Scene> SceneManager::unloadScene() noexcept {
+Result<void> SceneManager::unloadScene() noexcept {
   auto unloadResult = mSceneDescriptor->unloadScene();
   if (!unloadResult) {
-    log::error("scene unload failed!", unloadResult.error());
+    LOG_ERROR("scene unload failed {}", default_msg(unloadResult.error().code));
   }
   mResourceManager->clearAll();
   //   mWorld.clear();

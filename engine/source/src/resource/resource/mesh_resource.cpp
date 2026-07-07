@@ -9,7 +9,7 @@ MeshResource::MeshResource(Properties props) noexcept
 MeshResource::~MeshResource() {}
 
 void MeshResource::doLoad(IBackend& backend) noexcept {
-  log::debug("loading mesh: {}", this->id());
+  LOG_DEBUG("loading mesh: {}", this->id());
   // 1. convert resource data to memory friendly form
   MeshOutput output = outputData();
   // 2. vertex buffer create & upload

@@ -27,14 +27,6 @@ class Asset {
     std::string path;
     Type parseType = Type::Gltf;
   };
-  enum class Error : uint8_t {
-    FileNotFound = 1,
-    FileLoadError = 2,
-    ParseFailed = 3,
-    Unknown = 99,
-  };
-  template <typename T>
-  using AssetResult = Result<T, Error>;
 
   MOVABLE_ONLY(Asset);
 

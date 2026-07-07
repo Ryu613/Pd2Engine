@@ -12,7 +12,7 @@ VulkanSwapchain::~VulkanSwapchain() { shutdown(); }
 
 bool VulkanSwapchain::initialize(uint32_t width, uint32_t height) noexcept {
   if (!createSwapchain(width, height)) {
-    log::error("vulkan swapchain creation failed!");
+    LOG_ERROR("vulkan swapchain creation failed!");
     return false;
   }
   mInitialized = true;
@@ -23,7 +23,7 @@ void VulkanSwapchain::shutdown() noexcept {
   if (!mInitialized) {
     return;
   }
-  log::info("destroying vulkan swapchain...");
+  LOG_INFO("destroying vulkan swapchain...");
   destroySwapchain();
 
   mInitialized = false;
@@ -46,7 +46,7 @@ bool VulkanSwapchain::createSwapchain(uint32_t width, uint32_t height) noexcept 
   // maxImageCount = 0 means no limit on number of images, but, in fact, is limited by
   // total amount of memory used by presentable images.
   if (surfaceCaps.maxImageCount != 0 && desiredImageCount > surfaceCaps.maxImageCount) {
-    log::error("swapchain doesn't support {} images.", desiredImageCount);
+    LOG_ERROR("swapchain doesn't support {} images.", desiredImageCount);
     desiredImageCount = surfaceCaps.minImageCount;
   }
 
@@ -71,7 +71,7 @@ bool VulkanSwapchain::createSwapchain(uint32_t width, uint32_t height) noexcept 
                                  )
           .build();
   if (!ret) {
-    log::error(ret.error().message() + " " + string_VkResult(ret.vk_result()) + "\n");
+    LOG_ERROR(ret.error().message() + " " + string_VkResult(ret.vk_result()) + "\n");
     return false;
   }
   auto& swapchain = ret.value();
@@ -194,7 +194,7 @@ bool VulkanSwapchain::acquireNextImage(VkSemaphore imageAvailableSemaphore) noex
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     // TODO(author): recreate swapchain
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-    log::error("failed to acquire swapchain image,err: \n{}", string_VkResult(result));
+    LOG_ERROR("failed to acquire swapchain image,err: \n{}", string_VkResult(result));
     return false;
   }
   return true;
@@ -218,7 +218,7 @@ void VulkanSwapchain::present() noexcept {
   if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
     // TODO(author): 处理交换链过期问题，即需要重建swapchain
   } else if (presentResult != VK_SUCCESS) {
-    log::error("failed to present swapchain image!\n{}", string_VkResult(presentResult));
+    LOG_ERROR("failed to present swapchain image!\n{}", string_VkResult(presentResult));
     return;
   }
 }

@@ -31,7 +31,7 @@
 namespace pd {
 inline void assert_fail(const char* expr, const char* what, const char* file, int line,
                         const char* function) {
-  log::error("assertion fail: '{}'\n\tFile: {}, Line: {}, Function: {}\n\t{}", expr, file,
+  LOG_ERROR("assertion fail: '{}'\n\tFile: {}, Line: {}, Function: {}\n\t{}", expr, file,
              line, function, what);
 }
 }  // namespace pd

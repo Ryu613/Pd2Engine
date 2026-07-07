@@ -25,14 +25,14 @@ void AssetManager::destroy() noexcept {
   mInitialized = false;
 }
 
-Asset::AssetResult<Asset*> AssetManager::createAsset(
+Result<Asset*> AssetManager::createAsset(
     const Asset::CreateInfo& assetInfo) noexcept {
   // 检查文件是否存在，类型是否正确, 文件是否可读
   const auto& assetPath = assetInfo.path;
   auto& fs = *mFileSystem;
   if (!fs.exists(assetPath) || !fs.isFile(assetPath)) {
-    log::error("asset path is illegal: {}", assetPath);
-    return std::unexpected(Asset::Error::FileNotFound);
+    LOG_ERROR("asset path is illegal: {}", assetPath);
+    return make_error<Asset*>(ErrorCode::AssetFileNotFound);
   }
   // 检查是否已存在此资产, 目前的实现: 把path视为id
   const Asset::IdType& assetId = assetInfo.path;
@@ -45,7 +45,7 @@ Asset::AssetResult<Asset*> AssetManager::createAsset(
   // 2. 生成资产实例
   auto parseResult = mParsers[static_cast<size_t>(assetInfo.parseType)]->parse(*newAsset);
   if (!parseResult) {
-    return std::unexpected(parseResult.error());
+    return make_error<Asset*>(ErrorCode::AssetParseFailed);
   }
   // 3. 记录到资产记录表
   auto [insertedIt, success] = mAssets.emplace(assetId, std::move(newAsset));

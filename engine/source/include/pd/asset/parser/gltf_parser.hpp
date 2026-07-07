@@ -14,7 +14,7 @@ class GltfParser : public IAssetParser {
   ~GltfParser() override = default;
   MOVABLE_ONLY(GltfParser);
 
-  Asset::AssetResult<void> parse(Asset& asset) noexcept override;
+  Result<void> parse(Asset& asset) noexcept override;
 
  private:
   IFileSystem* mFileSystem = nullptr;

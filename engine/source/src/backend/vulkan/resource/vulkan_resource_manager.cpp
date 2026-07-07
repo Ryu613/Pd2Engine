@@ -51,7 +51,7 @@ Handle<Texture_t> VulkanResourceManager::createImage(const HwTexture& texture) n
   if (auto result = vmaCreateImage(allocator, &imageCInfo, &allocCInfo, &vkImage,
                                    &vmaAllocation, nullptr);
       result != VK_SUCCESS) {
-    log::error("vulkan create image error: {}", string_VkResult(result));
+    LOG_ERROR("vulkan create image error: {}", string_VkResult(result));
     return {};
   }
   VmaAllocationInfo allocInfo;
@@ -96,7 +96,7 @@ Handle<Swapchain_t> VulkanResourceManager::createSwapchain(
   // maxImageCount = 0 means no limit on number of images, but, in fact, is limited by
   // total amount of memory used by presentable images.
   if (surfaceCaps.maxImageCount != 0 && desiredImageCount > surfaceCaps.maxImageCount) {
-    log::error("swapchain doesn't support {} images.", desiredImageCount);
+    LOG_ERROR("swapchain doesn't support {} images.", desiredImageCount);
     desiredImageCount = surfaceCaps.minImageCount;
   }
 
@@ -121,7 +121,7 @@ Handle<Swapchain_t> VulkanResourceManager::createSwapchain(
                                  )
           .build();
   if (!ret) {
-    log::error(ret.error().message() + " " + string_VkResult(ret.vk_result()) + "\n");
+    LOG_ERROR(ret.error().message() + " " + string_VkResult(ret.vk_result()) + "\n");
     PD_ASSERT_MSG(deviceSurfaceResult == VK_SUCCESS, "build vulkan swapchain error");
   }
   auto& newSwapchain = ret.value();

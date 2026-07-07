@@ -34,9 +34,8 @@ class IBackend {
   }
   virtual void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {}
 
-  virtual Result<void, Error::Rendering> acquireNextFrame(
-      HwHandle<Swapchain_t>& handle) noexcept {
-    return std::unexpected<Error::Rendering>{Error::Rendering::NotImplemented};
+  virtual Result<void> acquireNextFrame(HwHandle<Swapchain_t>& handle) noexcept {
+    return make_error<void>(ErrorCode::RenderingNotImplemented);
   }
 
   // buffer

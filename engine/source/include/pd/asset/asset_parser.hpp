@@ -9,6 +9,6 @@ class IAssetParser {
   virtual ~IAssetParser() = default;
   MOVABLE_ONLY(IAssetParser);
 
-  virtual Asset::AssetResult<void> parse(Asset& asset) noexcept = 0;
+  virtual Result<void> parse(Asset& asset) noexcept = 0;
 };
 }  // namespace pd

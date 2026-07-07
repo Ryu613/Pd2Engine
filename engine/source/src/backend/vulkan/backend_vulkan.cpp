@@ -38,7 +38,7 @@ void BackendVulkan::writeBuffer(const BufferWriteOptions& writeOptions) noexcept
   mVulkanResourceManager.writeBuffer(writeOptions);
 }
 
-Result<void, Error::Rendering> BackendVulkan::acquireNextFrame(
+Result<void> BackendVulkan::acquireNextFrame(
     HwHandle<Swapchain_t>& handle) noexcept {
   auto device = mVulkanContext->getDevice();
   return {};

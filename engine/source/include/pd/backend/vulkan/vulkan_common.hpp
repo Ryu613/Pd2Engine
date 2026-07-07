@@ -15,7 +15,7 @@
   do {                                                                            \
     VkResult err = x;                                                             \
     if (err) {                                                                    \
-      log::error(fmt::format("Detected Vulkan error: {}", string_VkResult(err))); \
+      LOG_ERROR(fmt::format("Detected Vulkan error: {}", string_VkResult(err))); \
       PD_ASSERT_MSG(false, "vulkan operation error!");                            \
     }                                                                             \
   } while (0)

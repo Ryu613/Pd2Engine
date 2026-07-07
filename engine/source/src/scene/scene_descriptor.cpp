@@ -4,21 +4,21 @@
 
 namespace pd {
 
-Result<void, Error::Scene> SceneDescriptor::loadScene(
+Result<void> SceneDescriptor::loadScene(
     SceneManager& sceneManager) noexcept {
-  log::info("start loading scene");
+  LOG_INFO("start loading scene");
   auto loadResult = onLoadScene(sceneManager);
   if (!loadResult) {
-    log::error("scene load failed!", GetEnumName(loadResult.error()));
+    LOG_ERROR("scene load failed: {}", default_msg(loadResult.error().code));
     return loadResult;
   }
-  log::info("load scene complete!");
+  LOG_INFO("load scene complete!");
   return {};
 }
 
 void SceneDescriptor::updateScene() noexcept {}
 
-Result<void, Error::Scene> SceneDescriptor::unloadScene() noexcept {
+Result<void> SceneDescriptor::unloadScene() noexcept {
   // TODO(author): not implemented
   return {};
 }

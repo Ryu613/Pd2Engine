@@ -24,7 +24,7 @@ class Resource {
   [[nodiscard]] bool isLoaded() const noexcept { return mStatus == Status::Loaded; }
 
   void load(IBackend& backend) noexcept {
-    log::debug("loading resource: {}", mId);
+    LOG_DEBUG("loading resource: {}", mId);
     if (mStatus != Status::Unload) {
       return;
     }
@@ -34,7 +34,7 @@ class Resource {
   }
 
   void unload(IBackend& backend) noexcept {
-    log::debug("unloading resource: {}", mId);
+    LOG_DEBUG("unloading resource: {}", mId);
     if (mStatus != Status::Loaded) {
       return;
     }

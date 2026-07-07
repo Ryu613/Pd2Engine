@@ -48,7 +48,7 @@ bool StdFileSystem::createDirectory(const Path& path) noexcept {
   std::error_code ec;
   std::filesystem::create_directories(path, ec);
   if (ec) {
-    log::error("failed to create directory: {}", path.string());
+    LOG_ERROR("failed to create directory: {}", path.string());
     return false;
   }
   return true;
@@ -59,7 +59,7 @@ std::vector<uint8_t> StdFileSystem::readChunk(const Path& path, size_t offset,
   std::ifstream file{path, std::ios::binary | std::ios::ate};
 
   if (!file.is_open()) {
-    log::error("failed to open file: {}", path.string());
+    LOG_ERROR("failed to open file: {}", path.string());
     return {};
   }
 
@@ -85,7 +85,7 @@ bool StdFileSystem::writeFile(const Path& path,
   std::ofstream file{path, std::ios::binary | std::ios::trunc};
 
   if (!file.is_open()) {
-    log::error("failed to open file to write: {}", path.string());
+    LOG_ERROR("failed to open file to write: {}", path.string());
     return false;
   }
 
@@ -100,7 +100,7 @@ bool StdFileSystem::remove(const Path& path) noexcept {
   std::filesystem::remove_all(path, ec);
 
   if (ec) {
-    log::error("failed to remove file: {}", path.string());
+    LOG_ERROR("failed to remove file: {}", path.string());
     return false;
   }
 

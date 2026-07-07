@@ -20,7 +20,7 @@ class BackendVulkan : public IBackend {
 
   HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
   void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
-  Result<void, Error::Rendering> acquireNextFrame(
+  Result<void> acquireNextFrame(
       HwHandle<Swapchain_t>& handle) noexcept override;
 
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept override;

@@ -7,7 +7,7 @@ namespace pd {
 
 class TriangleScene : public SceneDescriptor {
  private:
-  Result<void, Error::Scene> onLoadScene(SceneManager& sceneManager) noexcept override {
+  Result<void> onLoadScene(SceneManager& sceneManager) noexcept override {
     std::array<Vertex, 3> vertices{
         Vertex{
             .position = {-1.0f, -1.0f, 0.0f},
@@ -48,14 +48,14 @@ class TriangleScene : public SceneDescriptor {
 
   void onUpdateScene() noexcept override {}
 
-  Result<void, Error::Scene> onUnloadScene() noexcept override { return {}; }
+  Result<void> onUnloadScene() noexcept override { return {}; }
 };
 
 }  // namespace pd
 
 TEST_CASE("test_scene", "engine") {
   using pd::Engine;
-  Engine::Config config{
+  pd::EngineConfig config{
       .appName = "test engine",
       .enableDebug = true,
   };
@@ -65,7 +65,7 @@ TEST_CASE("test_scene", "engine") {
 
   auto sceneCreateResult = engine->loadScene<pd::TriangleScene>();
   if (!sceneCreateResult) {
-    pd::log::error("scene load failed: {}", sceneCreateResult.error());
+    // LOG_ERROR("scene load failed: {}", sceneCreateResult.error());
     REQUIRE(false);
   }
   auto runResult = engine->run();

@@ -26,7 +26,7 @@ class AssetManager {
    * @param assetInfo
    * @return std::expected<std::shared_ptr<Asset>, AssetError>
    */
-  Asset::AssetResult<Asset*> createAsset(const Asset::CreateInfo& assetInfo) noexcept;
+  Result<Asset*> createAsset(const Asset::CreateInfo& assetInfo) noexcept;
 
  private:
   IFileSystem* mFileSystem = nullptr;
