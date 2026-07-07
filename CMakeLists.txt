@@ -37,6 +37,7 @@ project(PD2
 )
 
 include(GenerateExportHeader)
+include(CompileShaders)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
