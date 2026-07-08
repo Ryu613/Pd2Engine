@@ -17,8 +17,7 @@ BackendVulkan::~BackendVulkan() {
   // }
 }
 
-HwHandle<Swapchain_t> BackendVulkan::createSwapchain(
-    const HwSwapchain& hwSwapchain) noexcept {
+HwHandle<Swapchain_t> BackendVulkan::createSwapchain(const HwSwapchain& hwSwapchain) noexcept {
   return mVulkanResourceManager.createSwapchain(hwSwapchain);
 }
 
@@ -38,8 +37,7 @@ void BackendVulkan::writeBuffer(const BufferWriteOptions& writeOptions) noexcept
   mVulkanResourceManager.writeBuffer(writeOptions);
 }
 
-Result<void> BackendVulkan::acquireNextFrame(
-    HwHandle<Swapchain_t>& handle) noexcept {
+Result<void> BackendVulkan::acquireNextFrame(HwHandle<Swapchain_t>& handle) noexcept {
   auto device = mVulkanContext->getDevice();
   return {};
 }

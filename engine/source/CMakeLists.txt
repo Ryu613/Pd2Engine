@@ -163,12 +163,14 @@ target_include_directories(engine_lib
         src
 )
 
-CompileShader(${PD2_SHADER_LANG} engine_lib examples/pyramid.slang examples/pyramid.spv)
+CompileShader(${PD2_SHADER_LANG} engine_lib examples/pyramid.slang pyramid.spv)
 
 generate_export_header(engine_lib BASE_NAME pd2_engine)
 configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/pd2_engine_export.h ${CMAKE_BINARY_DIR}/include/pd/pd2_engine_export.h
 )
+
+# add_dependencies(engine_lib pd2_shaders)
 
 if(PD2_BUILD_TESTS)
     add_subdirectory(test)

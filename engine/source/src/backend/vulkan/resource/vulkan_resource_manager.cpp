@@ -121,7 +121,8 @@ Handle<Swapchain_t> VulkanResourceManager::createSwapchain(
                                  )
           .build();
   if (!ret) {
-    LOG_ERROR(ret.error().message() + " " + string_VkResult(ret.vk_result()) + "\n");
+    LOG_ERROR("swapchain build failed, result:{}, msg:{}", string_VkResult(ret.vk_result()),
+              ret.error().message());
     PD_ASSERT_MSG(deviceSurfaceResult == VK_SUCCESS, "build vulkan swapchain error");
   }
   auto& newSwapchain = ret.value();
@@ -200,12 +201,12 @@ Handle<Swapchain_t> VulkanResourceManager::createSwapchain(
                             &swapchainInfo.depthImages[i],
                             &swapchainInfo.depthImageAllocation[i], nullptr));
     depthViewCI.image = swapchainInfo.depthImages[i];
-    VK_CHECK(vkCreateImageView(device, &depthViewCI, nullptr,
-                               &swapchainInfo.depthImageViews[i]));
+    VK_CHECK(
+        vkCreateImageView(device, &depthViewCI, nullptr, &swapchainInfo.depthImageViews[i]));
   }
 
-  setObjectName(device, VK_OBJECT_TYPE_SWAPCHAIN_KHR, newSwapchain.swapchain,
-                swapchain.label);
+  setObjectName(device, VK_OBJECT_TYPE_SWAPCHAIN_KHR, newSwapchain.swapchain, swapchain.label);
+
   const auto swapchainHandle = mSwapchains.emplace(
       VulkanSwapchain{swapchain, this, newSwapchain.swapchain, std::move(swapchainInfo)});
   return swapchainHandle;

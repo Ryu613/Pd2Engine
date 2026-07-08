@@ -11,21 +11,21 @@ class View;
 struct FrameContext {};
 class Renderer {
  public:
-  enum class InFlightFrame : uint8_t {
+  enum class InFlightFrame : u8 {
     Double = 2,
     Triple = 3,
   };
-  enum class RenderPipeline : uint8_t {
+  enum class RenderPipeline : u8 {
     Forward,
     Deferred,
     PathTracing,
   };
-  enum class LightCulling : uint8_t {
+  enum class LightCulling : u8 {
     None,
     Tiled,
     Clustered,
   };
-  enum class ShadingModel : uint8_t {
+  enum class ShadingModel : u8 {
     Unlit,
     BlinnPhong,
     StandardPBR,
