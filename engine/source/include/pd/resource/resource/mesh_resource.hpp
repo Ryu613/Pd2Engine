@@ -41,6 +41,8 @@ class MeshResource : public Resource {
     mPrimitives.push_back(primitive);
   }
 
+  void draw(IBackend* backend) noexcept;
+
   MeshOutput outputData() noexcept;
 
  protected:

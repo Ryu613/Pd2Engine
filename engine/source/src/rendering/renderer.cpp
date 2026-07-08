@@ -7,17 +7,22 @@
 #include "pd/rendering/render_pass/forward_pass.hpp"
 #include "pd/rendering/render_pass/present_pass.hpp"
 
+#include "pd/scene/scene.hpp"
+
 namespace pd {
 
 Renderer::Renderer(Config config) noexcept
     : mConfig(config) {}
 
-void Renderer::initialize(IBackend* pBackend, IWindow* pWindow) noexcept {
+void Renderer::initialize(IBackend* pBackend, IWindow* pWindow, SceneManager* pSceneManager,
+                          ResourceManager* pResourceManager) noexcept {
   if (mInitialized) {
     return;
   }
   mBackend = pBackend;
   mWindow = pWindow;
+  mSceneManager = pSceneManager;
+  mResourceManager = pResourceManager;
   // create swapchain
   const HwSwapchain swapchainOptions{
       .extent =
@@ -60,9 +65,19 @@ void Renderer::endFrame() {
 }
 
 void Renderer::renderFrame() {
+  // shorcut: test
+  auto& entityManager = mSceneManager->getEntityManager();
+  auto& scene = mSceneManager->getScene();
+  auto renderableList = mSceneManager->getRenderables();
+  for (auto& eachObj : renderableList) {
+    auto meshHandle = eachObj.meshHandle;
+    MeshResource* mesh =
+        mResourceManager->getResource<MeshResource_t, MeshResource>(meshHandle);
+    mesh->draw(mBackend);
+  }
   // 指令重置及开始录制
   //   mBackend->startCmdRecording();
-  mRenderGraph.execute();
+  //   mRenderGraph.execute();
   // 停止指令录制
   //   mBackend->endCmdRecording();
 }

@@ -64,6 +64,22 @@ class ResourceManager {
   }
 
   template <typename TTag, BaseOfResource T>
+  T* getResource(Handle<TTag> handle) noexcept {
+    auto typeIt = mRegistry.find(std::type_index(typeid(T)));
+    if (typeIt == mRegistry.end()) {
+      return nullptr;
+    }
+    auto& resourceMap = typeIt->second;
+    auto resourceIt = resourceMap.find(handle.id());
+    if (resourceIt == resourceMap.end()) {
+      return nullptr;
+    }
+    auto& pool = findPool<TTag>();
+    T* pResource = pool.get(handle);
+    return pResource;
+  }
+
+  template <typename TTag, BaseOfResource T>
   void release(Handle<TTag> handle) noexcept {
     Resource* resource = getResource<TTag>(handle.getId());
     if (resource == nullptr) {

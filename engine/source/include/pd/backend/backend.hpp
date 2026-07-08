@@ -38,6 +38,8 @@ class IBackend {
     return make_error<void>(ErrorCode::RenderingNotImplemented);
   }
 
+  //   virtual void draw(HwHandle<>)
+
   // buffer
 
   [[nodiscard]] virtual HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept {

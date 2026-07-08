@@ -59,7 +59,7 @@ class EntityManager {
   }
 
   template <typename T>
-  [[nodiscard]] bool getComponent(Entity entity) const noexcept {
+  [[nodiscard]] T getComponent(Entity entity) const noexcept {
     PD_ASSERT_MSG(!hasComponent<T>(entity), "cannot get component!");
     return mRegistry.get<T>(entity.mId);
   }

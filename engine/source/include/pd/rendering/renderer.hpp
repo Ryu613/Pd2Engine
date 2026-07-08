@@ -3,11 +3,14 @@
 #include "pd/backend/hw_handle.hpp"
 #include "pd/backend/hw_swapchain.hpp"
 #include "pd/rendering/render_graph/render_graph.hpp"
+#include "pd/scene/scene_manager.hpp"
+#include "pd/resource/resource_manager.hpp"
 
 namespace pd {
 class IWindow;
 class IBackend;
 class View;
+class Scene;
 struct FrameContext {};
 class Renderer {
  public:
@@ -46,7 +49,8 @@ class Renderer {
   ~Renderer();
   NO_COPY_MOVE(Renderer);
 
-  void initialize(IBackend* pBackend, IWindow* pWindow) noexcept;
+  void initialize(IBackend* pBackend, IWindow* pWindow, SceneManager* pSceneManager,
+                  ResourceManager* pResourceManager) noexcept;
 
   void destroy() noexcept;
 
@@ -57,6 +61,8 @@ class Renderer {
  private:
   IBackend* mBackend = nullptr;
   IWindow* mWindow = nullptr;
+  SceneManager* mSceneManager = nullptr;
+  ResourceManager* mResourceManager = nullptr;
 
   Config mConfig;
   RenderGraph mRenderGraph;

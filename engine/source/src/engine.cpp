@@ -42,8 +42,8 @@ Result<void> Engine::initialize() noexcept {
 
   // 初始化其他子系统
   mResourceManager.initialize(mBackend.get());
-  mRenderer.initialize(mBackend.get(), pWindow);
   mSceneManager.initialize(&mAssetManager, &mResourceManager);
+  mRenderer.initialize(mBackend.get(), pWindow, &mSceneManager, &mResourceManager);
 
   mInitialized = true;
   return {};
@@ -84,7 +84,7 @@ Result<void> Engine::run() noexcept {
     mSceneManager.updateScene();
 
     mRenderer.beginFrame();
-    mRenderer.renderFrame();
+    mRenderer.renderFrame(mSceneManager.getScene());
     mRenderer.endFrame();
   }
 

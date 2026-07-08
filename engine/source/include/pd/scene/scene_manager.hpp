@@ -42,6 +42,17 @@ class SceneManager {
   EntityManager& getEntityManager() noexcept { return mEntityManager; }
 
   Scene& getScene() noexcept { return mWorld; }
+
+  std::vector<Renderable> getRenderables() {
+    std::vector<Renderable> rends;
+    for (auto& en : mWorld.mEntities) {
+      if (mEntityManager.hasComponent<Renderable>(en)) {
+        auto r = mEntityManager.getComponent<Renderable>(en);
+        rends.push_back(r);
+      }
+    }
+    return rends;
+  }
   //   RenderableManager& getRenderableManager() noexcept { return mRenderableManager; }
 
   //   TransformManager& getTransformManager() noexcept { return mTransformManager; }

@@ -66,6 +66,10 @@ MeshOutput MeshResource::outputData() noexcept {
   return output;
 }
 
+void MeshResource::draw(IBackend* backend) noexcept {
+  backend->drawIndexed(mVertexBuffer, mIndexBuffer);
+}
+
 uint64_t MeshResource::getVertexDataSize() noexcept {
   uint64_t size = 0;
   for (size_t i = 0; i < mPrimitives.size(); ++i) {

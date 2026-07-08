@@ -18,6 +18,7 @@ class Scene {
   View& createView() noexcept;
 
  private:
+  friend class SceneManager;
   std::vector<Entity> mEntities;
   std::vector<View> mViews;
   Skybox mSkyBox;
