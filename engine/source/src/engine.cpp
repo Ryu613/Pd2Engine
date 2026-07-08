@@ -26,7 +26,7 @@ Result<void> Engine::initialize() noexcept {
               .height = mConfig.windowHeight,
           },
   };
-  mPlatform = createPlatform(std::move(config));
+  mPlatform = createPlatform(config);
 
   // 创建窗口
   if (!mPlatform->window()->create()) {
@@ -56,7 +56,8 @@ void Engine::shutdown() noexcept {
   for (auto& layer : mLayers) {
     auto result = layer->onDetached();
     if (!result) {
-      LOG_ERROR("layer detach failed! layer: {}, error: {}", layer->name(), result.error().code);
+      LOG_ERROR("layer detach failed! layer: {}, error: {}", layer->name(),
+                result.error().msg);
       continue;
     }
   }
@@ -71,8 +72,8 @@ Result<void> Engine::run() noexcept {
   // prepare scene data
   auto sceneLoadResult = mSceneManager.loadScene();
   if (!sceneLoadResult) {
-    LOG_ERROR("scene load failed!, error: {}", default_msg(sceneLoadResult.error().code));
-    return make_error<void>(ErrorCode::SceneLoadFailed);
+    LOG_ERROR("scene load failed!, error: {}", sceneLoadResult.error().msg);
+    return sceneLoadResult;
   }
 
   while (!mPlatform->window()->shouldClose()) {

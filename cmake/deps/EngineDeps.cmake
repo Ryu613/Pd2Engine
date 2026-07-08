@@ -2,9 +2,10 @@
 set(PD2_ENGINE_LIB_PUBLIC_LINKS)
 # 3rd party include dir(header only)
 set(PD2_ENGINE_LIB_PUBLIC_INCLUDE)
+
+
 # base
 find_package(spdlog CONFIG REQUIRED)
-find_package(magic_enum CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(fastgltf CONFIG REQUIRED)
@@ -14,7 +15,6 @@ find_package(meshoptimizer CONFIG REQUIRED)
 list(APPEND PD2_ENGINE_LIB_PUBLIC_LINKS
     glm::glm-header-only
     spdlog::spdlog_header_only
-    magic_enum::magic_enum
     EnTT::EnTT
     fastgltf::fastgltf
     meshoptimizer::meshoptimizer

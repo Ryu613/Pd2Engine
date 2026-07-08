@@ -12,14 +12,8 @@ target_precompile_headers(engine_lib PUBLIC include/pd/pch.hpp)
 
 # 3rd-party libs
 include(deps/EngineDeps)
-
-# 第三方，稳定，且无vcpkg，和cmake支持的库
-# 比自己写vcpkg port或cmake打包方便，直接一起打包
-file(GLOB_RECURSE vendor_src CONFIGURE_DEPENDS vendor/*.h vendor/*.hpp vendor/*.c vendor/*.cpp)
-
-add_library(vendor_lib STATIC ${vendor_src})
-
-target_include_directories(vendor_lib PUBLIC vendor)
+# vendor lib
+include(deps/VendorDeps)
 
 target_link_libraries(engine_lib
     PUBLIC
@@ -82,12 +76,12 @@ target_sources(engine_lib
         include/pd/scene/skybox.hpp
         include/pd/scene/view.hpp
         include/pd/scene/component/components.hpp
-        include/pd/scene/manager/components_registry.hpp
+        # include/pd/scene/manager/components_registry.hpp
         include/pd/scene/manager/entity_manager.hpp
-        include/pd/scene/manager/transform_manager.hpp
-        include/pd/scene/manager/renderable_manager.hpp
-        include/pd/scene/manager/light_manager.hpp
-        include/pd/scene/manager/camera_manager.hpp
+        # include/pd/scene/manager/transform_manager.hpp
+        # include/pd/scene/manager/renderable_manager.hpp
+        # include/pd/scene/manager/light_manager.hpp
+        # include/pd/scene/manager/camera_manager.hpp
         # asset
         include/pd/asset/asset.hpp
         include/pd/asset/asset_parser.hpp
@@ -118,7 +112,7 @@ target_sources(engine_lib
         src/scene/scene.cpp
         src/scene/scene_manager.cpp
         src/scene/scene_descriptor.cpp
-        src/scene/manager/transform_manager.cpp
+        # src/scene/manager/transform_manager.cpp
         # asset
         src/asset/asset_manager.cpp
         src/asset/parser/mesh_processor.cpp
@@ -162,6 +156,7 @@ target_include_directories(engine_lib
     PUBLIC
         include
         ${PD2_ENGINE_LIB_PUBLIC_INCLUDE}
+        ${PD2_VENDOR_LIB_PUBLIC_INCLUDE}
         # export macro header file
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     PRIVATE

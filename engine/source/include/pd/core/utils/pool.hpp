@@ -4,10 +4,10 @@
 
 namespace pd {
 /**
- * @brief 存储同类资源, 管理生命周期, 用句柄作为资源凭据
+ * @brief 类型安全的对象池
  *
- * @tparam T
- * @tparam H
+ * @tparam T 类型
+ * @tparam H 句柄标签
  */
 template <typename T, typename THandleTag>
 class Pool {
@@ -40,9 +40,7 @@ class Pool {
   ~Pool() = default;
 
   [[nodiscard]] uint32_t capacity() const noexcept { return mCapacity; };
-  [[nodiscard]] uint32_t size() const noexcept {
-    return mData.size() - mFreeIndices.size();
-  };
+  [[nodiscard]] uint32_t size() const noexcept { return mData.size() - mFreeIndices.size(); };
 
   T* get(const TypedHandle<THandleTag>& handle) const noexcept {
     if (!isValidHandle(handle)) {
@@ -126,8 +124,8 @@ class Pool {
   bool isValidHandle(const TypedHandle<THandleTag>& handle) const noexcept {
     auto handleId = handle.id();
     auto handleGen = handle.gen();
-    return handle.isValid() && handleId < mData.size() &&
-           handleGen == mGens[handleId].gen && mGens[handleId].isAlive;
+    return handle.isValid() && handleId < mData.size() && handleGen == mGens[handleId].gen &&
+           mGens[handleId].isAlive;
   }
 
   void growCapacity() noexcept;

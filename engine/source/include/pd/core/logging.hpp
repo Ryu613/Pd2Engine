@@ -21,7 +21,8 @@ inline void init() {
   std::call_once(flag, []() {
     try {
       auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-      console_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e]\033[36m[p-%P][t-%t]\033[35m[%n]\033[0m%^[%l]%$ [%s:%#] %v");
+      console_sink->set_pattern(
+          "[%Y-%m-%d %H:%M:%S.%e]\033[36m[p-%P][t-%t]\033[35m[%n]\033[0m%^[%l]%$ [%s:%#] %v");
 
       auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
           "logs/engine.log", 1048576 * 5, 3);
@@ -59,17 +60,6 @@ inline void shutdown() noexcept {
   spdlog::shutdown();
   logger_storage().reset();
 }
-
-// 对enum打印枚举名
-template <typename Enum>
-  requires std::is_enum_v<Enum>
-struct fmt::formatter<Enum> {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
-
-  auto format(Enum e, format_context& ctx) const {
-    return fmt::format_to(ctx.out(), "{}", GetEnumName(e));
-  }
-};
 
 template <typename... Args>
 inline void trace(fmt::format_string<Args...> fmt, Args&&... args) {

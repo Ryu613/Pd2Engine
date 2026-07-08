@@ -311,8 +311,6 @@ class Arena {
   // 管理内存资源，不允许拷贝和移动
   Arena(const Arena&) noexcept = delete;
   Arena& operator=(const Arena&) noexcept = delete;
-  Arena(Arena&& rhs) noexcept = delete;
-  Arena& operator=(Arena&& rhs) noexcept = delete;
 
   // 指定大小的Arena，一般用于内存池
   template <typename... ARGS>

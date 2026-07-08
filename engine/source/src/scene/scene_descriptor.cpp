@@ -4,12 +4,11 @@
 
 namespace pd {
 
-Result<void> SceneDescriptor::loadScene(
-    SceneManager& sceneManager) noexcept {
+Result<void> SceneDescriptor::loadScene(SceneManager& sceneManager) noexcept {
   LOG_INFO("start loading scene");
   auto loadResult = onLoadScene(sceneManager);
   if (!loadResult) {
-    LOG_ERROR("scene load failed: {}", default_msg(loadResult.error().code));
+    LOG_ERROR("scene load failed: {}", loadResult.error().msg);
     return loadResult;
   }
   LOG_INFO("load scene complete!");

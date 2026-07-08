@@ -44,7 +44,7 @@ class Renderer {
 
   explicit Renderer(Config config) noexcept;
   ~Renderer();
-  MOVABLE_ONLY(Renderer);
+  NO_COPY_MOVE(Renderer);
 
   void initialize(IBackend* pBackend, IWindow* pWindow) noexcept;
 

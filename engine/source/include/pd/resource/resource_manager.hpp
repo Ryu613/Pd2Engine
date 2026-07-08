@@ -20,7 +20,7 @@ class ResourceManager {
 
   ResourceManager() noexcept = default;
   ~ResourceManager();
-  MOVABLE_ONLY(ResourceManager);
+  NO_COPY_MOVE(ResourceManager);
 
   void initialize(IBackend* pBackend) noexcept;
 
@@ -96,8 +96,7 @@ class ResourceManager {
   // TODO(author): 待优化
   // 两阶段存储, 先按resource的类型查询，再按id查询
   using Registry =
-      std::unordered_map<std::type_index,
-                         std::unordered_map<Resource::IdType, ResourceEntry>>;
+      std::unordered_map<std::type_index, std::unordered_map<Resource::IdType, ResourceEntry>>;
   Registry mRegistry;
   Pool<TextureResource, TextureResource_t> mTextures{1024};
   Pool<MeshResource, MeshResource_t> mMeshes{1024};

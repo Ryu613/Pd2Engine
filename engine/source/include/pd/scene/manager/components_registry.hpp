@@ -6,8 +6,8 @@
 
 namespace pd {
 template <typename T>
-concept TrivialComponent = std::semiregular<T>  // 可复制、可移动、可默认构造
-                           && std::is_trivially_copyable_v<T>       // 可平凡拷贝
+concept TrivialComponent = std::semiregular<T>                 // 可复制、可移动、可默认构造
+                           && std::is_trivially_copyable_v<T>  // 可平凡拷贝
                            && std::is_trivially_destructible_v<T>;  // 可默认析构
 /**
  * @brief soa容器，存储entity对应的所有component

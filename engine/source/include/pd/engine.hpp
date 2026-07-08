@@ -1,8 +1,6 @@
 #pragma once
 
 #include "pd/core/allocators.hpp"
-#include "pd/core/config.hpp"
-#include "pd/core/error.hpp"
 #include "pd/platform/platform.hpp"
 #include "pd/backend/backend.hpp"
 #include "pd/rendering/layer/layer.hpp"

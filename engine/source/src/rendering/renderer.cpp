@@ -44,7 +44,9 @@ void Renderer::beginFrame() {
     // TODO(author): swapchain resize
   }
   auto result = mBackend->acquireNextFrame(mSwapchain);
-  // TODO(author): deal with swapchain resize & outdate & fail
+  if (!result) {
+    // TODO(author): deal with swapchain resize & outdate & fail
+  }
   mRenderGraph.compile();
 }
 
