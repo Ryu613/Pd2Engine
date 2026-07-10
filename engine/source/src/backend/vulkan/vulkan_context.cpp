@@ -8,10 +8,10 @@
 
 namespace pd {
 namespace {
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+VKAPI_ATTR VkBool32 VKAPI_CALL
+debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+              VkDebugUtilsMessageTypeFlagsEXT messageType,
+              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
   switch (messageSeverity) {
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
       LOG_DEBUG("validation layer: {}", pCallbackData->pMessage);
@@ -56,7 +56,7 @@ void VulkanContext::init() noexcept {
   }
   auto initRet = builder.build();
   if (!initRet) {
-    LOG_ERROR(initRet.error().message().data());
+    LOG_ERROR(initRet.error().message());
     PD_ASSERT_MSG(false, "vulkan instance create failed!");
   }
   vkb::Instance instance = initRet.value();
@@ -101,7 +101,7 @@ void VulkanContext::init() noexcept {
                           .set_surface(mSurface)
                           .select();
   if (!phyDeviceRet) {
-    LOG_ERROR(phyDeviceRet.error().message().data());
+    LOG_ERROR(phyDeviceRet.error().message());
     if (phyDeviceRet.error() == vkb::PhysicalDeviceError::no_suitable_device) {
       const auto& detailed_reasons = phyDeviceRet.detailed_failure_reasons();
       if (!detailed_reasons.empty()) {
@@ -120,7 +120,7 @@ void VulkanContext::init() noexcept {
 
   auto deviceRet = deviceBuilder.build();
   if (!deviceRet) {
-    LOG_ERROR(deviceRet.error().message().data());
+    LOG_ERROR(deviceRet.error().message());
     PD_ASSERT_MSG(false, "vulkan device create failed!");
   }
   const auto& device = deviceRet.value();
@@ -131,7 +131,7 @@ void VulkanContext::init() noexcept {
   // get queue info
   auto graphicsQueueRet = device.get_queue(vkb::QueueType::graphics);
   if (!graphicsQueueRet) {
-    LOG_ERROR(graphicsQueueRet.error().message().data());
+    LOG_ERROR(graphicsQueueRet.error().message());
     PD_ASSERT_MSG(false, "vulkan graphics queue info fetch failed!");
   }
   mQueueInfo.graphicsQueue = graphicsQueueRet.value();
@@ -140,12 +140,11 @@ void VulkanContext::init() noexcept {
 
   auto presentQueueRet = device.get_queue(vkb::QueueType::present);
   if (!presentQueueRet) {
-    LOG_ERROR(graphicsQueueRet.error().message().data());
+    LOG_ERROR(graphicsQueueRet.error().message());
     PD_ASSERT_MSG(false, "vulkan present queue info fetch failed!");
   }
   mQueueInfo.presentQueue = presentQueueRet.value();
-  mQueueInfo.presentQueueFamilyIndex =
-      device.get_queue_index(vkb::QueueType::present).value();
+  mQueueInfo.presentQueueFamilyIndex = device.get_queue_index(vkb::QueueType::present).value();
 
   // init vma
   const VmaVulkanFunctions vmaFuncs{

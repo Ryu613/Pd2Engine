@@ -67,14 +67,17 @@ MeshOutput MeshResource::outputData() noexcept {
   return output;
 }
 
-void MeshResource::draw(IBackend* backend) noexcept {
-  //   backend->drawIndexed(mVertexBuffer, mIndexBuffer);
-}
+// void MeshResource::draw(IBackend* backend) noexcept {
+//   backend->drawIndexed(mVertexBuffer, mIndexBuffer);
+// }
 
 uint64_t MeshResource::getVertexDataSize() noexcept {
   uint64_t size = 0;
+  mVertexCount = 0;
   for (size_t i = 0; i < mPrimitives.size(); ++i) {
-    size += sizeof(Vertex) * mPrimitives[i].vertices.size();
+    u32 verticesCount = mPrimitives[i].vertices.size();
+    mVertexCount += verticesCount;
+    size += sizeof(Vertex) * verticesCount;
   }
   return size;
 }

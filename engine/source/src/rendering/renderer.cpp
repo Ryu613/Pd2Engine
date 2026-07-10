@@ -59,7 +59,7 @@ void Renderer::endFrame() {
   // 提交指令
   //   driver.submitFrame();
   // 呈现
-  //   driver.presentFrame();
+  //   mBackend->presentFrame(mSwapchain);
   // 结束当前帧
   if (auto res = mBackend->endFrame(mSwapchain); !res) {
     // TODO(author): deal with error
@@ -112,10 +112,5 @@ void Renderer::initializeRenderGraph() noexcept {
   // mRenderGraph.setup();
 }
 
-void Renderer::render(Renderable& renderable) noexcept {
-  //   mBackend.draw(renderable);
-  // MeshResource* mesh =
-  //     mResourceManager->getResource<MeshResource_t, MeshResource>(meshHandle);
-  // mesh->draw(mBackend);
-}
+void Renderer::render(Renderable& renderable) noexcept {}
 }  // namespace pd

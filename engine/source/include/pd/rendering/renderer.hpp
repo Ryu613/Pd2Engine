@@ -68,7 +68,8 @@ class Renderer {
   Config mConfig;
   RenderGraph mRenderGraph;
   HwHandle<Swapchain_t> mSwapchain;
-  std::vector<FrameContext> mFrames;
+  FrameContext mFrameContext;
+  std::vector<FrameData> mFrames;
   bool mSwapchainDirty = false;
   bool mInitialized = false;
 

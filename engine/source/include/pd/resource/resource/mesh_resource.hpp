@@ -45,7 +45,7 @@ class MeshResource : public Resource {
     mPrimitives.push_back(primitive);
   }
 
-  void draw(IBackend* backend) noexcept;
+  //   void draw(IBackend* backend) noexcept;
 
   MeshOutput outputData() noexcept;
 
@@ -58,8 +58,10 @@ class MeshResource : public Resource {
   std::vector<MeshPrimitive> mPrimitives;
   HwHandle<Buffer_t> mVertexBuffer;
   HwHandle<Buffer_t> mIndexBuffer;
+  //   MaterialInstance* mMaterialInstance = nullptr;
+  u32 mVertexCount = 0;
 
-  uint64_t getVertexDataSize() noexcept;
-  uint64_t getIndexDataSize() noexcept;
+  u64 getVertexDataSize() noexcept;
+  u64 getIndexDataSize() noexcept;
 };
 }  // namespace pd
