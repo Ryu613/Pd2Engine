@@ -31,8 +31,12 @@ struct MeshOutput {
 };
 class MeshResource : public Resource {
  public:
-  struct Properties {};
+  struct Properties {
+    IdType id{};
+  };
   MeshResource() noexcept = default;
+  explicit MeshResource(IdType id) noexcept
+      : Resource(id) {}
   explicit MeshResource(Properties props) noexcept;
   ~MeshResource();
   MOVABLE_ONLY(MeshResource);

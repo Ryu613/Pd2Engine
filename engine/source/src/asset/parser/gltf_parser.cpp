@@ -17,8 +17,7 @@ MeshPrimitive convertMeshData(const fastgltf::Primitive& primitive,
                               const fastgltf::Asset& gltfAsset) noexcept {
   MeshProcessor::Input input{};
   const auto* posIt = primitive.findAttribute("POSITION");
-  PD_ASSERT_MSG(posIt != primitive.attributes.end(),
-                "gltf primitive is missing POSITION!");
+  PD_ASSERT_MSG(posIt != primitive.attributes.end(), "gltf primitive is missing POSITION!");
   const auto& positionAccessor = gltfAsset.accessors[posIt->accessorIndex];
   input.positions.reserve(positionAccessor.count);
   fastgltf::iterateAccessor<fastgltf::math::fvec3>(
@@ -26,8 +25,7 @@ MeshPrimitive convertMeshData(const fastgltf::Primitive& primitive,
         input.positions.emplace_back(pos.x(), pos.y(), pos.z());
       });
   const auto* normIt = primitive.findAttribute("NORMAL");
-  PD_ASSERT_MSG(normIt != primitive.attributes.end(),
-                "GLTF primitive is missing NORMAL!");
+  PD_ASSERT_MSG(normIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
   const auto& normalAccessor = gltfAsset.accessors[normIt->accessorIndex];
   input.normals.reserve(normalAccessor.count);
   fastgltf::iterateAccessor<fastgltf::math::fvec3>(
@@ -54,9 +52,8 @@ MeshPrimitive convertMeshData(const fastgltf::Primitive& primitive,
   if (primitive.indicesAccessor.has_value()) {
     const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
     input.indices.reserve(indexAccessor.count);
-    fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor, [&](uint32_t index) {
-      input.indices.emplace_back(index);
-    });
+    fastgltf::iterateAccessor<uint32_t>(
+        gltfAsset, indexAccessor, [&](uint32_t index) { input.indices.emplace_back(index); });
   }
   return MeshProcessor::process(input);
 }
@@ -116,7 +113,7 @@ void GltfParser::parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noe
   for (size_t i = 0; i < gltfAsset.meshes.size(); ++i) {
     const auto& mesh = gltfAsset.meshes[i];
     // meshes[i].reserve(mesh.primitives.size());
-    auto* newMesh = new MeshResource();
+    auto* newMesh = new MeshResource(mesh.name.c_str());
     for (const auto& primitive : mesh.primitives) {
       auto meshPrimitive = convertMeshData(primitive, gltfAsset);
       newMesh->addPrimitive(meshPrimitive);
@@ -140,16 +137,13 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
           TextureFormat::RGBA8Unorm;
     }
     if (material.normalTexture.has_value()) {
-      mTextureFormatCache[material.normalTexture->textureIndex] =
-          TextureFormat::RGBA8Unorm;
+      mTextureFormatCache[material.normalTexture->textureIndex] = TextureFormat::RGBA8Unorm;
     }
     if (material.occlusionTexture.has_value()) {
-      mTextureFormatCache[material.occlusionTexture->textureIndex] =
-          TextureFormat::RGBA8Unorm;
+      mTextureFormatCache[material.occlusionTexture->textureIndex] = TextureFormat::RGBA8Unorm;
     }
     if (material.emissiveTexture.has_value()) {
-      mTextureFormatCache[material.emissiveTexture->textureIndex] =
-          TextureFormat::RGBA8Unorm;
+      mTextureFormatCache[material.emissiveTexture->textureIndex] = TextureFormat::RGBA8Unorm;
     }
   }
   // 解析，转换纹理，并添加到资产中
@@ -211,10 +205,9 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
                      int height = 0;
                      int nrChannels = 0;
                      const auto path = mBasePath;
-                     auto* texels =
-                         stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imagePtr),
-                                               bufferView.byteLength, &width, &height,
-                                               &nrChannels, STBI_rgb_alpha);
+                     auto* texels = stbi_load_from_memory(
+                         reinterpret_cast<const stbi_uc*>(imagePtr), bufferView.byteLength,
+                         &width, &height, &nrChannels, STBI_rgb_alpha);
                      if (!texels) {
                        PD_ASSERT_MSG(false, "failed to load image!");
                      }
@@ -246,8 +239,7 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
   }
 }
 
-void GltfParser::parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept {
-}
+void GltfParser::parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept {}
 
 void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
                             size_t gltfSceneIndex) noexcept {

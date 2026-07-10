@@ -18,7 +18,7 @@ class Engine {
   explicit Engine(EngineConfig config) noexcept;
   ~Engine() noexcept;
 
-  NO_COPY_MOVE(Engine);
+  DELETE_COPY_MOVE(Engine);
 
   Result<void> initialize() noexcept;
 
@@ -71,7 +71,7 @@ class Engine {
   EngineConfig mConfig;
   bool mInitialized = false;
 
-  HeapAllocator mArena;
+  GlobalAllocator mArena;
 
   std::unique_ptr<IPlatform> mPlatform;
   std::unique_ptr<IBackend> mBackend;

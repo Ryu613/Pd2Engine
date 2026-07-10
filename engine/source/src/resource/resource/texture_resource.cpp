@@ -4,9 +4,8 @@ namespace pd {
 
 using Status = TextureResource::Status;
 
-TextureResource::TextureResource(Properties props,
-                                 const std::vector<uint8_t>& data) noexcept
-    : Resource(props.path),
+TextureResource::TextureResource(Properties props, const std::vector<uint8_t>& data) noexcept
+    : Resource(props.path.c_str()),
       mProperties(std::move(props)),
       mSourceData(data) {}
 

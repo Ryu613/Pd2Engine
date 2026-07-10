@@ -48,11 +48,11 @@ void Renderer::beginFrame() {
   if (mSwapchainDirty) {
     // TODO(author): swapchain resize
   }
-  auto result = mBackend->acquireNextFrame(mSwapchain);
+  auto result = mBackend->newFrame(mSwapchain);
   if (!result) {
     // TODO(author): deal with swapchain resize & outdate & fail
   }
-  mRenderGraph.compile();
+  //   mRenderGraph.compile();
 }
 
 void Renderer::endFrame() {
@@ -61,19 +61,19 @@ void Renderer::endFrame() {
   // 呈现
   //   driver.presentFrame();
   // 结束当前帧
-  //   driver.endFrame();
+  if (auto res = mBackend->endFrame(mSwapchain); !res) {
+    // TODO(author): deal with error
+  }
+  // TODO(author): clean per-frame resources
 }
 
 void Renderer::renderFrame() {
   // shorcut: test
   auto& entityManager = mSceneManager->getEntityManager();
   auto& scene = mSceneManager->getScene();
-  auto renderableList = mSceneManager->getRenderables();
-  for (auto& eachObj : renderableList) {
-    auto meshHandle = eachObj.meshHandle;
-    MeshResource* mesh =
-        mResourceManager->getResource<MeshResource_t, MeshResource>(meshHandle);
-    mesh->draw(mBackend);
+  auto& renderables = mSceneManager->getRenderables();
+  for (auto& renderable : renderables) {
+    render(renderable);
   }
   // 指令重置及开始录制
   //   mBackend->startCmdRecording();
@@ -110,5 +110,12 @@ void Renderer::initializeRenderGraph() noexcept {
   }
   // mRenderGraph.addPass<PresentPass>();
   // mRenderGraph.setup();
+}
+
+void Renderer::render(Renderable& renderable) noexcept {
+  //   mBackend.draw(renderable);
+  // MeshResource* mesh =
+  //     mResourceManager->getResource<MeshResource_t, MeshResource>(meshHandle);
+  // mesh->draw(mBackend);
 }
 }  // namespace pd

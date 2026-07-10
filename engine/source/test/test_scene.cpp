@@ -26,7 +26,7 @@ class TriangleScene : public SceneDescriptor {
     MeshPrimitive primitive;
     primitive.indices.assign(indices.begin(), indices.end());
     primitive.vertices.assign(vertices.begin(), vertices.end());
-    MeshResource mesh;
+    MeshResource mesh("triangle");
     mesh.addPrimitive(primitive);
     auto& resourceMgr = sceneManager.getResourceManager();
     auto meshHandle = resourceMgr.registerResource<MeshResource_t>(std::move(mesh));
@@ -36,9 +36,7 @@ class TriangleScene : public SceneDescriptor {
     entityMgr.addComponent<Transform>(entity, tr);
     // auto& transformMgr = sceneManager.getTransformManager();
     // transformMgr.create(entity, tr);
-    Renderable renderable;
-    renderable.meshHandle = meshHandle;
-    entityMgr.addComponent<Renderable>(entity, renderable);
+    entityMgr.addComponent<MeshHandle>(entity, meshHandle);
     auto& scene = sceneManager.getScene();
     scene.addEntity(entity);
     // auto& view = scene.createView();

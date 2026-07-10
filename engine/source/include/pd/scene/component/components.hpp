@@ -27,10 +27,6 @@ struct Light {
   float intensity;
 };
 
-struct Renderable {
-  MeshHandle meshHandle;
-};
-
 struct Camera {
   enum class ProjectionType : uint8_t {
     Perspective = 1,

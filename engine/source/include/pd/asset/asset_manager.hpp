@@ -14,7 +14,7 @@ class AssetManager {
  public:
   AssetManager() noexcept = default;
   ~AssetManager();
-  NO_COPY_MOVE(AssetManager);
+  DELETE_COPY_MOVE(AssetManager);
 
   void initialize(IFileSystem* fs, ResourceManager* rm) noexcept;
 

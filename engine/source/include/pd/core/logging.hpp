@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#ifndef NDEBUG
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#endif
 #include "spdlog/async.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -32,11 +35,15 @@ inline void init() {
 #ifndef NDEBUG
       auto logger = std::make_shared<spdlog::logger>("pd2", sinks.begin(), sinks.end());
       logger->set_level(spdlog::level::debug);
+      logger->sinks()[0]->set_level(spdlog::level::debug);
+      logger->sinks()[1]->set_level(spdlog::level::debug);
+      spdlog::set_level(spdlog::level::debug);
 #else
             spdlog::init_thread_pool(8192, 1);
             auto logger = std::make_shared<spdlog::async_logger>("pd2", sinks.begin(), sinks.end(),
                                                                  spdlog::thread_pool(),
                                                                  spdlog::async_overflow_policy::block);
+                                                                       logger_storage() = logger;
             logger->set_level(spdlog::level::info);
 #endif
       logger_storage() = logger;

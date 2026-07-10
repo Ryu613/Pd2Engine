@@ -4,7 +4,8 @@
 
 namespace pd {
 MeshResource::MeshResource(Properties props) noexcept
-    : mProps(props) {}
+    : Resource(props.id),
+      mProps(props) {}
 
 MeshResource::~MeshResource() {}
 
@@ -67,7 +68,7 @@ MeshOutput MeshResource::outputData() noexcept {
 }
 
 void MeshResource::draw(IBackend* backend) noexcept {
-  backend->drawIndexed(mVertexBuffer, mIndexBuffer);
+  //   backend->drawIndexed(mVertexBuffer, mIndexBuffer);
 }
 
 uint64_t MeshResource::getVertexDataSize() noexcept {

@@ -5,10 +5,19 @@
 
 namespace pd {
 
+namespace {
+void initContext(GlobalAllocator& allocator) noexcept { global::initContext(allocator); }
+
+Renderer initRenderer(const EngineConfig& config) noexcept {
+  return Renderer(Renderer::Config{});
+}
+
+}  // namespace
+
 Engine::Engine(EngineConfig config) noexcept
     : mConfig{std::move(config)},
       mArena{"Engine Heap Allocator", ResourceType::NullResource{}},
-      mRenderer(Renderer::Config{}) {
+      mRenderer(initRenderer(mConfig)) {
   LOG_INFO("Engine created!");
   mLayers.reserve(4);
   log::logo();
@@ -62,6 +71,8 @@ void Engine::shutdown() noexcept {
     }
   }
 
+  global::destroyContext();
+
   mInitialized = false;
 }
 
@@ -78,13 +89,14 @@ Result<void> Engine::run() noexcept {
 
   while (!mPlatform->window()->shouldClose()) {
     mPlatform->processEvents();
+    // TODO(author): use event system instead of running in main loop
     for (const auto& eachLayer : mLayers) {
       eachLayer->onUpdate();
     }
     mSceneManager.updateScene();
 
     mRenderer.beginFrame();
-    mRenderer.renderFrame(mSceneManager.getScene());
+    mRenderer.renderFrame();
     mRenderer.endFrame();
   }
 

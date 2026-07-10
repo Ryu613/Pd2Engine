@@ -6,28 +6,31 @@ namespace pd {
 class IBackend;
 class Resource {
  public:
-  using IdType = std::string;
+  using IdType = cstr;
 
-  enum class Status : uint8_t {
+  enum class Status : u8 {
     Unload = 1,
     Loading,
     Loaded,
   };
-  Resource() noexcept = default;
+  Resource() noexcept
+      : mId(nullptr) {}
 
   virtual ~Resource() = default;
-
-  MOVABLE_ONLY(Resource);
+  Resource(const Resource&) = delete;
+  Resource& operator=(const Resource&) = delete;
+  Resource(Resource&& rhs) noexcept = default;
+  Resource& operator=(Resource&& rhs) noexcept = default;
 
   [[nodiscard]] const IdType& getId() const noexcept { return mId; }
 
   [[nodiscard]] bool isLoaded() const noexcept { return mStatus == Status::Loaded; }
 
   void load(IBackend& backend) noexcept {
-    LOG_DEBUG("loading resource: {}", mId);
     if (mStatus != Status::Unload) {
       return;
     }
+    LOG_DEBUG("loading resource: {}", mId);
     mStatus = Status::Loading;
     doLoad(backend);
     mStatus = Status::Loaded;

@@ -12,12 +12,16 @@
 namespace pd {
 class AssetManager;
 class ResourceManager;
+struct Renderable {
+  Transform ubo;
+  MeshResource* pMeshResource = nullptr;
+};
 class SceneManager {
  public:
   SceneManager() noexcept = default;
   ~SceneManager();
   explicit SceneManager(AssetManager* assetMgr, ResourceManager* rscMgr) noexcept;
-  NO_COPY_MOVE(SceneManager);
+  DELETE_COPY_MOVE(SceneManager);
 
   void initialize(AssetManager* assetMgr, ResourceManager* rscMgr) noexcept;
 
@@ -43,16 +47,8 @@ class SceneManager {
 
   Scene& getScene() noexcept { return mWorld; }
 
-  std::vector<Renderable> getRenderables() {
-    std::vector<Renderable> rends;
-    for (auto& en : mWorld.mEntities) {
-      if (mEntityManager.hasComponent<Renderable>(en)) {
-        auto r = mEntityManager.getComponent<Renderable>(en);
-        rends.push_back(r);
-      }
-    }
-    return rends;
-  }
+  std::vector<Renderable>& getRenderables() noexcept { return mRenderables; }
+
   //   RenderableManager& getRenderableManager() noexcept { return mRenderableManager; }
 
   //   TransformManager& getTransformManager() noexcept { return mTransformManager; }
@@ -63,9 +59,9 @@ class SceneManager {
 
  private:
   Scene mWorld;
+  std::vector<Renderable> mRenderables;
   EntityManager mEntityManager;
   AssetManager* mAssetManager = nullptr;
-  // FIXME: put resource manager here is for debug testing only!
   ResourceManager* mResourceManager = nullptr;
   //   TransformManager mTransformManager;
   //   RenderableManager mRenderableManager;
@@ -73,5 +69,7 @@ class SceneManager {
   //   CameraManager mCameraManager;
   std::unique_ptr<SceneDescriptor> mSceneDescriptor;
   bool mInitialized = false;
+
+  void updateRenderables(const std::vector<Entity>& culledEntities) noexcept;
 };
 }  // namespace pd

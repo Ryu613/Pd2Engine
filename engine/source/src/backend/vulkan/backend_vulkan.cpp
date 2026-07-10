@@ -37,8 +37,15 @@ void BackendVulkan::writeBuffer(const BufferWriteOptions& writeOptions) noexcept
   mVulkanResourceManager.writeBuffer(writeOptions);
 }
 
-Result<void> BackendVulkan::acquireNextFrame(HwHandle<Swapchain_t>& handle) noexcept {
+Result<void> BackendVulkan::newFrame(HwHandle<Swapchain_t>& handle) noexcept {
   auto device = mVulkanContext->getDevice();
+  // TODO(author): vulkan frame start
+  return {};
+}
+
+Result<void> BackendVulkan::endFrame(HwHandle<Swapchain_t>& handle) noexcept {
+  auto device = mVulkanContext->getDevice();
+  // TODO(author): vulkan frame end
   return {};
 }
 

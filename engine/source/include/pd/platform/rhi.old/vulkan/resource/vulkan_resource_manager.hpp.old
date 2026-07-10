@@ -7,7 +7,7 @@ class VulkanResourceManager {
  public:
   VulkanResourceManager() noexcept = default;
   ~VulkanResourceManager() = default;
-  NO_COPY_MOVE(VulkanResourceManager);
+  DELETE_COPY_MOVE(VulkanResourceManager);
 
   RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,
                                       uint32_t depth) noexcept;

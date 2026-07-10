@@ -32,6 +32,7 @@ target_sources(engine_lib
         include/pd/core/utils/handle.hpp
         include/pd/core/utils/memory.hpp
         include/pd/core/allocators.hpp
+        include/pd/core/context.hpp
         # platform
         include/pd/platform/platform.hpp
         include/pd/platform/platform_factory.hpp

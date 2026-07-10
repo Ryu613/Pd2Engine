@@ -11,6 +11,7 @@ class IWindow;
 class IBackend;
 class View;
 class Scene;
+struct FrameData {};
 struct FrameContext {};
 class Renderer {
  public:
@@ -47,7 +48,7 @@ class Renderer {
 
   explicit Renderer(Config config) noexcept;
   ~Renderer();
-  NO_COPY_MOVE(Renderer);
+  DELETE_COPY_MOVE(Renderer);
 
   void initialize(IBackend* pBackend, IWindow* pWindow, SceneManager* pSceneManager,
                   ResourceManager* pResourceManager) noexcept;
@@ -72,5 +73,6 @@ class Renderer {
   bool mInitialized = false;
 
   void initializeRenderGraph() noexcept;
+  void render(Renderable& renderable) noexcept;
 };
 }  // namespace pd

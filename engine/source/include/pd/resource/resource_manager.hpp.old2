@@ -20,7 +20,7 @@ class ResourceManager {
   ResourceManager() noexcept = default;
   ~ResourceManager() = default;
 
-  NO_COPY_MOVE(ResourceManager);
+  DELETE_COPY_MOVE(ResourceManager);
 
   /**
    * @brief 运行时资源注册

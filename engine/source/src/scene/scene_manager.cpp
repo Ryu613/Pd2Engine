@@ -29,24 +29,48 @@ void SceneManager::destroy() noexcept {
 
 Result<void> SceneManager::loadScene() noexcept {
   mResourceManager->clearAll();
+  mRenderables.clear();
   auto sceneLoadResult = mSceneDescriptor->loadScene(*this);
   if (!sceneLoadResult) {
     LOG_ERROR("scene cannot be loaded {}", sceneLoadResult.error().msg);
     return sceneLoadResult;
   }
-  mResourceManager->loadAll();
   return {};
 }
 
-void SceneManager::updateScene() noexcept {}
+void SceneManager::updateScene() noexcept {
+  // TODO(author): update view
+  // TODO(author): scene culling
+  // TODO(author): prepare scene resources cache
+  // shortcut: not culled
+  updateRenderables(mWorld.mEntities);
+  // TODO(author): update rscmgr's references
+  // rscmgr gc
+  //   mResourceManager->gc();
+  // load remained resources if not loaded
+  mResourceManager->loadAll();
+}
 
 Result<void> SceneManager::unloadScene() noexcept {
   auto unloadResult = mSceneDescriptor->unloadScene();
   if (!unloadResult) {
     LOG_ERROR("scene unload failed {}", unloadResult.error().msg);
   }
-  mResourceManager->clearAll();
+  mRenderables.clear();
   //   mWorld.clear();
+  mResourceManager->clearAll();
   return {};
+}
+
+void SceneManager::updateRenderables(const std::vector<Entity>& culledEntities) noexcept {
+  mRenderables.clear();
+  mRenderables.shrink_to_fit();
+  mRenderables.reserve(culledEntities.size());
+  for (const auto& en : culledEntities) {
+    auto tr = mEntityManager.getComponent<Transform>(en);
+    auto meshHandle = mEntityManager.getComponent<MeshHandle>(en);
+    auto* meshResource = mResourceManager->getResource<MeshResource_t>(meshHandle);
+    mRenderables.emplace_back(tr, meshResource);
+  }
 }
 }  // namespace pd
