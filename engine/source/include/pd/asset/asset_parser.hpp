@@ -7,7 +7,8 @@ class IAssetParser {
  public:
   IAssetParser() noexcept = default;
   virtual ~IAssetParser() = default;
-  MOVABLE_ONLY(IAssetParser);
+  DEFAULT_MOVABLE(IAssetParser);
+  DELETE_COPY(IAssetParser);
 
   virtual Result<void> parse(Asset& asset) noexcept = 0;
 };

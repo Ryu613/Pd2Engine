@@ -12,7 +12,8 @@ class GltfParser : public IAssetParser {
   GltfParser() noexcept = default;
   GltfParser(IFileSystem* fs, ResourceManager* rm) noexcept;
   ~GltfParser() override = default;
-  MOVABLE_ONLY(GltfParser);
+  DEFAULT_MOVABLE(GltfParser);
+  DELETE_COPY(GltfParser);
 
   Result<void> parse(Asset& asset) noexcept override;
 

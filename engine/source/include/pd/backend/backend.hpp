@@ -9,7 +9,7 @@ namespace pd {
 class IWindow;
 class IBackend {
  public:
-  enum class GraphicsApi : uint8_t {
+  enum class GraphicsApi : u8 {
     Vulkan,
     D3D12,
     Noop,
@@ -21,7 +21,8 @@ class IBackend {
   };
   IBackend() noexcept = default;
   virtual ~IBackend() = default;
-  MOVABLE_ONLY(IBackend);
+  DELETE_COPY(IBackend);
+  DEFAULT_MOVABLE(IBackend);
 
   [[nodiscard]] virtual GraphicsApi graphicsApi() const noexcept {
     return GraphicsApi::Unknown;

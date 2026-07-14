@@ -17,7 +17,7 @@ Pd2Engine 是一款易于理解，易于开发，易于调试的现代C++3D实�
 3. 数据驱动，ECS
 4. render graph
 5. 多线程
-6. Vulkan API
+6. Vulkan抽象层封装
 7. 预留了跨平台，跨渲染后端扩展性
 
 ## 构建要求

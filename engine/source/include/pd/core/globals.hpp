@@ -9,7 +9,14 @@
   CLASS_NAME(CLASS_NAME&&) noexcept = default;       \
   CLASS_NAME& operator=(CLASS_NAME&&) noexcept = default;
 
-// this is ok!
+#define DELETE_COPY(CLASS_NAME)           \
+  CLASS_NAME(const CLASS_NAME&) = delete; \
+  CLASS_NAME& operator=(const CLASS_NAME&) = delete;
+
+#define DEFAULT_MOVABLE(CLASS_NAME)            \
+  CLASS_NAME(CLASS_NAME&&) noexcept = default; \
+  CLASS_NAME& operator=(CLASS_NAME&&) noexcept = default;
+
 #define DELETE_COPY_MOVE(CLASS_NAME)                 \
   CLASS_NAME(const CLASS_NAME&) = delete;            \
   CLASS_NAME& operator=(const CLASS_NAME&) = delete; \

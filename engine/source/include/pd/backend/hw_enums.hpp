@@ -9,20 +9,20 @@
 
 namespace pd {
 
-enum class TextureType : uint8_t {
+enum class TextureType : u8 {
   TextureType1D = 0,
   TextureType2D,
   TextureType3D,
   TextureTypeCube = 3,
 };
 
-enum class TextureFormat : uint16_t {
+enum class TextureFormat : u8 {
   Undefined,
   RGBA8Unorm,
   RGBA8SRGB,
 };
 
-enum class TextureUsage : uint16_t {
+enum class TextureUsage : u16 {
   None,
   ColorAttachment,
   DepthAttachment,
@@ -32,33 +32,33 @@ enum class TextureUsage : uint16_t {
   DefaultUsage = Sampleable | Uploadable,
 };
 
-enum class TextureLayout : uint16_t {
+enum class TextureLayout : u16 {
   Undefined = 0,
   General = 1,
 };
 
-enum class ColorSpace : uint8_t {
+enum class ColorSpace : u8 {
   SrgbNonLinear,
 };
 
-enum class PresentMode : uint8_t {
+enum class PresentMode : u8 {
   Immediate,
   Mailbox,
   Fifo,
   FifoRelaxed,
 };
 
-enum class BufferUsage : uint8_t {
+enum class BufferUsage : u8 {
   VertexBuffer,
   IndexBuffer,
 };
 
-enum class SharingMode : uint8_t {
+enum class SharingMode : u8 {
   Exclusive,
   Concurrent,
 };
 
-enum class MemoryUsage : uint8_t {
+enum class MemoryUsage : u8 {
   Unknow,
   GpuOnly,
   CpuOnly,

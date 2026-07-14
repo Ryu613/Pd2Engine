@@ -28,10 +28,10 @@ class Asset {
     Type parseType = Type::Gltf;
   };
 
-  MOVABLE_ONLY(Asset);
-
   Asset() noexcept = default;
   ~Asset() = default;
+  DEFAULT_MOVABLE(Asset);
+  DELETE_COPY(Asset);
 
   [[nodiscard]] Asset::IdType getId() const noexcept { return mId; }
 
