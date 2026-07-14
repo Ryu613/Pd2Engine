@@ -12,9 +12,10 @@ BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
 }
 
 BackendVulkan::~BackendVulkan() {
-  // for (auto& frameData : mVulkanFrames) {
-  //   frameData.shutdown();
-  // }
+  vkDeviceWaitIdle(mVulkanContext->getDevice());
+  for (auto& frameData : mFrames) {
+    frameData.shutdown();
+  }
 }
 
 HwHandle<Swapchain_t> BackendVulkan::createSwapchain(const HwSwapchain& hwSwapchain) noexcept {
@@ -46,16 +47,30 @@ Result<void> BackendVulkan::newFrame(HwHandle<Swapchain_t>& handle) noexcept {
   auto acquireSemaphore = frame.getImageAvailableSemaphore();
   auto result = swapchain->acquireNextImage(device, acquireSemaphore);
   PD_ASSERT_MSG(result, "vulkan swapchain acquire failed!");
-  // TODO(command pool/buffer reset)
+  // TODO(author): command recorder begin
   return {};
 }
 
-Result<void> BackendVulkan::presentFrame(HwHandle<Swapchain_t>& handle) noexcept { return {}; }
+Result<void> BackendVulkan::presentFrame(HwHandle<Swapchain_t>& handle) noexcept {
+  auto& frame = mFrames.at(currentFrameIndex);
+  auto swapchain = mVulkanResourceManager.getSwapchain(handle);
+  auto presentQueue = mVulkanContext->getQueueInfo().presentQueue;
+  auto fence = frame.getFrameFence();
+  // TODO(author): command recorder end
+  std::array<VkSemaphore, 1> waitSemaphores = {frame.getImageAvailableSemaphore()};
+  //   std::array<VkSemaphore, 1> signalSemaphores = {frame.getImagePresentSemaphore()};
+  //   std::array<VkPipelineStageFlags, 1> waitStages = {
+  //       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  auto presentResult = swapchain->present(presentQueue, waitSemaphores, fence);
+  PD_ASSERT_MSG(presentResult, "vulkan swapchain present failed!");
+  return {};
+}
 
 Result<void> BackendVulkan::endFrame(HwHandle<Swapchain_t>& handle) noexcept {
-  auto device = mVulkanContext->getDevice();
+  //   auto device = mVulkanContext->getDevice();
   // TODO(author): vulkan frame end
   currentFrameIndex = (currentFrameIndex + 1) % global::InFlightFrameCount;
+  // TODO(author): deletion queue
   return {};
 }
 

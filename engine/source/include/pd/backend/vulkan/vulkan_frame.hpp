@@ -26,6 +26,7 @@ class VulkanFrame {
   VkFence getFrameFence() noexcept { return mFrameFence; }
 
   VkSemaphore getImageAvailableSemaphore() noexcept { return mImageAvailableSemaphore; }
+  VkSemaphore getImagePresentSemaphore() noexcept { return mImagePresentSemaphore; }
 
   //   VkCommandBuffer getCommandBuffer() noexcept { return mMainCommandBuffer; }
 

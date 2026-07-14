@@ -53,6 +53,7 @@ bool VulkanFrame::initialize(VulkanContext& context) noexcept {
       .sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO,
   };
   VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, 0, &mImageAvailableSemaphore));
+  VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, 0, &mImagePresentSemaphore));
 
   mInitialized = true;
   return true;
@@ -70,6 +71,9 @@ void VulkanFrame::shutdown() noexcept {
   if (mFrameFence != nullptr) {
     vkDestroyFence(device, mFrameFence, nullptr);
   }
+
+  vkDestroySemaphore(device, mImageAvailableSemaphore, 0);
+  vkDestroySemaphore(device, mImagePresentSemaphore, 0);
 
   mVulkanContext = nullptr;
 

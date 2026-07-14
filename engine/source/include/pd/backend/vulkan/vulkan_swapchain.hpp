@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 #include "pd/backend/vulkan/vulkan_common.hpp"
 #include "pd/backend/vulkan/resource/vulkan_resource.hpp"
 #include "pd/backend/hw_swapchain.hpp"
@@ -49,6 +51,9 @@ struct VulkanSwapchain : public HwSwapchain, VulkanResource {
 
   Result<u32> acquireNextImage(VkDevice device, VkSemaphore acquireSemaphore) noexcept;
 
+  Result<void> present(VkQueue queue, std::span<VkSemaphore> waitSemaphores,
+                       VkFence fence) noexcept;
+
   //   VkSemaphore getCurrentRenderFinishedSemaphore() noexcept {
   //     return mSwapChainInfo.renderFinishedSemaphore[mCurrentImageIndex];
   //   }
@@ -59,6 +64,6 @@ struct VulkanSwapchain : public HwSwapchain, VulkanResource {
 
   VkSwapchainKHR handle{VK_NULL_HANDLE};
   SwapChainInfo swapchainInfo;
-  //   uint32_t mCurrentImageIndex = 0;
+  u32 currentImageIndex = 0;
 };
 }  // namespace pd

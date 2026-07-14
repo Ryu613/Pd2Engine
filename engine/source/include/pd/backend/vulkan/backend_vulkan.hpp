@@ -18,16 +18,17 @@ class BackendVulkan : public IBackend {
     return IBackend::GraphicsApi::Vulkan;
   }
 
-  HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
-  void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
+  // in-frame ops
   Result<void> newFrame(HwHandle<Swapchain_t>& handle) noexcept override;
   Result<void> presentFrame(HwHandle<Swapchain_t>& handle) noexcept override;
   Result<void> endFrame(HwHandle<Swapchain_t>& handle) noexcept override;
 
+  // resource ops
+  HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
+  void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
+
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept override;
-
   void destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept override;
-
   void writeBuffer(const BufferWriteOptions& writeOptions) noexcept override;
 
   //   RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,

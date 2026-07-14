@@ -10,10 +10,10 @@ class IWindow;
 class IBackend {
  public:
   enum class GraphicsApi : u8 {
-    Vulkan,
-    D3D12,
-    Noop,
-    Unknown,
+    Noop = 0,
+    Vulkan = 1,
+    D3D12 = 2,
+    Unknown = u8_max,
   };
   struct Config {
     IWindow* pWindow = nullptr;
