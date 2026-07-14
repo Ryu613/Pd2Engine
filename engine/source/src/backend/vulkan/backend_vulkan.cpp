@@ -7,6 +7,7 @@ BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
     : mVulkanContext(std::move(ctx)),
       mVulkanResourceManager(mVulkanContext.get()) {
   for (auto& frame : mFrames) {
+    // TODO(author) : change arg to resource manager, let mgr manage vulkan handles
     frame.initialize(*mVulkanContext);
   }
 }

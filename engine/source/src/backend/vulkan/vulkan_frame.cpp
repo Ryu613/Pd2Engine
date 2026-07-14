@@ -50,7 +50,7 @@ bool VulkanFrame::initialize(VulkanContext& context) noexcept {
 
   // create semahores
   VkSemaphoreCreateInfo semaphoreInfo{
-      .sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO,
+      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
   };
   VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, 0, &mImageAvailableSemaphore));
   VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, 0, &mImagePresentSemaphore));

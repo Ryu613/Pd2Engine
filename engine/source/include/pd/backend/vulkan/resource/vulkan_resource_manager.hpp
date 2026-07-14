@@ -6,9 +6,9 @@
 #include "pd/backend/hw_swapchain.hpp"
 #include "pd/backend/hw_buffer.hpp"
 
-#include "pd/backend/vulkan/vulkan_image.hpp"
-#include "pd/backend/vulkan/vulkan_swapchain.hpp"
-#include "pd/backend/vulkan/vulkan_buffer.hpp"
+#include "pd/backend/vulkan/resource/vulkan_image.hpp"
+#include "pd/backend/vulkan/resource/vulkan_buffer.hpp"
+#include "pd/backend/vulkan/resource/vulkan_swapchain.hpp"
 
 namespace pd {
 class VulkanContext;
@@ -49,8 +49,7 @@ class VulkanResourceManager {
   void setObjectName(VkDevice device, VkObjectType type, T handle,
                      std::string_view name) noexcept {
 #if VK_EXT_debug_utils
-    if (device == VK_NULL_HANDLE || vkSetDebugUtilsObjectNameEXT == nullptr ||
-        name.empty()) {
+    if (device == VK_NULL_HANDLE || vkSetDebugUtilsObjectNameEXT == nullptr || name.empty()) {
       return;
     }
     const VkDebugUtilsObjectNameInfoEXT nameInfo{

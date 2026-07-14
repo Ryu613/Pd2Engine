@@ -5,6 +5,7 @@
 #include "pd/backend/vulkan/vulkan_common.hpp"
 #include "pd/backend/vulkan/vulkan_context.hpp"
 #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
+#include "pd/backend/vulkan/vulkan_command_manager.hpp"
 #include "pd/backend/vulkan/vulkan_frame.hpp"
 
 namespace pd {
@@ -64,6 +65,7 @@ class BackendVulkan : public IBackend {
  private:
   std::unique_ptr<VulkanContext> mVulkanContext;
   VulkanResourceManager mVulkanResourceManager;
+  VulkanCommandManager mVulkanCmdMgr;
   u32 currentFrameIndex = 0;
   std::array<VulkanFrame, global::InFlightFrameCount> mFrames;
   //   size_t mCurrentFrameIndex = 0;

@@ -2,15 +2,17 @@
 
 == renderer
 
-. 接通最简三角形渲染
-* [ ] renderer调用代码给出，接口设计完成
-* [ ] 核心调用链rhi和backend vulkan打通
-. 纹理化，旋转三角形
-* [ ] texture rhi, vulkan功能打通
+. 基础功能部分打通
+* [*] renderer调用代码给出，接口调通
+* [*] 核心调用链rhi和backend vulkan打通
+* [ ] command buffer的封装
+* [ ] pure color scene走通
+. triangle scene
+* [ ] resource层改造
 * [ ] uniform buffer 打通
 * [ ] slang
 * [ ] pipeline
 * [ ] descriptor set
 . 接gltf的mesh资源(不含material)
-* [ ] 资源抽象补全
+* [ ] texture rhi, vulkan功能打通
 . 场景渲染

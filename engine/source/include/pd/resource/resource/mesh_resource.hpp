@@ -39,7 +39,8 @@ class MeshResource : public Resource {
       : Resource(id) {}
   explicit MeshResource(Properties props) noexcept;
   ~MeshResource();
-  MOVABLE_ONLY(MeshResource);
+  DELETE_COPY(MeshResource);
+  DEFAULT_MOVABLE(MeshResource);
 
   void addPrimitive(const MeshPrimitive& primitive) noexcept {
     mPrimitives.push_back(primitive);

@@ -126,18 +126,19 @@ target_sources(engine_lib
         include/pd/backend/vulkan/vulkan_common.hpp
         include/pd/backend/vulkan/vulkan_types.hpp
 		include/pd/backend/vulkan/vulkan_context.hpp
+		include/pd/backend/vulkan/vulkan_frame.hpp
         include/pd/backend/vulkan/backend_vulkan.hpp
 		include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
 		include/pd/backend/vulkan/resource/vulkan_resource.hpp
-		include/pd/backend/vulkan/vulkan_swapchain.hpp
-		include/pd/backend/vulkan/vulkan_image.hpp
-		include/pd/backend/vulkan/vulkan_frame.hpp
+		include/pd/backend/vulkan/resource/vulkan_swapchain.hpp
+		include/pd/backend/vulkan/resource/vulkan_image.hpp
+		include/pd/backend/vulkan/resource/vulkan_command_buffer.hpp
     PRIVATE
         src/backend/vulkan/vulkan_context.cpp
         src/backend/vulkan/backend_vulkan.cpp
-		src/backend/vulkan/resource/vulkan_resource_manager.cpp
-		src/backend/vulkan/vulkan_swapchain.cpp
 		src/backend/vulkan/vulkan_frame.cpp
+		src/backend/vulkan/resource/vulkan_resource_manager.cpp
+		src/backend/vulkan/resource/vulkan_swapchain.cpp
 		# src/platform/rhi/vulkan/vulkan_swapchain.cpp
 		#src/platform/rhi/vulkan/resource/vulkan_resource_manager.cpp
 )

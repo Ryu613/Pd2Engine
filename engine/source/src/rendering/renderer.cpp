@@ -3,6 +3,8 @@
 #include "pd/backend/backend.hpp"
 #include "pd/platform/window/window.hpp"
 
+#include "pd/backend/hw_command_list.hpp"
+
 #include "pd/rendering/render_pass/skybox_pass.hpp"
 #include "pd/rendering/render_pass/forward_pass.hpp"
 #include "pd/rendering/render_pass/present_pass.hpp"
@@ -59,7 +61,9 @@ void Renderer::endFrame() {
   // 提交指令
   //   driver.submitFrame();
   // 呈现
-  //   mBackend->presentFrame(mSwapchain);
+  if (auto res = mBackend->presentFrame(mSwapchain); !res) {
+    // TODO(author) : deal with swapchain resize or other error
+  }
   // 结束当前帧
   if (auto res = mBackend->endFrame(mSwapchain); !res) {
     // TODO(author): deal with error
@@ -113,5 +117,16 @@ void Renderer::initializeRenderGraph() noexcept {
   // mRenderGraph.setup();
 }
 
-void Renderer::render(Renderable& renderable) noexcept {}
+void Renderer::render(Renderable& renderable) noexcept {
+  // if window is minimized
+  //   auto cmdListHandle = mBackend->getCommandList();
+  //   for (auto& primitive : renderable.pMeshResource.primitives()) {
+  // mBackend->bindPass(primitive.materialInstance);
+  //   mBackend->bindPipeline(mSwapchain, pipelineHandle);
+  //   mBackend->bindVertexBuffer(mSwapchain,
+  //   renderable.pMeshResource->outputData().primitives);
+  //   mBackend->bindIndexBuffer(mSwapchain, renderable.pMeshResource->outputData().indices);
+  // mBackend->draw(renderable.pMeshResource->outputData().vertices.size());
+  //   }
+}
 }  // namespace pd
