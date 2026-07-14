@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 #include "pd/scene/entity.hpp"
 #include "pd/scene/skybox.hpp"
 #include "pd/scene/view.hpp"

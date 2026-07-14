@@ -47,7 +47,7 @@ struct VulkanSwapchain : public HwSwapchain, VulkanResource {
 
   //   size_t imageCount() const noexcept { return mSwapChainInfo.images.size(); }
 
-  //   bool acquireNextImage(VkSemaphore imageAvailableSemaphore) noexcept;
+  Result<u32> acquireNextImage(VkDevice device, VkSemaphore acquireSemaphore) noexcept;
 
   //   VkSemaphore getCurrentRenderFinishedSemaphore() noexcept {
   //     return mSwapChainInfo.renderFinishedSemaphore[mCurrentImageIndex];

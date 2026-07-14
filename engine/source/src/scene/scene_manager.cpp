@@ -66,11 +66,10 @@ void SceneManager::updateRenderables(const std::vector<Entity>& culledEntities) 
   mRenderables.clear();
   mRenderables.shrink_to_fit();
   mRenderables.reserve(culledEntities.size());
-  for (const auto& en : culledEntities) {
-    auto tr = mEntityManager.getComponent<Transform>(en);
-    auto meshHandle = mEntityManager.getComponent<MeshHandle>(en);
+  for (const auto& [entity, transform, meshHandle] :
+       mEntityManager.viewOf<Transform, MeshHandle>().each()) {
     auto* meshResource = mResourceManager->getResource<MeshResource_t>(meshHandle);
-    mRenderables.emplace_back(tr, meshResource);
+    mRenderables.emplace_back(transform, meshResource);
   }
 }
 }  // namespace pd

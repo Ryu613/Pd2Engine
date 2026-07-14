@@ -80,6 +80,7 @@ void Renderer::renderFrame() {
   //   mRenderGraph.execute();
   // 停止指令录制
   //   mBackend->endCmdRecording();
+  auto result = mBackend->presentFrame(mSwapchain);
 }
 
 void Renderer::destroy() noexcept {

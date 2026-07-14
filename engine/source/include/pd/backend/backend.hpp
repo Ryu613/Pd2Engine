@@ -39,6 +39,10 @@ class IBackend {
     return make_error<void>(ErrorCode::RenderingNotImplemented);
   }
 
+  virtual Result<void> presentFrame(HwHandle<Swapchain_t>& handle) noexcept {
+    return make_error<void>(ErrorCode::RenderingNotImplemented);
+  }
+
   virtual Result<void> endFrame(HwHandle<Swapchain_t>& handle) noexcept {
     return make_error<void>(ErrorCode::RenderingNotImplemented);
   }

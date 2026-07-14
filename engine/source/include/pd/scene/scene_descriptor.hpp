@@ -17,7 +17,8 @@ class SceneDescriptor {
   SceneDescriptor() noexcept = default;
   virtual ~SceneDescriptor() = default;
 
-  MOVABLE_ONLY(SceneDescriptor);
+  DELETE_COPY(SceneDescriptor);
+  DEFAULT_MOVABLE(SceneDescriptor);
 
   /**
    * @brief 在渲染前需要准备好的资产，场景, 视窗

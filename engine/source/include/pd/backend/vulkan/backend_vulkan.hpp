@@ -5,14 +5,14 @@
 #include "pd/backend/vulkan/vulkan_common.hpp"
 #include "pd/backend/vulkan/vulkan_context.hpp"
 #include "pd/backend/vulkan/resource/vulkan_resource_manager.hpp"
-// #include "pd/backend/vulkan/vulkan_frame.hpp"
+#include "pd/backend/vulkan/vulkan_frame.hpp"
 
 namespace pd {
 class BackendVulkan : public IBackend {
  public:
   explicit BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept;
   ~BackendVulkan();
-  MOVABLE_ONLY(BackendVulkan);
+  DELETE_COPY_MOVE(BackendVulkan);
 
   [[nodiscard]] GraphicsApi graphicsApi() const noexcept override {
     return IBackend::GraphicsApi::Vulkan;
@@ -21,6 +21,7 @@ class BackendVulkan : public IBackend {
   HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
   void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
   Result<void> newFrame(HwHandle<Swapchain_t>& handle) noexcept override;
+  Result<void> presentFrame(HwHandle<Swapchain_t>& handle) noexcept override;
   Result<void> endFrame(HwHandle<Swapchain_t>& handle) noexcept override;
 
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept override;
@@ -62,8 +63,8 @@ class BackendVulkan : public IBackend {
  private:
   std::unique_ptr<VulkanContext> mVulkanContext;
   VulkanResourceManager mVulkanResourceManager;
-  //   // frame info
-  //   std::array<VulkanFrame, global::InFlightFrameCount> mVulkanFrames;
+  u32 currentFrameIndex = 0;
+  std::array<VulkanFrame, global::InFlightFrameCount> mFrames;
   //   size_t mCurrentFrameIndex = 0;
 };
 }  // namespace pd

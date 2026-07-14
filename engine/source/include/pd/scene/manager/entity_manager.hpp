@@ -64,6 +64,11 @@ class EntityManager {
     return mRegistry.get<T>(entity.mId);
   }
 
+  template <typename... Ts>
+  [[nodiscard]] auto viewOf() noexcept {
+    return mRegistry.view<Ts...>();
+  }
+
  private:
   entt::registry mRegistry;
 };

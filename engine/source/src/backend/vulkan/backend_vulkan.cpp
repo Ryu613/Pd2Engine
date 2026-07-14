@@ -6,9 +6,9 @@ namespace pd {
 BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
     : mVulkanContext(std::move(ctx)),
       mVulkanResourceManager(mVulkanContext.get()) {
-  //   for (auto& frame : mVulkanFrames) {
-  //     frame.initialize(*mVulkanContext);
-  //   }
+  for (auto& frame : mFrames) {
+    frame.initialize(*mVulkanContext);
+  }
 }
 
 BackendVulkan::~BackendVulkan() {
@@ -39,13 +39,23 @@ void BackendVulkan::writeBuffer(const BufferWriteOptions& writeOptions) noexcept
 
 Result<void> BackendVulkan::newFrame(HwHandle<Swapchain_t>& handle) noexcept {
   auto device = mVulkanContext->getDevice();
-  // TODO(author): vulkan frame start
+  auto swapchain = mVulkanResourceManager.getSwapchain(handle);
+  auto& frame = mFrames.at(currentFrameIndex);
+  frame.startFence();
+  frame.resetFence();
+  auto acquireSemaphore = frame.getImageAvailableSemaphore();
+  auto result = swapchain->acquireNextImage(device, acquireSemaphore);
+  PD_ASSERT_MSG(result, "vulkan swapchain acquire failed!");
+  // TODO(command pool/buffer reset)
   return {};
 }
+
+Result<void> BackendVulkan::presentFrame(HwHandle<Swapchain_t>& handle) noexcept { return {}; }
 
 Result<void> BackendVulkan::endFrame(HwHandle<Swapchain_t>& handle) noexcept {
   auto device = mVulkanContext->getDevice();
   // TODO(author): vulkan frame end
+  currentFrameIndex = (currentFrameIndex + 1) % global::InFlightFrameCount;
   return {};
 }
 
