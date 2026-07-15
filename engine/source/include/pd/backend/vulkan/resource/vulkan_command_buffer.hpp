@@ -4,6 +4,8 @@
 #include "pd/backend/vulkan/resource/vulkan_resource.hpp"
 #include "pd/backend/hw_command_recorder.hpp"
 
+#include <span>
+
 namespace pd {
 using CommandBuffer_t = CommandRecorder_t;
 struct CommandPool_t;
@@ -14,6 +16,11 @@ struct VulkanCommandBuffer : public HwCommandRecorder, VulkanResource {
         VulkanResource(mgr),
         pool(pool),
         handle(cmdBfr) {}
+
+  void begin() noexcept;
+  void end() noexcept;
+  void submit(VkQueue queue, std::span<VkSemaphore> waitSemaphores,
+              std::span<VkSemaphore> signalSemaphores, VkFence fence) noexcept;
 
   VkCommandPool pool{VK_NULL_HANDLE};
   VkCommandBuffer handle{VK_NULL_HANDLE};

@@ -24,36 +24,40 @@ HwHandle<CommandRecorder_t> BackendVulkan::getCommandRecorder() noexcept {
   return mVulkanCmdMgr.getCommandRecorder();
 }
 
-void BackendVulkan::beginCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
-void BackendVulkan::setGraphicsState(HwHandle<CommandRecorder_t> recorder,
+void BackendVulkan::beginCmdRecord(const HwHandle<CommandRecorder_t>& hrecorder) noexcept {
+  mVulkanCmdMgr.beginCommandRecord(hrecorder);
+}
+void BackendVulkan::setGraphicsState(const HwHandle<CommandRecorder_t>& hrecorder,
                                      const GraphicsState& graphicsState) noexcept {}
-void BackendVulkan::drawIndexed(HwHandle<CommandRecorder_t> recorder,
+void BackendVulkan::drawIndexed(const HwHandle<CommandRecorder_t>& hrecorder,
                                 const DrawIndexedCommand& cmd) noexcept {}
-void BackendVulkan::endCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
+void BackendVulkan::endCmdRecord(const HwHandle<CommandRecorder_t>& hrecorder) noexcept {
+  mVulkanCmdMgr.endCommandRecord(hrecorder);
+}
 
 HwHandle<Swapchain_t> BackendVulkan::createSwapchain(const HwSwapchain& hwSwapchain) noexcept {
   return mVulkanResourceManager.createSwapchain(hwSwapchain);
 }
 
-void BackendVulkan::destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {
-  mVulkanResourceManager.destroySwapchain(handle);
+void BackendVulkan::destroySwapchain(const HwHandle<Swapchain_t>& hswapchain) noexcept {
+  mVulkanResourceManager.destroySwapchain(hswapchain);
 }
 
 HwHandle<Buffer_t> BackendVulkan::createBuffer(const HwBuffer& buffer) noexcept {
   return mVulkanResourceManager.createBuffer(buffer);
 }
 
-void BackendVulkan::destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {
-  mVulkanResourceManager.destroyBuffer(handle);
+void BackendVulkan::destroyBuffer(const HwHandle<Buffer_t>& hbuffer) noexcept {
+  mVulkanResourceManager.destroyBuffer(hbuffer);
 }
 
 void BackendVulkan::writeBuffer(const BufferWriteOptions& writeOptions) noexcept {
   mVulkanResourceManager.writeBuffer(writeOptions);
 }
 
-Result<void> BackendVulkan::newFrame(HwHandle<Swapchain_t>& handle) noexcept {
+Result<void> BackendVulkan::newFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept {
   auto device = mVulkanContext->getDevice();
-  auto swapchain = mVulkanResourceManager.getSwapchain(handle);
+  auto swapchain = mVulkanResourceManager.getSwapchain(hswapchain);
   auto& frame = mFrames.at(currentFrameIndex);
   frame.startFence();
   frame.resetFence();
@@ -64,22 +68,27 @@ Result<void> BackendVulkan::newFrame(HwHandle<Swapchain_t>& handle) noexcept {
   return {};
 }
 
-Result<void> BackendVulkan::presentFrame(HwHandle<Swapchain_t>& handle) noexcept {
+void BackendVulkan::submitFrame(const HwHandle<Swapchain_t>& hswapchain,
+                                const HwHandle<CommandRecorder_t>& hrecorder) noexcept {
   auto& frame = mFrames.at(currentFrameIndex);
-  auto swapchain = mVulkanResourceManager.getSwapchain(handle);
+  std::vector<VkSemaphore> waitSemaphore{1, frame.getImageAvailableSemaphore()};
+  std::vector<VkSemaphore> signalSemaphore{1, frame.getImagePresentSemaphore()};
+  mVulkanCmdMgr.submitCommandRecord(hrecorder, waitSemaphore, signalSemaphore,
+                                    frame.getFrameFence());
+}
+
+Result<void> BackendVulkan::presentFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept {
+  auto& frame = mFrames.at(currentFrameIndex);
+  auto swapchain = mVulkanResourceManager.getSwapchain(hswapchain);
   auto presentQueue = mVulkanContext->getQueueInfo().presentQueue;
   auto fence = frame.getFrameFence();
-  // TODO(author): command recorder end
-  std::array<VkSemaphore, 1> waitSemaphores = {frame.getImageAvailableSemaphore()};
-  //   std::array<VkSemaphore, 1> signalSemaphores = {frame.getImagePresentSemaphore()};
-  //   std::array<VkPipelineStageFlags, 1> waitStages = {
-  //       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  std::array<VkSemaphore, 1> waitSemaphores = {frame.getImagePresentSemaphore()};
   auto presentResult = swapchain->present(presentQueue, waitSemaphores, fence);
   PD_ASSERT_MSG(presentResult, "vulkan swapchain present failed!");
   return {};
 }
 
-Result<void> BackendVulkan::endFrame(HwHandle<Swapchain_t>& handle) noexcept {
+Result<void> BackendVulkan::endFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept {
   //   auto device = mVulkanContext->getDevice();
   // TODO(author): vulkan frame end
   currentFrameIndex = (currentFrameIndex + 1) % global::InFlightFrameCount;

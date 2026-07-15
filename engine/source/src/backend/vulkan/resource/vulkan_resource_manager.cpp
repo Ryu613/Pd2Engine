@@ -326,7 +326,12 @@ Handle<CommandPool_t> VulkanResourceManager::createCommandPool() noexcept {
   return cmdPoolHandle;
 }
 
-void VulkanResourceManager::destroyCommandPool(const Handle<CommandPool_t>& handle) noexcept {}
+void VulkanResourceManager::destroyCommandPool(const Handle<CommandPool_t>& handle) noexcept {
+  auto device = mVulkanContext->getDevice();
+  auto* pool = mCmdPools.get(handle);
+  PD_ASSERT_MSG(pool, "destroying pool error");
+  vkDestroyCommandPool(device, pool->pool, 0);
+}
 
 Handle<CommandBuffer_t> VulkanResourceManager::createCommandBuffer(
     const Handle<CommandPool_t>& poolHandle) noexcept {

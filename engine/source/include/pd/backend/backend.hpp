@@ -34,28 +34,31 @@ class IBackend {
       const HwSwapchain& swapchain) noexcept {
     return {};
   }
-  virtual void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept {}
+  virtual void destroySwapchain(const HwHandle<Swapchain_t>& hswapchain) noexcept {}
 
-  virtual Result<void> newFrame(HwHandle<Swapchain_t>& handle) noexcept {
+  virtual Result<void> newFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept {
     return make_error<void>(ErrorCode::RenderingNotImplemented);
   }
 
-  virtual Result<void> presentFrame(HwHandle<Swapchain_t>& handle) noexcept {
+  virtual void submitFrame(const HwHandle<Swapchain_t>& hswapchain,
+                           const HwHandle<CommandRecorder_t>& hrecorder) noexcept {}
+
+  virtual Result<void> presentFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept {
     return make_error<void>(ErrorCode::RenderingNotImplemented);
   }
 
-  virtual Result<void> endFrame(HwHandle<Swapchain_t>& handle) noexcept {
+  virtual Result<void> endFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept {
     return make_error<void>(ErrorCode::RenderingNotImplemented);
   }
 
   virtual HwHandle<CommandRecorder_t> getCommandRecorder() noexcept { return {}; }
 
-  virtual void beginCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
-  virtual void setGraphicsState(HwHandle<CommandRecorder_t> recorder,
+  virtual void beginCmdRecord(const HwHandle<CommandRecorder_t>& hrecorder) noexcept {}
+  virtual void setGraphicsState(const HwHandle<CommandRecorder_t>& hrecorder,
                                 const GraphicsState& graphicsState) noexcept {}
-  virtual void drawIndexed(HwHandle<CommandRecorder_t> recorder,
+  virtual void drawIndexed(const HwHandle<CommandRecorder_t>& hrecorder,
                            const DrawIndexedCommand& cmd) noexcept {}
-  virtual void endCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
+  virtual void endCmdRecord(const HwHandle<CommandRecorder_t>& hrecorder) noexcept {}
 
   // buffer
 
@@ -63,7 +66,7 @@ class IBackend {
     return {};
   }
 
-  virtual void destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {}
+  virtual void destroyBuffer(const HwHandle<Buffer_t>& hbuffer) noexcept {}
 
   virtual void writeBuffer(const BufferWriteOptions& writeOptions) noexcept {}
 };

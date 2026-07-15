@@ -26,27 +26,30 @@ class BackendVulkan : public IBackend {
 
   // in-frame ops
   // 推进到下一帧
-  Result<void> newFrame(HwHandle<Swapchain_t>& handle) noexcept override;
+  Result<void> newFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept override;
+  // 提交当前帧命令
+  void submitFrame(const HwHandle<Swapchain_t>& hswapchain,
+                   const HwHandle<CommandRecorder_t>& hrecorder) noexcept override;
   // 呈现当前帧图像
-  Result<void> presentFrame(HwHandle<Swapchain_t>& handle) noexcept override;
+  Result<void> presentFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept override;
   // 结束当前帧
-  Result<void> endFrame(HwHandle<Swapchain_t>& handle) noexcept override;
+  Result<void> endFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept override;
 
   // command recorder
   HwHandle<CommandRecorder_t> getCommandRecorder() noexcept override;
-  void beginCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept override;
-  void setGraphicsState(HwHandle<CommandRecorder_t> recorder,
+  void beginCmdRecord(const HwHandle<CommandRecorder_t>& hrecorder) noexcept override;
+  void setGraphicsState(const HwHandle<CommandRecorder_t>& hrecorder,
                         const GraphicsState& graphicsState) noexcept override;
-  void drawIndexed(HwHandle<CommandRecorder_t> recorder,
+  void drawIndexed(const HwHandle<CommandRecorder_t>& hrecorder,
                    const DrawIndexedCommand& cmd) noexcept override;
-  void endCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept override;
+  void endCmdRecord(const HwHandle<CommandRecorder_t>& hrecorder) noexcept override;
 
   // resource ops
-  HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;
-  void destroySwapchain(const HwHandle<Swapchain_t>& handle) noexcept override;
+  HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& hswapchain) noexcept override;
+  void destroySwapchain(const HwHandle<Swapchain_t>& hswapchain) noexcept override;
 
   HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept override;
-  void destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept override;
+  void destroyBuffer(const HwHandle<Buffer_t>& hbuffer) noexcept override;
   void writeBuffer(const BufferWriteOptions& writeOptions) noexcept override;
 
   //   RhiHandle<RhiTexture> createTexture(uint32_t width, uint32_t height,

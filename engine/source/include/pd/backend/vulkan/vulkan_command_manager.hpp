@@ -5,6 +5,7 @@
 
 namespace pd {
 class VulkanResourceManager;
+class VulkanFrame;
 class VulkanCommandBufferPool {
  public:
   explicit VulkanCommandBufferPool(VulkanResourceManager& rscMgr) noexcept;
@@ -12,6 +13,11 @@ class VulkanCommandBufferPool {
   ~VulkanCommandBufferPool();
 
   HwHandle<CommandRecorder_t> getIdleCmdBuffer() noexcept;
+  void beginCmdBuffer(const HwHandle<CommandBuffer_t>& handle) noexcept;
+  void endCmdBuffer(const HwHandle<CommandBuffer_t>& handle) noexcept;
+  void submitCmdBuffer(const HwHandle<CommandBuffer_t>& handle,
+                       std::span<VkSemaphore> waitSemaphore,
+                       std::span<VkSemaphore> signalSemaphore, VkFence fence) noexcept;
 
  private:
   struct CmdBufferSlot {
@@ -29,6 +35,11 @@ class VulkanCommandManager {
   ~VulkanCommandManager() = default;
 
   HwHandle<CommandRecorder_t> getCommandRecorder() noexcept;
+  void beginCommandRecord(const HwHandle<CommandRecorder_t>& handle) noexcept;
+  void endCommandRecord(const HwHandle<CommandRecorder_t>& handle) noexcept;
+  void submitCommandRecord(const HwHandle<CommandRecorder_t>& handle,
+                           std::span<VkSemaphore> waitSemaphore,
+                           std::span<VkSemaphore> signalSemaphore, VkFence fence) noexcept;
 
  private:
   VulkanCommandBufferPool mCmdPool;

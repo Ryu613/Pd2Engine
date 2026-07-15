@@ -142,6 +142,7 @@ target_sources(engine_lib
 		src/backend/vulkan/vulkan_command_manager.cpp
 		src/backend/vulkan/resource/vulkan_resource_manager.cpp
 		src/backend/vulkan/resource/vulkan_swapchain.cpp
+		src/backend/vulkan/resource/vulkan_command_buffer.cpp
 		# src/platform/rhi/vulkan/vulkan_swapchain.cpp
 		#src/platform/rhi/vulkan/resource/vulkan_resource_manager.cpp
 )

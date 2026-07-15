@@ -72,7 +72,7 @@ void Renderer::endFrame() {
 }
 
 void Renderer::renderFrame() {
-  // shorcut: test
+  // shorcut: for testing only
   auto& entityManager = mSceneManager->getEntityManager();
   auto& scene = mSceneManager->getScene();
   auto& renderables = mSceneManager->getRenderables();
@@ -117,14 +117,16 @@ void Renderer::initializeRenderGraph() noexcept {
 }
 
 void Renderer::render(Renderable& renderable) noexcept {
-  // if window is minimized
+  // if window is not minimized
   auto cmdRecorder = mBackend->getCommandRecorder();
   for (auto& primitive : renderable.pMeshResource->primitives()) {
+    mBackend->beginCmdRecord(cmdRecorder);
     GraphicsState state;
     mBackend->setGraphicsState(cmdRecorder, state);
     DrawIndexedCommand drawCmd;
     mBackend->drawIndexed(cmdRecorder, drawCmd);
-    mBackend->endCmdRecord(cmdRecorder);
   }
+  mBackend->endCmdRecord(cmdRecorder);
+  mBackend->submitFrame(mSwapchain, cmdRecorder);
 }
 }  // namespace pd
