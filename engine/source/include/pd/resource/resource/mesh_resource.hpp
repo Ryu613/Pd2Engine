@@ -45,10 +45,7 @@ class MeshResource : public Resource {
   void addPrimitive(const MeshPrimitive& primitive) noexcept {
     mPrimitives.push_back(primitive);
   }
-
-  //   void draw(IBackend* backend) noexcept;
-
-  MeshOutput outputData() noexcept;
+  std::vector<MeshPrimitive>& primitives() noexcept { return mPrimitives; }
 
  protected:
   void doLoad(IBackend& backend) noexcept override;
@@ -64,5 +61,6 @@ class MeshResource : public Resource {
 
   u64 getVertexDataSize() noexcept;
   u64 getIndexDataSize() noexcept;
+  MeshOutput outputData() noexcept;
 };
 }  // namespace pd

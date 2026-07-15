@@ -6,12 +6,13 @@
 #include "pd/backend/hw_swapchain.hpp"
 #include "pd/backend/hw_buffer.hpp"
 
+#include "pd/backend/vulkan/resource/vulkan_swapchain.hpp"
+#include "pd/backend/vulkan/vulkan_context.hpp"
 #include "pd/backend/vulkan/resource/vulkan_image.hpp"
 #include "pd/backend/vulkan/resource/vulkan_buffer.hpp"
-#include "pd/backend/vulkan/resource/vulkan_swapchain.hpp"
+#include "pd/backend/vulkan/resource/vulkan_command_buffer.hpp"
 
 namespace pd {
-class VulkanContext;
 /**
  * @brief 统一管理vulkan的资源(除context部分)
  *
@@ -24,7 +25,7 @@ class VulkanResourceManager {
   VulkanResourceManager() noexcept = default;
   explicit VulkanResourceManager(VulkanContext* ctx) noexcept;
   ~VulkanResourceManager() = default;
-  MOVABLE_ONLY(VulkanResourceManager);
+  DELETE_COPY_MOVE(VulkanResourceManager);
 
   Handle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept;
   void destroySwapchain(const Handle<Swapchain_t>& handle) noexcept;
@@ -35,15 +36,26 @@ class VulkanResourceManager {
   void destroyImage(const Handle<Texture_t>& handle) noexcept;
   [[nodiscard]] VulkanImage* getImage(const Handle<Texture_t>& handle) const noexcept;
 
-  HwHandle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept;
+  Handle<Buffer_t> createBuffer(const HwBuffer& buffer) noexcept;
   void destroyBuffer(const Handle<Buffer_t>& handle) noexcept;
   void writeBuffer(const BufferWriteOptions& writeOptions) noexcept;
 
+  Handle<CommandPool_t> createCommandPool() noexcept;
+  void destroyCommandPool(const Handle<CommandPool_t>& handle) noexcept;
+  Handle<CommandBuffer_t> createCommandBuffer(
+      const Handle<CommandPool_t>& poolHandle) noexcept;
+  [[nodiscard]] VulkanCommandBuffer* getCommandBuffer(
+      const Handle<CommandBuffer_t>& handle) const noexcept;
+
+  [[nodiscard]] VulkanContext& getContext() const noexcept { return *mVulkanContext; }
+
  private:
   VulkanContext* mVulkanContext = nullptr;
-  Pool<VulkanImage, Texture_t> mTextures{128};
   Pool<VulkanSwapchain, Swapchain_t> mSwapchains{1};
+  Pool<VulkanImage, Texture_t> mTextures{128};
   Pool<VulkanBuffer, Buffer_t> mBuffers{128};
+  Pool<VulkanCommandBuffer, CommandPool_t> mCmdPools{8};
+  Pool<VulkanCommandBuffer, CommandBuffer_t> mCmdBuffers{global::MaxCommandBuffers};
 
   template <typename T>
   void setObjectName(VkDevice device, VkObjectType type, T handle,

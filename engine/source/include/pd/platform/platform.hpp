@@ -10,7 +10,7 @@ namespace pd {
  */
 class IPlatform {
  public:
-  enum class BaseDir : uint8_t {
+  enum class BaseDir : u8 {
     AppDir,
     DataDir,
     AssetsDir,
@@ -21,7 +21,8 @@ class IPlatform {
 
   IPlatform() noexcept = default;
   virtual ~IPlatform() = default;
-  MOVABLE_ONLY(IPlatform);
+  DELETE_COPY(IPlatform);
+  DEFAULT_MOVABLE(IPlatform);
 
   [[nodiscard]] virtual IFileSystem* fileSystem() noexcept { return nullptr; }
   [[nodiscard]] virtual IWindow* window() noexcept { return nullptr; };

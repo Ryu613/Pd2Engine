@@ -22,13 +22,12 @@ class VulkanContext {
   };
   explicit VulkanContext(Config config) noexcept;
   ~VulkanContext();
-  MOVABLE_ONLY(VulkanContext);
+  DELETE_COPY(VulkanContext);
+  DEFAULT_MOVABLE(VulkanContext);
 
   [[nodiscard]] VkInstance getVkInstance() const noexcept { return mInstance; }
 
-  [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const noexcept {
-    return mPhysicalDevice;
-  }
+  [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const noexcept { return mPhysicalDevice; }
 
   [[nodiscard]] VkDevice getDevice() const noexcept { return mDevice; }
 

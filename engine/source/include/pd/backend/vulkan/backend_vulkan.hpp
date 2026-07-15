@@ -9,6 +9,11 @@
 #include "pd/backend/vulkan/vulkan_frame.hpp"
 
 namespace pd {
+/**
+ * @brief backend(RHI)接口枢纽，由此类转发操作，与上层只通过HwHandle交互
+ * 资源管理由resource manager控制，具体资源也放在resource/目录下
+ * 本级目录的其他类只是一系列管理器，只引用资源，不管理资源生命周期
+ */
 class BackendVulkan : public IBackend {
  public:
   explicit BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept;
@@ -20,9 +25,21 @@ class BackendVulkan : public IBackend {
   }
 
   // in-frame ops
+  // 推进到下一帧
   Result<void> newFrame(HwHandle<Swapchain_t>& handle) noexcept override;
+  // 呈现当前帧图像
   Result<void> presentFrame(HwHandle<Swapchain_t>& handle) noexcept override;
+  // 结束当前帧
   Result<void> endFrame(HwHandle<Swapchain_t>& handle) noexcept override;
+
+  // command recorder
+  HwHandle<CommandRecorder_t> getCommandRecorder() noexcept override;
+  void beginCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept override;
+  void setGraphicsState(HwHandle<CommandRecorder_t> recorder,
+                        const GraphicsState& graphicsState) noexcept override;
+  void drawIndexed(HwHandle<CommandRecorder_t> recorder,
+                   const DrawIndexedCommand& cmd) noexcept override;
+  void endCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept override;
 
   // resource ops
   HwHandle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept override;

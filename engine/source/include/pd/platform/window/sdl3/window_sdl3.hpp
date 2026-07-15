@@ -8,7 +8,8 @@ class WindowSDL3 : public IWindow {
  public:
   explicit WindowSDL3(IWindow::Config config) noexcept;
   ~WindowSDL3() override;
-  MOVABLE_ONLY(WindowSDL3);
+  DELETE_COPY(WindowSDL3);
+  DEFAULT_MOVABLE(WindowSDL3);
 
   bool create() noexcept override;
   void close() noexcept override;
@@ -22,9 +23,7 @@ class WindowSDL3 : public IWindow {
   [[nodiscard]] bool shouldClose() const noexcept override { return mClosed; }
   [[nodiscard]] uint32_t windowHeight() const noexcept override { return mConfig.height; }
   [[nodiscard]] uint32_t windowWidth() const noexcept override { return mConfig.width; }
-  [[nodiscard]] std::string windowTitle() const noexcept override {
-    return mConfig.title;
-  }
+  [[nodiscard]] std::string windowTitle() const noexcept override { return mConfig.title; }
 
   [[nodiscard]] std::vector<const char*> getVulkanInstanceExtensions() noexcept override;
 

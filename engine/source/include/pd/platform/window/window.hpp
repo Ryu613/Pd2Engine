@@ -16,7 +16,8 @@ class IWindow {
   };
   explicit IWindow() noexcept = default;
   virtual ~IWindow() = default;
-  MOVABLE_ONLY(IWindow);
+  DELETE_COPY(IWindow);
+  DEFAULT_MOVABLE(IWindow);
 
   // common opts
   virtual bool create() noexcept = 0;
@@ -35,8 +36,6 @@ class IWindow {
   [[nodiscard]] virtual std::string windowTitle() const noexcept { return {}; }
 
   // backend sepecific
-  [[nodiscard]] virtual std::vector<const char*> getVulkanInstanceExtensions() noexcept {
-    return {};
-  }
+  [[nodiscard]] virtual std::vector<cstr> getVulkanInstanceExtensions() noexcept { return {}; }
 };
 }  // namespace pd

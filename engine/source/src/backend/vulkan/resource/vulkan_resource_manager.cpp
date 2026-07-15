@@ -289,8 +289,6 @@ HwHandle<Buffer_t> VulkanResourceManager::createBuffer(const HwBuffer& buffer) n
   const auto bufferHandle =
       mBuffers.emplace(VulkanBuffer{buffer, this, vkBuffer, allocation, allocationInfo});
   return bufferHandle;
-
-  return {};
 }
 
 void VulkanResourceManager::destroyBuffer(const HwHandle<Buffer_t>& handle) noexcept {
@@ -308,5 +306,51 @@ void VulkanResourceManager::writeBuffer(const BufferWriteOptions& writeOptions) 
 
   std::memcpy(vulkanBuffer->allocationInfo.pMappedData, writeOptions.pData,
               writeOptions.byteSize);
+}
+
+Handle<CommandPool_t> VulkanResourceManager::createCommandPool() noexcept {
+  auto device = mVulkanContext->getDevice();
+  VkCommandPoolCreateInfo createInfo = {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT |
+               VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+      .queueFamilyIndex = mVulkanContext->getQueueInfo().graphicsQueueFamilyIndex,
+  };
+  VkCommandPool pool = 0;
+  VK_CHECK(vkCreateCommandPool(device, &createInfo, 0, &pool));
+  PD_ASSERT(pool);
+
+  setObjectName(device, VK_OBJECT_TYPE_COMMAND_POOL, pool, "command_pool");
+
+  const auto cmdPoolHandle = mCmdPools.emplace(VulkanCommandBuffer({}, this, pool, 0));
+  return cmdPoolHandle;
+}
+
+void VulkanResourceManager::destroyCommandPool(const Handle<CommandPool_t>& handle) noexcept {}
+
+Handle<CommandBuffer_t> VulkanResourceManager::createCommandBuffer(
+    const Handle<CommandPool_t>& poolHandle) noexcept {
+  auto device = mVulkanContext->getDevice();
+  auto* pool = mCmdPools.get(poolHandle);
+  VkCommandBufferAllocateInfo allocInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = pool->pool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = 1,
+  };
+  VkCommandBuffer cmdBuffer = 0;
+
+  VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, &cmdBuffer));
+
+  setObjectName(device, VK_OBJECT_TYPE_COMMAND_BUFFER, cmdBuffer, "buffer");
+
+  const auto cmdBufferHandle =
+      mCmdBuffers.emplace(VulkanCommandBuffer({}, this, pool->pool, cmdBuffer));
+
+  return cmdBufferHandle;
+}
+[[nodiscard]] VulkanCommandBuffer* VulkanResourceManager::getCommandBuffer(
+    const Handle<CommandBuffer_t>& handle) const noexcept {
+  return mCmdBuffers.get(handle);
 }
 }  // namespace pd

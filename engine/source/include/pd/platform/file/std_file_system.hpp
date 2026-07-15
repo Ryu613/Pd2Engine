@@ -8,7 +8,8 @@ class StdFileSystem final : public IFileSystem {
   StdFileSystem() = default;
   ~StdFileSystem() = default;
 
-  MOVABLE_ONLY(StdFileSystem);
+  DELETE_COPY(StdFileSystem);
+  DEFAULT_MOVABLE(StdFileSystem);
 
   FileStat statOfFile(const Path& path) noexcept override;
   bool isFile(const Path& path) noexcept override;

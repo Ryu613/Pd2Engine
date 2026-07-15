@@ -52,6 +52,7 @@ target_sources(engine_lib
         include/pd/backend/hw_swapchain.hpp
         include/pd/backend/hw_texture.hpp
         include/pd/backend/hw_buffer.hpp
+        include/pd/backend/hw_command_recorder.hpp
         # resource
         include/pd/resource/resource_handle.hpp
         include/pd/resource/resource.hpp
@@ -127,6 +128,7 @@ target_sources(engine_lib
         include/pd/backend/vulkan/vulkan_types.hpp
 		include/pd/backend/vulkan/vulkan_context.hpp
 		include/pd/backend/vulkan/vulkan_frame.hpp
+        include/pd/backend/vulkan/vulkan_command_manager.hpp
         include/pd/backend/vulkan/backend_vulkan.hpp
 		include/pd/backend/vulkan/resource/vulkan_resource_manager.hpp
 		include/pd/backend/vulkan/resource/vulkan_resource.hpp
@@ -137,6 +139,7 @@ target_sources(engine_lib
         src/backend/vulkan/vulkan_context.cpp
         src/backend/vulkan/backend_vulkan.cpp
 		src/backend/vulkan/vulkan_frame.cpp
+		src/backend/vulkan/vulkan_command_manager.cpp
 		src/backend/vulkan/resource/vulkan_resource_manager.cpp
 		src/backend/vulkan/resource/vulkan_swapchain.cpp
 		# src/platform/rhi/vulkan/vulkan_swapchain.cpp

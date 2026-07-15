@@ -24,7 +24,8 @@ class IFileSystem {
   IFileSystem() noexcept = default;
   virtual ~IFileSystem() = default;
 
-  MOVABLE_ONLY(IFileSystem);
+  DELETE_COPY(IFileSystem);
+  DEFAULT_MOVABLE(IFileSystem);
 
   /**
    * @brief 获取文件状态信息

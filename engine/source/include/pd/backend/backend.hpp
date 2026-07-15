@@ -3,6 +3,7 @@
 #include "pd/backend/hw_handle.hpp"
 #include "pd/backend/hw_swapchain.hpp"
 #include "pd/backend/hw_buffer.hpp"
+#include "pd/backend/hw_command_recorder.hpp"
 #include "pd/core/error.hpp"
 
 namespace pd {
@@ -47,7 +48,14 @@ class IBackend {
     return make_error<void>(ErrorCode::RenderingNotImplemented);
   }
 
-  //   virtual void draw(HwHandle<>)
+  virtual HwHandle<CommandRecorder_t> getCommandRecorder() noexcept { return {}; }
+
+  virtual void beginCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
+  virtual void setGraphicsState(HwHandle<CommandRecorder_t> recorder,
+                                const GraphicsState& graphicsState) noexcept {}
+  virtual void drawIndexed(HwHandle<CommandRecorder_t> recorder,
+                           const DrawIndexedCommand& cmd) noexcept {}
+  virtual void endCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
 
   // buffer
 

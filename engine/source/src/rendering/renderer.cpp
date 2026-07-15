@@ -3,7 +3,7 @@
 #include "pd/backend/backend.hpp"
 #include "pd/platform/window/window.hpp"
 
-#include "pd/backend/hw_command_list.hpp"
+#include "pd/backend/hw_command_recorder.hpp"
 
 #include "pd/rendering/render_pass/skybox_pass.hpp"
 #include "pd/rendering/render_pass/forward_pass.hpp"
@@ -84,7 +84,6 @@ void Renderer::renderFrame() {
   //   mRenderGraph.execute();
   // 停止指令录制
   //   mBackend->endCmdRecording();
-  auto result = mBackend->presentFrame(mSwapchain);
 }
 
 void Renderer::destroy() noexcept {
@@ -119,14 +118,13 @@ void Renderer::initializeRenderGraph() noexcept {
 
 void Renderer::render(Renderable& renderable) noexcept {
   // if window is minimized
-  //   auto cmdListHandle = mBackend->getCommandList();
-  //   for (auto& primitive : renderable.pMeshResource.primitives()) {
-  // mBackend->bindPass(primitive.materialInstance);
-  //   mBackend->bindPipeline(mSwapchain, pipelineHandle);
-  //   mBackend->bindVertexBuffer(mSwapchain,
-  //   renderable.pMeshResource->outputData().primitives);
-  //   mBackend->bindIndexBuffer(mSwapchain, renderable.pMeshResource->outputData().indices);
-  // mBackend->draw(renderable.pMeshResource->outputData().vertices.size());
-  //   }
+  auto cmdRecorder = mBackend->getCommandRecorder();
+  for (auto& primitive : renderable.pMeshResource->primitives()) {
+    GraphicsState state;
+    mBackend->setGraphicsState(cmdRecorder, state);
+    DrawIndexedCommand drawCmd;
+    mBackend->drawIndexed(cmdRecorder, drawCmd);
+    mBackend->endCmdRecord(cmdRecorder);
+  }
 }
 }  // namespace pd

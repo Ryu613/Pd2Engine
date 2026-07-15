@@ -5,7 +5,8 @@
 namespace pd {
 BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
     : mVulkanContext(std::move(ctx)),
-      mVulkanResourceManager(mVulkanContext.get()) {
+      mVulkanResourceManager(mVulkanContext.get()),
+      mVulkanCmdMgr(mVulkanResourceManager) {
   for (auto& frame : mFrames) {
     // TODO(author) : change arg to resource manager, let mgr manage vulkan handles
     frame.initialize(*mVulkanContext);
@@ -18,6 +19,17 @@ BackendVulkan::~BackendVulkan() {
     frameData.shutdown();
   }
 }
+
+HwHandle<CommandRecorder_t> BackendVulkan::getCommandRecorder() noexcept {
+  return mVulkanCmdMgr.getCommandRecorder();
+}
+
+void BackendVulkan::beginCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
+void BackendVulkan::setGraphicsState(HwHandle<CommandRecorder_t> recorder,
+                                     const GraphicsState& graphicsState) noexcept {}
+void BackendVulkan::drawIndexed(HwHandle<CommandRecorder_t> recorder,
+                                const DrawIndexedCommand& cmd) noexcept {}
+void BackendVulkan::endCmdRecord(HwHandle<CommandRecorder_t> recorder) noexcept {}
 
 HwHandle<Swapchain_t> BackendVulkan::createSwapchain(const HwSwapchain& hwSwapchain) noexcept {
   return mVulkanResourceManager.createSwapchain(hwSwapchain);

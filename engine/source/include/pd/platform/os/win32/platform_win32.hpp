@@ -13,7 +13,8 @@ class PlatformWin32 : public IPlatform {
  public:
   explicit PlatformWin32(IPlatform::Config config) noexcept;
   ~PlatformWin32();
-  MOVABLE_ONLY(PlatformWin32);
+  DELETE_COPY(PlatformWin32);
+  DEFAULT_MOVABLE(PlatformWin32);
 
   IFileSystem* fileSystem() noexcept override { return mFileSystem.get(); }
   IWindow* window() noexcept override { return mWindow.get(); }
