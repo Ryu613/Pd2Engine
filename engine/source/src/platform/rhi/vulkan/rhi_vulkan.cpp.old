@@ -93,7 +93,7 @@ void RhiVulkan::presentFrame() noexcept { mVulkanSwapchain.present(); }
 void RhiVulkan::endFrame() noexcept {
   mCurrentFrameIndex = (mCurrentFrameIndex + 1) % INFLIGHT_FRAME_COUNT;
 
-  // TODO(author): gc()
+  // TODO(ryu613): gc()
 }
 
 RhiHandle<RhiTexture> RhiVulkan::createTexture(uint32_t width, uint32_t height,
@@ -110,7 +110,7 @@ void RhiVulkan::destroyTexture(RhiHandle<RhiTexture> handle) noexcept {
   if (!handle) {
     return;
   }
-  // TODO(author): destroy vulkan texture
+  // TODO(ryu613): destroy vulkan texture
   return;
 }
 }  // namespace pd

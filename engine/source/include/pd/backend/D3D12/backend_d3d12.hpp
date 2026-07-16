@@ -3,7 +3,7 @@
 #include "pd/backend/backend.hpp"
 
 namespace pd {
-// TODO(author): interested in D3DX but have no time for now!
+// TODO(ryu613): interested in D3DX but have no time for now!
 class BackendD3D12 : public IBackend {
  public:
   BackendD3D12() noexcept = default;

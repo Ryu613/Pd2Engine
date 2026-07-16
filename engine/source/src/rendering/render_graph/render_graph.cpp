@@ -10,7 +10,7 @@ void RenderGraph::reset() noexcept {
 void RenderGraph::setup() noexcept {
   mNodes.clear();
   // shortcut: simplefield for testing
-  // TODO(author): node culling, resources and passes dependencies analysis, build dag
+  // TODO(ryu613): node culling, resources and passes dependencies analysis, build dag
   PassNode currentNode{
       .id = 0,
       .pPass = mRenderPasses[0].get(),
@@ -28,14 +28,14 @@ void RenderGraph::setup() noexcept {
 }
 
 void RenderGraph::compile() noexcept {
-  // TODO(author): dag's nodes resources allocation
+  // TODO(ryu613): dag's nodes resources allocation
   for (auto& node : mNodes) {
     node.pPass->setup();
   }
 }
 
 void RenderGraph::execute() noexcept {
-  // TODO(author)
+  // TODO(ryu613)
   for (auto& node : mNodes) {
     node.pPass->execute();
   }

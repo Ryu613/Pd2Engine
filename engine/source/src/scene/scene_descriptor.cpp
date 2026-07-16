@@ -18,7 +18,7 @@ Result<void> SceneDescriptor::loadScene(SceneManager& sceneManager) noexcept {
 void SceneDescriptor::updateScene() noexcept {}
 
 Result<void> SceneDescriptor::unloadScene() noexcept {
-  // TODO(author): not implemented
+  // TODO(ryu613): not implemented
   return {};
 }
 }  // namespace pd

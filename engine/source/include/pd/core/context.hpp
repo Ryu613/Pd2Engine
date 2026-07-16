@@ -1,6 +1,5 @@
 #pragma once
 
-// #include "pd/core/logger.hpp"
 #include "pd/core/allocators.hpp"
 
 namespace pd {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "pd/core/logging.hpp"
-
 #ifdef _MSC_VER
 #define PD_DEBUG_BREAK() __debugbreak()
 #elif defined(__GNUC__) || defined(__clang__)

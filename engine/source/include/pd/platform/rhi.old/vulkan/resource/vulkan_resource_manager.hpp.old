@@ -16,7 +16,7 @@ class VulkanResourceManager {
 
  private:
   uint32_t mCurrentId = 0;
-  // TODO(author): 临时方案,暂不考虑性能，下标就是id
+  // TODO(ryu613): 临时方案,暂不考虑性能，下标就是id
   struct RhiResourceEntry {
     RhiResource* resource = nullptr;
     uint32_t refCount = 0;

@@ -3,7 +3,7 @@
 #include "pd/backend/backend.hpp"
 
 namespace pd {
-// TODO(author): want to integrate my soft renderer but not now
+// TODO(ryu613): want to integrate my soft renderer but not now
 class BackendNoop : public IBackend {
  public:
   BackendNoop() noexcept = default;

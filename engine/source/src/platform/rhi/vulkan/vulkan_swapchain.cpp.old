@@ -192,7 +192,7 @@ bool VulkanSwapchain::acquireNextImage(VkSemaphore imageAvailableSemaphore) noex
                             VK_NULL_HANDLE, &mCurrentImageIndex);
   // if window resized
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    // TODO(author): recreate swapchain
+    // TODO(ryu613): recreate swapchain
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     LOG_ERROR("failed to acquire swapchain image,err: \n{}", string_VkResult(result));
     return false;
@@ -216,7 +216,7 @@ void VulkanSwapchain::present() noexcept {
   // 执行呈现
   auto presentResult = vkQueuePresentKHR(presentQueue, &presentInfo);
   if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
-    // TODO(author): 处理交换链过期问题，即需要重建swapchain
+    // TODO(ryu613): 处理交换链过期问题，即需要重建swapchain
   } else if (presentResult != VK_SUCCESS) {
     LOG_ERROR("failed to present swapchain image!\n{}", string_VkResult(presentResult));
     return;

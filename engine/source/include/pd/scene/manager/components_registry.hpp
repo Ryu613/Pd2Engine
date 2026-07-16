@@ -32,7 +32,7 @@ class ComponentsRegistry {
   Entity get(Entity e) const noexcept;
 
  private:
-  // TODO(author): my own soa container not fully tested, use entt's instead for now
+  // TODO(ryu613): my own soa container not fully tested, use entt's instead for now
   entt::registry mRegistry;
 };
 }  // namespace pd

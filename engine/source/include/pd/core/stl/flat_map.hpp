@@ -2,6 +2,6 @@
 
 namespace pd {
 namespace stl {
-class StaticString {};
+ // todo(ryu613): integrate robin_map
 }  // namespace stl
 }  // namespace pd

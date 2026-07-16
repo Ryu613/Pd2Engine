@@ -39,12 +39,12 @@ Result<void> SceneManager::loadScene() noexcept {
 }
 
 void SceneManager::updateScene() noexcept {
-  // TODO(author): update view
-  // TODO(author): scene culling
-  // TODO(author): prepare scene resources cache
+  // TODO(ryu613): update view
+  // TODO(ryu613): scene culling
+  // TODO(ryu613): prepare scene resources cache
   // shortcut: not culled
   updateRenderables(mWorld.mEntities);
-  // TODO(author): update rscmgr's references
+  // TODO(ryu613): update rscmgr's references
   // rscmgr gc
   //   mResourceManager->gc();
   // load remained resources if not loaded

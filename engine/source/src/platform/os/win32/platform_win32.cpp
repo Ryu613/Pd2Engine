@@ -9,7 +9,7 @@
 namespace pd {
 PlatformWin32::PlatformWin32(IPlatform::Config config) noexcept
     : mConfig(std::move(config)) {
-// TODO(author): windows raw window system not implemented yet
+// TODO(ryu613): windows raw window system not implemented yet
 #ifdef WINDOW_SDL3
   mWindow = std::make_unique<WindowSDL3>(mConfig.window);
 #else

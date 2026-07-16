@@ -8,7 +8,7 @@ BackendVulkan::BackendVulkan(std::unique_ptr<VulkanContext>&& ctx) noexcept
       mVulkanResourceManager(mVulkanContext.get()),
       mVulkanCmdMgr(mVulkanResourceManager) {
   for (auto& frame : mFrames) {
-    // TODO(author) : change arg to resource manager, let mgr manage vulkan handles
+    // TODO(ryu613) : change arg to resource manager, let mgr manage vulkan handles
     frame.initialize(*mVulkanContext);
   }
 }
@@ -64,7 +64,7 @@ Result<void> BackendVulkan::newFrame(const HwHandle<Swapchain_t>& hswapchain) no
   auto acquireSemaphore = frame.getImageAvailableSemaphore();
   auto result = swapchain->acquireNextImage(device, acquireSemaphore);
   PD_ASSERT_MSG(result, "vulkan swapchain acquire failed!");
-  // TODO(author): command recorder begin
+  // TODO(ryu613): command recorder begin
   return {};
 }
 
@@ -90,9 +90,9 @@ Result<void> BackendVulkan::presentFrame(const HwHandle<Swapchain_t>& hswapchain
 
 Result<void> BackendVulkan::endFrame(const HwHandle<Swapchain_t>& hswapchain) noexcept {
   //   auto device = mVulkanContext->getDevice();
-  // TODO(author): vulkan frame end
+  // TODO(ryu613): vulkan frame end
   currentFrameIndex = (currentFrameIndex + 1) % global::InFlightFrameCount;
-  // TODO(author): deletion queue
+  // TODO(ryu613): deletion queue
   return {};
 }
 
@@ -166,7 +166,7 @@ void RhiVulkan::presentFrame() noexcept { mVulkanSwapchain.present(); }
 void RhiVulkan::endFrame() noexcept {
   mCurrentFrameIndex = (mCurrentFrameIndex + 1) % INFLIGHT_FRAME_COUNT;
 
-  // TODO(author): gc()
+  // TODO(ryu613): gc()
 }
 
 RhiHandle<RhiTexture> BackendVulkan::createTexture(uint32_t width, uint32_t height,
@@ -184,7 +184,7 @@ void BackendVulkan::destroyTexture(RhiHandle<RhiTexture> handle) noexcept {
   if (!handle) {
     return;
   }
-  // TODO(author): destroy vulkan texture
+  // TODO(ryu613): destroy vulkan texture
   return;
 }
   */

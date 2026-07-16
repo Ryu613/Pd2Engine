@@ -3,7 +3,7 @@
 #include "pd/platform/window/window.hpp"
 
 namespace pd {
-// TODO(author)
+// TODO(ryu613)
 class WindowWin32 : public IWindow {
  public:
   bool create() noexcept override;

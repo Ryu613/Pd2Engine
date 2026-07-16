@@ -1,7 +1,6 @@
 #pragma once
 
 namespace pd {
-// TODO(author): not tested!
 template <typename T, typename Arena>
 struct ArenaDeleter {
   Arena* arena;

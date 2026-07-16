@@ -174,7 +174,7 @@ class FreeList {
 }  // namespace PoolType
 
 namespace AllocatorType {
-// TODO(author)
+// TODO(ryu613)
 class LinearAllocator {};
 
 /**

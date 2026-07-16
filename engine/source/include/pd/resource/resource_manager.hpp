@@ -99,7 +99,7 @@ class ResourceManager {
     BaseHandle handle;
     uint32_t refCount = 0u;
   };
-  // TODO(author): 待优化
+  // TODO(ryu613): 待优化
   // 两阶段存储, 先按resource的类型查询，再按id查询
   using Registry =
       std::unordered_map<std::type_index, std::unordered_map<Resource::IdType, ResourceEntry>>;

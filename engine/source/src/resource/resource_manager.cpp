@@ -24,7 +24,7 @@ void ResourceManager::initialize(IBackend* pBackend) noexcept {
   }
   mBackend = pBackend;
 
-  // TODO(author): 加载默认资源
+  // TODO(ryu613): 加载默认资源
 
   mInitialized = true;
 }

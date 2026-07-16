@@ -43,7 +43,7 @@ Handle<Texture_t> VulkanResourceManager::createImage(const HwTexture& texture) n
       .usage = VMA_MEMORY_USAGE_AUTO,
   };
 
-  // TODO(author): external image?
+  // TODO(ryu613): external image?
 
   auto* allocator = mVulkanContext->getVmaAllocator();
   VkImage vkImage{};
@@ -264,7 +264,7 @@ HwHandle<Buffer_t> VulkanResourceManager::createBuffer(const HwBuffer& buffer) n
       .usage = ToVkBufferUsage(buffer.usage),
       .sharingMode = ToVkSharingMode(buffer.sharingMode),
   };
-  // TODO(author): 目前利用ReBar,没有staging buffer，在某些硬件上不保证兼容性和性能
+  // TODO(ryu613): 目前利用ReBar,没有staging buffer，在某些硬件上不保证兼容性和性能
   VmaAllocationCreateInfo allocInfo{
       .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
                VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |

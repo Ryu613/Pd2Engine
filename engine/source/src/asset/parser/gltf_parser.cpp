@@ -275,7 +275,7 @@ void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
   //         auto meshHandle = rm.registerResource<MeshResource>(*submeshes[0]);
   //         // em添加MeshHandle作为组件
   //         em.addComponent<MeshHandle>(currentEntity, meshHandle);
-  //         // TODO(author): 材质组件
+  //         // TODO(ryu613): 材质组件
   //         // em.addComponent<Material>(submesh[0]);
   //       } else {
   //         auto childEntityList = em.createEntity(submeshes.size());
@@ -285,7 +285,7 @@ void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
   //           auto meshHandle = rm.registerResource<MeshResource>(*submesh);
   //           em.addComponent<Name>(childEntity, std::format("{}_submesh_{}", entityName,
   //           j)); em.addComponent<MeshHandle>(childEntity, meshHandle);
-  //           // TODO(author): current entity add child
+  //           // TODO(ryu613): current entity add child
   //         }
   //       }
   //     }

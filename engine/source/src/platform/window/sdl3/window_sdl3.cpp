@@ -45,11 +45,11 @@ void WindowSDL3::closeImpl() noexcept {
 }
 
 void WindowSDL3::resize(uint32_t width, uint32_t height) noexcept {
-  // TODO(author)
+  // TODO(ryu613)
 }
 
 void WindowSDL3::setTitle(const std::string& title) noexcept {
-  // TODO(author)
+  // TODO(ryu613)
 }
 
 void* WindowSDL3::nativeHandle() const noexcept {

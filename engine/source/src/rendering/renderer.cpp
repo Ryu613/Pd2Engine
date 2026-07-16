@@ -35,7 +35,7 @@ void Renderer::initialize(IBackend* pBackend, IWindow* pWindow, SceneManager* pS
   };
   mSwapchain = mBackend->createSwapchain(swapchainOptions);
 
-  // TODO(author): initialize frame context
+  // TODO(ryu613): initialize frame context
   mFrames.reserve(static_cast<size_t>(mConfig.inFlightFrame));
 
   // create render graph based on shading path
@@ -48,11 +48,11 @@ Renderer::~Renderer() { destroy(); }
 
 void Renderer::beginFrame() {
   if (mSwapchainDirty) {
-    // TODO(author): swapchain resize
+    // TODO(ryu613): swapchain resize
   }
   auto result = mBackend->newFrame(mSwapchain);
   if (!result) {
-    // TODO(author): deal with swapchain resize & outdate & fail
+    // TODO(ryu613): deal with swapchain resize & outdate & fail
   }
   //   mRenderGraph.compile();
 }
@@ -62,13 +62,13 @@ void Renderer::endFrame() {
   //   driver.submitFrame();
   // 呈现
   if (auto res = mBackend->presentFrame(mSwapchain); !res) {
-    // TODO(author) : deal with swapchain resize or other error
+    // TODO(ryu613) : deal with swapchain resize or other error
   }
   // 结束当前帧
   if (auto res = mBackend->endFrame(mSwapchain); !res) {
-    // TODO(author): deal with error
+    // TODO(ryu613): deal with error
   }
-  // TODO(author): clean per-frame resources
+  // TODO(ryu613): clean per-frame resources
 }
 
 void Renderer::renderFrame() {

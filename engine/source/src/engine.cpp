@@ -89,7 +89,7 @@ Result<void> Engine::run() noexcept {
 
   while (!mPlatform->window()->shouldClose()) {
     mPlatform->processEvents();
-    // TODO(author): use event system instead of running in main loop
+    // TODO(ryu613): use event system instead of running in main loop
     for (const auto& eachLayer : mLayers) {
       eachLayer->onUpdate();
     }
