@@ -6,8 +6,7 @@
 * [*] command buffer的封装
 * [*] render全链路打通
 . triangle scene
-* [ ] shader program封装和读取
-* [ ] pipeline封装
+* [ ] pipeline封装, shader读取
 * [ ] uniform buffer 打通
 * [ ] triangle全链路打通
 . 场景管理打通

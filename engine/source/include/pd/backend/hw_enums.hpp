@@ -68,6 +68,16 @@ enum class MemoryUsage : u8 {
   GpuLazilyAllocated,
 };
 
+enum class ShaderType : u8 {
+  None = 0,
+  Vertex,
+  Fragment,
+};
+
+enum class PrimitiveType : u8 {
+  TriangleList,
+};
+
 struct Extent {
   uint32_t width = 0;
   uint32_t height = 0;

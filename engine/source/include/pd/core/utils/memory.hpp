@@ -308,7 +308,6 @@ template <typename AllocatorPolicy,
 class Arena {
  public:
   Arena() noexcept = default;
-  // 管理内存资源，不允许拷贝和移动
   Arena(const Arena&) noexcept = delete;
   Arena& operator=(const Arena&) noexcept = delete;
 
@@ -320,7 +319,7 @@ class Arena {
         mAllocator(mResource, std::forward<ARGS>(args)...),
         mListener(name, mResource.data(), mResource.size()) {}
 
-  // 制定策略的Arena，一般用于空或可转移的内存资源
+  // 用于空或可转移的内存资源
   template <typename... ARGS>
   Arena(const char* name, ResourcePolicy&& resource, ARGS&&... args)
       : mName(name),
@@ -328,17 +327,6 @@ class Arena {
         mAllocator(mResource, std::forward<ARGS>(args)...),
         mListener(name, mResource.data(), mResource.size()) {}
 
-  /**
-   * @brief Arena交换
-   *
-   * 作用:
-   * 1. friend 满足对称性
-   * 2. 高效交换，并使stl能够匹配此高效实现
-   * 3. 方便可能的转移和延迟处理的需求，如异步回收
-   *
-   * @param lhs
-   * @param rhs
-   */
   friend void swap(Arena& lhs, Arena& rhs) noexcept {
     using std::swap;
     swap(lhs.mResource, rhs.mResource);

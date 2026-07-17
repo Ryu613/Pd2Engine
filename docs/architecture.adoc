@@ -48,7 +48,7 @@
 . 场景管理: 数据驱动，属性中心架构，与资源系统，渲染系统解耦
 . 测试用例: 核心功能提供测试用例
 . 引擎使用示例: 会提供合适的使用示例，展示核心功能和使用方法
-. vulkan底层封装: 自研图形底层封装，按RHI接口实现
+. vulkan底层封装: 自研图形底层封装，自研RHI，但是目前会以贴近vulkan实现为主
 . 着色器功能: 支持slang运行时编译，热加载
 . render graph: 支持自定义pass，支持forward, deferred等着色方式， 自动生命周期管理，自动屏障等
 . 渲染技术: 支持PBR渲染
@@ -158,7 +158,7 @@ image::img/architecture.svg[figure1]
 ==== 对"易于调试"需求的实现
 
 . 采用Vulkan验证层 + RenderDoc + Tracy，并在核心库配套debug, profiler, log工具，对引擎功能有监控测量的能力
-. 已集成日志，断言，和调试工具
+. 集成日志，断言，和调试工具
 
 ==== 对"易于理解"需求的实现
 
@@ -183,13 +183,15 @@ image::img/architecture.svg[figure1]
 .. Google - Filament
 .. KDAP - KDGpu
 .. NVIDIA - NvRHI
-.. Epic Games - Unreal Engine 5
 
 . 技术相关
+.. {cpp} core guideline
 .. modern CMake for {cpp}
-.. modern vulkan cookbook
 .. real time rendering
 .. vkguide.dev - vulkan guide
+.. vulkan programming guide
+.. vulkan cookbook
+.. modern vulkan cookbook
 .. mastering graphics programming with vulkan
 
 还有各类参考资料，此处略
