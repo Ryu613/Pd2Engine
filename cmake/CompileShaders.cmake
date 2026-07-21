@@ -10,7 +10,7 @@ if(lang STREQUAL "SLANG")
         COMMENT "Compile Slang shader ${shader} using slangc"
     )
     add_custom_target(
-        ${target}Shaders ALL
+        ${target}_shaders ALL
         DEPENDS ${output}
         COMMENT "Target to compile a slang shader"
     )
