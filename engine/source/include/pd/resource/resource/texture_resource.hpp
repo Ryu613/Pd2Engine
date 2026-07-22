@@ -2,6 +2,8 @@
 
 #include "pd/backend/hw_enums.hpp"
 #include "pd/resource/resource.hpp"
+#include "pd/backend/hw_texture.hpp"
+#include "pd/backend/hw_handle.hpp"
 
 namespace pd {
 struct TextureResource_t;
@@ -14,24 +16,31 @@ class TextureResource : public Resource {
   struct Properties {
     std::string name;
     std::string path;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    uint32_t channel = 4;
+    u32 width = 0;
+    u32 height = 0;
+    u32 depth = 1;
+    u32 channel = 4;
+    u8 levels = 1;
+    u8 samples = 1;
     TextureFormat format = TextureFormat::RGBA8Unorm;
+    TextureUsage usage = TextureUsage::None;
+    // SamplerType sampler = SamplerType::2D;
   };
 
   explicit TextureResource(Properties props, const std::vector<uint8_t>& data) noexcept;
   ~TextureResource();
 
-  TextureResource(const TextureResource&) = delete;
-  TextureResource& operator=(const TextureResource&) = delete;
+  DELETE_COPY(TextureResource);
+
   TextureResource(TextureResource&& rhs) noexcept
       : mProperties(std::move(rhs.mProperties)),
         mSourceData(std::exchange(rhs.mSourceData, {})) {}
   TextureResource& operator=(TextureResource&& rhs) noexcept {
-    Resource::operator=(std::move(rhs));
-    mProperties = std::exchange(rhs.mProperties, {});
-    mSourceData = std::exchange(rhs.mSourceData, {});
+    if (this != &rhs) {
+      Resource::operator=(std::move(rhs));
+      mProperties = std::exchange(rhs.mProperties, {});
+      mSourceData = std::exchange(rhs.mSourceData, {});
+    }
     return *this;
   }
 
@@ -43,6 +52,8 @@ class TextureResource : public Resource {
 
  private:
   Properties mProperties;
+  HwHandle<Texture_t> mTexture;
+  //   HwHandle<Sampler_t> mSampler;
   std::vector<uint8_t> mSourceData;
 };
 }  // namespace pd

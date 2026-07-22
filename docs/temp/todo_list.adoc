@@ -22,6 +22,7 @@
 * [ ] gltf场景渲染打通
 . 功能补全
 * [ ] core模块的vector和string实现并替换
+* [ ] map封装替换
 * [ ] arena正式接入
 * [ ] event system
 . 调试和剖析器集成
