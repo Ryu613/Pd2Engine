@@ -204,7 +204,7 @@ class HeapAllocator {
 /**
  * @brief 池分配器,默认使用tlsf实现
  *
- * 注：tlsf实现目前不是无状态的
+ * 注：tlsf实现不是无状态的
  *
  * @tparam ElementSize 元素个数
  * @tparam Alignment 元素对齐要求

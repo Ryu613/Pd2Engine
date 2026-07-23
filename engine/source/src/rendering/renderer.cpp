@@ -73,8 +73,6 @@ void Renderer::endFrame() {
 
 void Renderer::renderFrame() {
   // shorcut: for testing only
-  auto& entityManager = mSceneManager->getEntityManager();
-  auto& scene = mSceneManager->getScene();
   auto& renderables = mSceneManager->getRenderables();
   for (auto& renderable : renderables) {
     render(renderable);
@@ -119,13 +117,16 @@ void Renderer::initializeRenderGraph() noexcept {
 void Renderer::render(Renderable& renderable) noexcept {
   // if window is not minimized
   auto cmdRecorder = mBackend->getCommandRecorder();
-  for (auto& primitive : renderable.pMeshResource->primitives()) {
-    mBackend->beginCmdRecord(cmdRecorder);
-    GraphicsState state;
-    mBackend->setGraphicsState(cmdRecorder, state);
-    DrawIndexedCommand drawCmd;
-    mBackend->drawIndexed(cmdRecorder, drawCmd);
-  }
+  mBackend->beginCmdRecord(cmdRecorder);
+  GraphicsState state{
+      .vertexBuffer = renderable.vertexBuffer,
+      .vertexOffset = renderable.vertexOffset,
+      .indexBuffer = renderable.indexBuffer,
+      .indexOffset = renderable.indexOffset,
+  };
+  mBackend->setGraphicsState(cmdRecorder, state);
+  DrawIndexedCommand drawCmd;
+  mBackend->drawIndexed(cmdRecorder, drawCmd);
   mBackend->endCmdRecord(cmdRecorder);
   mBackend->submitFrame(mSwapchain, cmdRecorder);
 }

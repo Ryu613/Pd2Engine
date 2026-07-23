@@ -16,6 +16,13 @@ struct Transform {
   // 左孩子右兄弟
   Entity firstChild{};
   Entity nextSibling{};
+
+  math::mat4 toLocalMatrix() const noexcept {
+    auto transMat = glm::translate(glm::mat4{1.0f}, location);
+    auto rotateMat   = glm::mat4_cast(rotation);
+    auto scaleMat = glm::scale(glm::mat4{1.0f}, scale);
+    return transMat * rotateMat * scaleMat;
+  }
 };
 
 struct Light {

@@ -17,7 +17,10 @@ inline std::unique_ptr<EngineContext>& ContextStorage() noexcept {
 
 inline void initContext(GlobalAllocator& allocator) noexcept {
   static std::once_flag flag;
-  std::call_once(flag, [&]() { ContextStorage()->gAllocator = &allocator; });
+  std::call_once(flag, [&allocator]() {
+    ContextStorage() = std::make_unique<EngineContext>();
+    ContextStorage()->gAllocator = &allocator;
+  });
 }
 
 inline const EngineContext& getContext() noexcept { return *ContextStorage(); }

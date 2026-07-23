@@ -8,9 +8,11 @@ struct CommandRecorder_t;
 struct Pipeline_t;
 struct Buffer_t;
 struct GraphicsState {
-  HwHandle<Pipeline_t> pipeline;
+  HwHandle<Pipeline_t> graphicsPipeline;
   HwHandle<Buffer_t> vertexBuffer;
+  u32 vertexOffset = 0;
   HwHandle<Buffer_t> indexBuffer;
+  u32 indexOffset = 0;
 };
 
 struct DrawIndexedCommand {

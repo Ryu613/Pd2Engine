@@ -19,6 +19,7 @@ Engine::Engine(EngineConfig config) noexcept
       mArena{"Engine Heap Allocator", ResourceType::NullResource{}},
       mRenderer(initRenderer(mConfig)) {
   LOG_INFO("Engine created!");
+  initContext(mArena);
   mLayers.reserve(4);
   log::logo();
 }

@@ -47,6 +47,10 @@ class MeshResource : public Resource {
   }
   std::vector<MeshPrimitive>& primitives() noexcept { return mPrimitives; }
 
+  [[nodiscard]] HwHandle<Buffer_t> getVertexBuffer() const noexcept { return mVertexBuffer; }
+
+  [[nodiscard]] HwHandle<Buffer_t> getIndexBuffer() const noexcept { return mIndexBuffer; }
+
  protected:
   void doLoad(IBackend& backend) noexcept override;
   void doUnload(IBackend& backend) noexcept override;

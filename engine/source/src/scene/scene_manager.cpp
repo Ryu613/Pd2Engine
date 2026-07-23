@@ -66,10 +66,21 @@ void SceneManager::updateRenderables(const std::vector<Entity>& culledEntities) 
   mRenderables.clear();
   mRenderables.shrink_to_fit();
   mRenderables.reserve(culledEntities.size());
+  // shortcut for testing
   for (const auto& [entity, transform, meshHandle] :
        mEntityManager.viewOf<Transform, MeshHandle>().each()) {
     auto* meshResource = mResourceManager->getResource<MeshResource_t>(meshHandle);
-    mRenderables.emplace_back(transform, meshResource);
+    auto& primitives = meshResource->primitives();
+    for (int i = 0; i < primitives.size(); ++i) {
+      Renderable ren {
+        .transform = transform.toLocalMatrix(),
+        .vertexBuffer = meshResource->getVertexBuffer(),
+        .indexBuffer = meshResource->getIndexBuffer(),
+        .vertexOffset = static_cast<u32>(sizeof(Vertex) * i),
+        .indexOffset = static_cast<u32>(sizeof(u32) * i),
+      };
+      mRenderables.emplace_back(ren);
+    }
   }
 }
 }  // namespace pd

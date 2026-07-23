@@ -13,8 +13,11 @@ namespace pd {
 class AssetManager;
 class ResourceManager;
 struct Renderable {
-  Transform ubo;
-  MeshResource* pMeshResource = nullptr;
+  math::mat4 transform;
+  HwHandle<Buffer_t> vertexBuffer;
+  HwHandle<Buffer_t> indexBuffer;
+  u32 vertexOffset = 0;
+  u32 indexOffset = 0;
 };
 class SceneManager {
  public:
