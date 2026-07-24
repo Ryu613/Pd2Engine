@@ -24,7 +24,7 @@ list(APPEND PD2_ENGINE_LIB_PUBLIC_INCLUDE
 )
 # backend
 if(PD2_BACKEND STREQUAL "VULKAN")
-    find_package(VulkanHeaders CONFIG)
+    find_package(VulkanHeaders CONFIG REQUIRED)
     find_package(volk CONFIG REQUIRED)
     find_package(VulkanMemoryAllocator CONFIG REQUIRED)
     find_package(VulkanUtilityLibraries CONFIG REQUIRED)

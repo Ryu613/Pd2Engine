@@ -49,7 +49,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # engine
-add_subdirectory(engine/source)
+add_subdirectory(engine)
 
 if(PD2_BUILD_SAMPLES)
   add_subdirectory(samples)
