@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd/scene/entity.hpp"
-#include "/pd/resource/resource_alias.hpp"
+#include "pd/resource/resource_alias.hpp"
 
 namespace pd {
 struct Name {

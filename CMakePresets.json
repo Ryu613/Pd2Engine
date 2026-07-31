@@ -25,8 +25,8 @@
             "name": "msvc",
             "hidden": true,
             "cacheVariables": {
-                "CMAKE_CXX_COMPILER": "$env{compiler_clang_path}/clang-cl.exe",
-                "CMAKE_C_COMPILER": "$env{compiler_clang_path}/clang-cl.exe"
+                "CMAKE_CXX_COMPILER": "cl",
+                "CMAKE_C_COMPILER": "cl"
             },
             "vendor": {
                 "microsoft.com/VisualStudioSettings/CMake/1.0": {
@@ -59,6 +59,18 @@
             "inherits": "debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "Clang-cl 22.1.8 x86_64-pc-windows-msvc",
+            "displayName": "Clang-cl 22.1.8 x86_64-pc-windows-msvc",
+            "description": "Using compilers: C = F:\\dev\\llvm22\\bin\\clang-cl.exe, CXX = F:\\dev\\llvm22\\bin\\clang-cl.exe",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "F:/dev/llvm22/bin/clang-cl.exe",
+                "CMAKE_CXX_COMPILER": "F:/dev/llvm22/bin/clang-cl.exe",
+                "CMAKE_BUILD_TYPE": "Debug"
             }
         }
     ],

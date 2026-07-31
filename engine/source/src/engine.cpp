@@ -52,6 +52,7 @@ Result<void> Engine::initialize() noexcept {
 
   // 初始化其他子系统
   mResourceManager.initialize(mBackend.get());
+  mAssetManager.initialize(mPlatform->fileSystem(), &mResourceManager);
   mSceneManager.initialize(&mAssetManager, &mResourceManager);
   mRenderer.initialize(mBackend.get(), pWindow, &mSceneManager, &mResourceManager);
 

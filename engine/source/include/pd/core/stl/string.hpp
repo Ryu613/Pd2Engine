@@ -6,6 +6,9 @@
 namespace pd {
 
 namespace stl {
+/**
+ * 此string buffer需要在销毁时用arena总体回收
+ */
 template <size_t Capacity, typename Arena>
 class StringBuffer {
  public:
@@ -40,8 +43,7 @@ class StringBuffer {
 
   explicit StringBuffer(Arena& arena, std::string_view str = {}) noexcept
       : mArena(&arena),
-        mData(
-            static_cast<char*>(mArena->alloc(sizeof(char) * (Capacity + 1), alignof(char)))) {
+        mData(static_cast<char*>(mArena->alloc(sizeof(char) * (Capacity + 1), alignof(char)))) {
     assert(mData != nullptr);
     assert(str.size() <= Capacity);
     mData[0] = empty_c_str;
@@ -69,7 +71,8 @@ class StringBuffer {
     return mData ? std::string_view{mData, mSize} : std::string_view{};
   }
 
-  [[nodiscard]] std::string_view view(size_t pos, size_t count = std::string_view::npos) const noexcept {
+  [[nodiscard]] std::string_view view(size_t pos,
+                                      size_t count = std::string_view::npos) const noexcept {
     assert(pos + count <= mSize);
     return {mData + pos, count};
   }

@@ -13,7 +13,7 @@ target_sources(vendor_lib
     vendor/imgui/imgui_tables.cpp
     vendor/imgui/imgui_widgets.cpp
     vendor/tlsf/tlsf.h
-    vendor/tlsf/tlsf.c
+    vendor/tlsf/tlsf.cpp
     vendor/tsl/robin_growth_policy.h
     vendor/tsl/robin_hash.h
     vendor/tsl/robin_map.h

@@ -13,6 +13,8 @@ void AssetManager::initialize(IFileSystem* fs, ResourceManager* rm) noexcept {
   mResourceManager = rm;
 
   initParsers();
+
+  // initDefaultAssets();
   mInitialized = true;
 }
 
@@ -25,8 +27,7 @@ void AssetManager::destroy() noexcept {
   mInitialized = false;
 }
 
-Result<Asset*> AssetManager::createAsset(
-    const Asset::CreateInfo& assetInfo) noexcept {
+Result<Asset*> AssetManager::createAsset(const Asset::CreateInfo& assetInfo) noexcept {
   // 检查文件是否存在，类型是否正确, 文件是否可读
   const auto& assetPath = assetInfo.path;
   auto& fs = *mFileSystem;

@@ -29,8 +29,7 @@ class VulkanResourceManager {
 
   Handle<Swapchain_t> createSwapchain(const HwSwapchain& swapchain) noexcept;
   void destroySwapchain(const Handle<Swapchain_t>& handle) noexcept;
-  [[nodiscard]] VulkanSwapchain* getSwapchain(
-      const Handle<Swapchain_t>& handle) const noexcept;
+  [[nodiscard]] VulkanSwapchain* getSwapchain(const Handle<Swapchain_t>& handle) const noexcept;
 
   Handle<Texture_t> createImage(const HwTexture& texture) noexcept;
   void destroyImage(const Handle<Texture_t>& handle) noexcept;
@@ -42,8 +41,7 @@ class VulkanResourceManager {
 
   Handle<CommandPool_t> createCommandPool() noexcept;
   void destroyCommandPool(const Handle<CommandPool_t>& handle) noexcept;
-  Handle<CommandBuffer_t> createCommandBuffer(
-      const Handle<CommandPool_t>& poolHandle) noexcept;
+  Handle<CommandBuffer_t> createCommandBuffer(const Handle<CommandPool_t>& poolHandle) noexcept;
   [[nodiscard]] VulkanCommandBuffer* getCommandBuffer(
       const Handle<CommandBuffer_t>& handle) const noexcept;
 
@@ -58,8 +56,7 @@ class VulkanResourceManager {
   Pool<VulkanCommandBuffer, CommandBuffer_t> mCmdBuffers{global::MaxCommandBuffers};
 
   template <typename T>
-  void setObjectName(VkDevice device, VkObjectType type, T handle,
-                     std::string_view name) noexcept {
+  void setObjectName(VkDevice device, VkObjectType type, T handle, std::string_view name) noexcept {
 #if VK_EXT_debug_utils
     if (device == VK_NULL_HANDLE || vkSetDebugUtilsObjectNameEXT == nullptr || name.empty()) {
       return;

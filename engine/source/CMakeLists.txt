@@ -18,8 +18,8 @@ include(deps/EngineDeps)
 target_link_libraries(engine_lib
     PUBLIC
     ${PD2_ENGINE_LIB_PUBLIC_LINKS}
-    PRIVATE
     vendor_lib
+    PRIVATE
 )
 
 target_sources(engine_lib

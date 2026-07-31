@@ -14,6 +14,7 @@ WarningsAsErrors: ''
 HeaderFileExtensions: ['h', 'hpp']
 ImplementationFileExtensions: ['cpp']
 HeaderFilterRegex: ''
+ExcludeHeaderFilterRegex: ['engine/vendor/.*', 'vcpkg_installed/.*']
 CheckOptions:
   - key: cppcoreguidelines-avoid-do-while.IgnoreMacros
     value: 'true'

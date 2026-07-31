@@ -103,9 +103,9 @@ inline void logo() {
 )");
 }
 }  // namespace log
-#define LOG_TRACE(...) SPDLOG_LOGGER_TRACE(log::get().get(), __VA_ARGS__)
-#define LOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(log::get().get(), __VA_ARGS__)
-#define LOG_INFO(...) SPDLOG_LOGGER_INFO(log::get().get(), __VA_ARGS__)
-#define LOG_WARN(...) SPDLOG_LOGGER_WARN(log::get().get(), __VA_ARGS__)
-#define LOG_ERROR(...) SPDLOG_LOGGER_ERROR(log::get().get(), __VA_ARGS__)
+#define LOG_TRACE(...) SPDLOG_LOGGER_TRACE(::pd::log::get().get(), __VA_ARGS__)
+#define LOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(::pd::log::get().get(), __VA_ARGS__)
+#define LOG_INFO(...) SPDLOG_LOGGER_INFO(::pd::log::get().get(), __VA_ARGS__)
+#define LOG_WARN(...) SPDLOG_LOGGER_WARN(::pd::log::get().get(), __VA_ARGS__)
+#define LOG_ERROR(...) SPDLOG_LOGGER_ERROR(::pd::log::get().get(), __VA_ARGS__)
 }  // namespace pd
