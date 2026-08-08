@@ -3,6 +3,16 @@
 #include "pd/resource/resource_alias.hpp"
 
 namespace pd {
+struct Node {
+  std::string name;
+  math::vec3 location{0.0f, 0.0f, 0.0f};
+  math::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+  math::vec3 scale{1.0f, 1.0f, 1.0f};
+  uint32_t meshIndex;
+  uint32_t parent;
+  uint32_t firstChild;
+  uint32_t nextSibling;
+};
 /**
  * @brief 资产对象，包含资产元数据信息，方便后续运行时使用
  *
@@ -47,6 +57,7 @@ class Asset {
   CreateInfo mInfo;
   std::vector<MeshHandle> mMeshes;
   std::vector<TextureHandle> mTextures;
+  std::vector<Node> mSceneNodes;
 
   explicit Asset(IdType id, CreateInfo info) noexcept
       : mId(std::move(id)),

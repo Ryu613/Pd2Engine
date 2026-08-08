@@ -1,6 +1,7 @@
 #include "pd/scene/scene_manager.hpp"
 
 #include "pd/resource/resource_manager.hpp"
+#include "pd/asset/asset_manager.hpp"
 
 namespace pd {
 
@@ -38,7 +39,7 @@ Result<void> SceneManager::loadScene() noexcept {
   return {};
 }
 
-void SceneManager::updateScene() noexcept {
+void SceneManager::updateScene(float deltaTime) noexcept {
   // TODO(ryu613): update view
   // TODO(ryu613): scene culling
   // TODO(ryu613): prepare scene resources cache
@@ -67,17 +68,18 @@ void SceneManager::updateRenderables(const std::vector<Entity>& culledEntities) 
   mRenderables.shrink_to_fit();
   mRenderables.reserve(culledEntities.size());
   // shortcut for testing
-  for (const auto& [entity, transform, meshHandle] :
-       mEntityManager.viewOf<Transform, MeshHandle>().each()) {
+  for (const auto& [entity, transform, assetId] :
+       mEntityManager.viewOf<Transform, Asset::IdType>().each()) {
+    auto* Asset = mAssetManager.getAsset(assetId);
     auto* meshResource = mResourceManager->getResource<MeshResource_t>(meshHandle);
     auto& primitives = meshResource->primitives();
     for (int i = 0; i < primitives.size(); ++i) {
-      Renderable ren {
-        .transform = transform.toLocalMatrix(),
-        .vertexBuffer = meshResource->getVertexBuffer(),
-        .indexBuffer = meshResource->getIndexBuffer(),
-        .vertexOffset = static_cast<u32>(sizeof(Vertex) * i),
-        .indexOffset = static_cast<u32>(sizeof(u32) * i),
+      Renderable ren{
+          .transform = transform.toLocalMatrix(),
+          .vertexBuffer = meshResource->getVertexBuffer(),
+          .indexBuffer = meshResource->getIndexBuffer(),
+          .vertexOffset = static_cast<u32>(sizeof(Vertex) * i),
+          .indexOffset = static_cast<u32>(sizeof(u32) * i),
       };
       mRenderables.emplace_back(ren);
     }

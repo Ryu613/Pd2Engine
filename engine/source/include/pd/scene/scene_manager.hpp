@@ -38,7 +38,7 @@ class SceneManager {
 
   Result<void> loadScene() noexcept;
 
-  void updateScene() noexcept;
+  void updateScene(float deltaTime) noexcept;
 
   Result<void> unloadScene() noexcept;
 

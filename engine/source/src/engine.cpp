@@ -3,14 +3,14 @@
 #include "pd/platform/platform_factory.hpp"
 #include "pd/backend/backend_factory.hpp"
 
+#include <chrono>
+
 namespace pd {
 
 namespace {
 void initContext(GlobalAllocator& allocator) noexcept { global::initContext(allocator); }
 
-Renderer initRenderer(const EngineConfig& config) noexcept {
-  return Renderer(Renderer::Config{});
-}
+Renderer initRenderer(const EngineConfig& config) noexcept { return Renderer(Renderer::Config{}); }
 
 }  // namespace
 
@@ -67,8 +67,7 @@ void Engine::shutdown() noexcept {
   for (auto& layer : mLayers) {
     auto result = layer->onDetached();
     if (!result) {
-      LOG_ERROR("layer detach failed! layer: {}, error: {}", layer->name(),
-                result.error().msg);
+      LOG_ERROR("layer detach failed! layer: {}, error: {}", layer->name(), result.error().msg);
       continue;
     }
   }
@@ -88,14 +87,16 @@ Result<void> Engine::run() noexcept {
     LOG_ERROR("scene load failed!, error: {}", sceneLoadResult.error().msg);
     return sceneLoadResult;
   }
-
+  std::chrono::high_resolution_clock clock;
+  auto now = clock.now();
   while (!mPlatform->window()->shouldClose()) {
     mPlatform->processEvents();
     // TODO(ryu613): use event system instead of running in main loop
-    for (const auto& eachLayer : mLayers) {
-      eachLayer->onUpdate();
-    }
-    mSceneManager.updateScene();
+    // for (const auto& eachLayer : mLayers) {
+    //   eachLayer->onUpdate();
+    // }
+    float deltaTimeSec = static_cast<std::chrono::nanoseconds>(clock.now() - now).count() * 1.0e-9f;
+    mSceneManager.updateScene(deltaTimeSec);
 
     mRenderer.beginFrame();
     mRenderer.renderFrame();
