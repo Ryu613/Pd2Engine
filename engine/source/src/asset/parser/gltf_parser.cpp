@@ -21,9 +21,8 @@ MeshPrimitive convertMeshData(const fastgltf::Primitive& primitive,
   const auto& positionAccessor = gltfAsset.accessors[posIt->accessorIndex];
   input.positions.reserve(positionAccessor.count);
   fastgltf::iterateAccessor<fastgltf::math::fvec3>(
-      gltfAsset, positionAccessor, [&](fastgltf::math::fvec3 pos) {
-        input.positions.emplace_back(pos.x(), pos.y(), pos.z());
-      });
+      gltfAsset, positionAccessor,
+      [&](fastgltf::math::fvec3 pos) { input.positions.emplace_back(pos.x(), pos.y(), pos.z()); });
   const auto* normIt = primitive.findAttribute("NORMAL");
   PD_ASSERT_MSG(normIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
   const auto& normalAccessor = gltfAsset.accessors[normIt->accessorIndex];
@@ -52,8 +51,8 @@ MeshPrimitive convertMeshData(const fastgltf::Primitive& primitive,
   if (primitive.indicesAccessor.has_value()) {
     const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
     input.indices.reserve(indexAccessor.count);
-    fastgltf::iterateAccessor<uint32_t>(
-        gltfAsset, indexAccessor, [&](uint32_t index) { input.indices.emplace_back(index); });
+    fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor,
+                                        [&](uint32_t index) { input.indices.emplace_back(index); });
   }
   return MeshProcessor::process(input);
 }
@@ -80,17 +79,20 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
   // 设置根文件目录
   mBasePath = gltfFilePath.parent_path();
 
-  fastgltf::Parser parser;
+  constexpr auto supportedExtensions =
+      fastgltf::Extensions::KHR_mesh_quantization | fastgltf::Extensions::KHR_texture_transform |
+      fastgltf::Extensions::KHR_materials_variants | fastgltf::Extensions::KHR_materials_specular;
+  fastgltf::Parser parser(supportedExtensions);
   auto data = fastgltf::GltfDataBuffer::FromPath(gltfFilePath);
   if (data.error() != fastgltf::Error::None) {
     LOG_ERROR("asset cannot be loaded: {}", gltfFilePath.string());
     return make_error<void>(ErrorCode::AssetFileLoadError);
   }
-  auto options =
-      fastgltf::Options::LoadExternalBuffers | fastgltf::Options::DecomposeNodeMatrices;
+  auto options = fastgltf::Options::LoadExternalBuffers | fastgltf::Options::DecomposeNodeMatrices;
   auto gltfAssetRes = parser.loadGltf(data.get(), gltfFilePath.parent_path(), options);
   if (auto error = gltfAssetRes.error(); error != fastgltf::Error::None) {
-    LOG_ERROR("gltf asset file parse failed: {}", gltfFilePath.string());
+    LOG_ERROR("gltf asset file parse failed: {}, reason: {}", gltfFilePath.string(),
+              fastgltf::getErrorMessage(error));
     return make_error<void>(ErrorCode::AssetParseFailed);
   }
   // 2.1 创建gltf Asset
@@ -113,13 +115,15 @@ void GltfParser::parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noe
   for (size_t i = 0; i < gltfAsset.meshes.size(); ++i) {
     const auto& mesh = gltfAsset.meshes[i];
     // meshes[i].reserve(mesh.primitives.size());
-    auto* newMesh = new MeshResource(mesh.name.c_str());
-    for (const auto& primitive : mesh.primitives) {
-      auto meshPrimitive = convertMeshData(primitive, gltfAsset);
-      newMesh->addPrimitive(meshPrimitive);
+    {
+      auto* newMesh = new MeshResource(mesh.name.c_str());
+      for (const auto& primitive : mesh.primitives) {
+        auto meshPrimitive = convertMeshData(primitive, gltfAsset);
+        newMesh->addPrimitive(meshPrimitive);
+      }
+      auto handle = mResourceManager->registerResource<MeshResource_t>(std::move(*newMesh));
+      meshes.push_back(handle);
     }
-    auto handle = mResourceManager->registerResource<MeshResource_t>(std::move(*newMesh));
-    meshes.push_back(handle);
   }
 }
 
@@ -153,89 +157,88 @@ void GltfParser::parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) n
       continue;
     }
     const auto& image = gltfAsset.images[texture.imageIndex.value()];
-    std::visit(fastgltf::visitor{
-                   [](auto& arg) {
-                     LOG_WARN("reach!");
-                     PD_ASSERT_MSG(false, "texture parse error!");
-                   },
-                   [&](const fastgltf::sources::URI& filePath) {
-                     PD_ASSERT(filePath.fileByteOffset == 0);
-                     PD_ASSERT(filePath.uri.isLocalPath());
-                     int width = 0;
-                     int height = 0;
-                     int nrChannels = 0;
-                     const auto path = mBasePath / filePath.uri.path();
-                     // 用stb解析图片信息
-                     stbi_uc* texels = stbi_load(path.string().c_str(), &width, &height,
-                                                 &nrChannels, STBI_rgb_alpha);
-                     if (!texels) {
-                       PD_ASSERT_MSG(false, "failed to load image!");
-                     }
-                     // 生成TextureResource
-                     TextureResource::Properties props{
-                         .name = std::string(image.name),
-                         .path = path.string(),
-                         .width = static_cast<uint32_t>(width),
-                         .height = static_cast<uint32_t>(height),
-                         .channel = static_cast<uint32_t>(nrChannels),
-                         .format = mTextureFormatCache[i],
-                     };
-                     // copy data
-                     size_t dataSize =
-                         static_cast<size_t>(props.width) * props.height * props.channel;
-                     std::vector<uint8_t> copiedData;
-                     copiedData.reserve(dataSize);
-                     copySourceData(copiedData, texels, dataSize);
+    std::visit(
+        fastgltf::visitor{
+            [](auto& arg) {
+              LOG_WARN("reach!");
+              PD_ASSERT_MSG(false, "texture parse error!");
+            },
+            [&](const fastgltf::sources::URI& filePath) {
+              PD_ASSERT(filePath.fileByteOffset == 0);
+              PD_ASSERT(filePath.uri.isLocalPath());
+              int width = 0;
+              int height = 0;
+              int nrChannels = 0;
+              const auto path = mBasePath / filePath.uri.path();
+              // 用stb解析图片信息
+              stbi_uc* texels =
+                  stbi_load(path.string().c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+              if (!texels) {
+                PD_ASSERT_MSG(false, "failed to load image!");
+              }
+              // 生成TextureResource
+              TextureResource::Properties props{
+                  .name = std::string(image.name),
+                  .path = path.string(),
+                  .width = static_cast<uint32_t>(width),
+                  .height = static_cast<uint32_t>(height),
+                  .channel = static_cast<uint32_t>(nrChannels),
+                  .format = mTextureFormatCache[i],
+              };
+              // copy data
+              size_t dataSize = static_cast<size_t>(props.width) * props.height * props.channel;
+              std::vector<uint8_t> copiedData;
+              copiedData.reserve(dataSize);
+              copySourceData(copiedData, texels, dataSize);
 
-                     auto* newTexture = new TextureResource(props, copiedData);
-                     auto handle = mResourceManager->registerResource<TextureResource_t>(
-                         std::move(*newTexture));
-                     // 加入到asset中
-                     asset.mTextures.push_back(handle);
-                     // 清除使用后的image数据
-                     stbi_image_free(texels);
-                   },
-                   [&](const fastgltf::sources::Array& vector) { LOG_WARN("reach!"); },
-                   [&](const fastgltf::sources::BufferView& view) {
-                     const auto& bufferView = gltfAsset.bufferViews[view.bufferViewIndex];
-                     const auto& buffer = gltfAsset.buffers[bufferView.bufferIndex];
-                     const auto& data = std::get<fastgltf::sources::Array>(buffer.data);
-                     const auto* imagePtr = data.bytes.data() + bufferView.byteOffset;
-                     int width = 0;
-                     int height = 0;
-                     int nrChannels = 0;
-                     const auto path = mBasePath;
-                     auto* texels = stbi_load_from_memory(
-                         reinterpret_cast<const stbi_uc*>(imagePtr), bufferView.byteLength,
-                         &width, &height, &nrChannels, STBI_rgb_alpha);
-                     if (!texels) {
-                       PD_ASSERT_MSG(false, "failed to load image!");
-                     }
-                     TextureResource::Properties props{
-                         .name = std::string(image.name),
-                         .path = path.string(),
-                         .width = static_cast<uint32_t>(width),
-                         .height = static_cast<uint32_t>(height),
-                         .channel = static_cast<uint32_t>(nrChannels),
-                         .format = mTextureFormatCache[i],
-                     };
-                     // copy data
-                     size_t dataSize =
-                         static_cast<size_t>(props.width) * props.height * props.channel;
-                     std::vector<uint8_t> copiedData;
-                     copiedData.reserve(dataSize);
-                     copySourceData(copiedData, texels, dataSize);
+              auto* newTexture = new TextureResource(props, copiedData);
+              auto handle =
+                  mResourceManager->registerResource<TextureResource_t>(std::move(*newTexture));
+              // 加入到asset中
+              asset.mTextures.push_back(handle);
+              // 清除使用后的image数据
+              stbi_image_free(texels);
+            },
+            [&](const fastgltf::sources::Array& vector) { LOG_WARN("reach!"); },
+            [&](const fastgltf::sources::BufferView& view) {
+              const auto& bufferView = gltfAsset.bufferViews[view.bufferViewIndex];
+              const auto& buffer = gltfAsset.buffers[bufferView.bufferIndex];
+              const auto& data = std::get<fastgltf::sources::Array>(buffer.data);
+              const auto* imagePtr = data.bytes.data() + bufferView.byteOffset;
+              int width = 0;
+              int height = 0;
+              int nrChannels = 0;
+              const auto path = mBasePath;
+              auto* texels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imagePtr),
+                                                   bufferView.byteLength, &width, &height,
+                                                   &nrChannels, STBI_rgb_alpha);
+              if (!texels) {
+                PD_ASSERT_MSG(false, "failed to load image!");
+              }
+              TextureResource::Properties props{
+                  .name = std::string(image.name),
+                  .path = path.string(),
+                  .width = static_cast<uint32_t>(width),
+                  .height = static_cast<uint32_t>(height),
+                  .channel = static_cast<uint32_t>(nrChannels),
+                  .format = mTextureFormatCache[i],
+              };
+              // copy data
+              size_t dataSize = static_cast<size_t>(props.width) * props.height * props.channel;
+              std::vector<uint8_t> copiedData;
+              copiedData.reserve(dataSize);
+              copySourceData(copiedData, texels, dataSize);
 
-                     auto* newTexture = new TextureResource(props, copiedData);
-                     auto handle = mResourceManager->registerResource<TextureResource_t>(
-                         std::move(*newTexture));
+              auto* newTexture = new TextureResource(props, copiedData);
+              auto handle =
+                  mResourceManager->registerResource<TextureResource_t>(std::move(*newTexture));
 
-                     asset.mTextures.push_back(handle);
+              asset.mTextures.push_back(handle);
 
-                     stbi_image_free(texels);
-                   },
-               },
-               image.data);
+              stbi_image_free(texels);
+            },
+        },
+        image.data);
   }
 }
 

@@ -27,10 +27,9 @@ class SceneDescriptor {
 
   /**
    * @brief 帧内更新场景数据
-   * @todo not implemented
    *
    */
-  void updateScene() noexcept;
+  void updateScene(float deltaTime) noexcept;
 
   /**
    * @brief 卸载场景
@@ -41,7 +40,7 @@ class SceneDescriptor {
 
  private:
   virtual Result<void> onLoadScene(SceneManager& sceneManager) noexcept = 0;
-  virtual void onUpdateScene() noexcept = 0;
+  virtual void onUpdateScene(float deltaTime) noexcept = 0;
   virtual Result<void> onUnloadScene() noexcept = 0;
 };
 

@@ -6,10 +6,10 @@ namespace sandbox {
 using namespace pd;
 class WorldScene : public SceneDescriptor {
  private:
-  Result<void> onLoadScene(SceneManager& sceneManager) noexcept override { return {}; };
+  Result<void> onLoadScene(SceneManager& sceneManager) noexcept override;
 
-  void onUpdateScene() noexcept override {}
+  void onUpdateScene(float deltaTime) noexcept override;
 
-  Result<void> onUnloadScene() noexcept override { return {}; }
+  Result<void> onUnloadScene() noexcept override;
 };
 }  // namespace sandbox

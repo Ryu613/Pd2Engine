@@ -15,7 +15,7 @@ Result<void> SceneDescriptor::loadScene(SceneManager& sceneManager) noexcept {
   return {};
 }
 
-void SceneDescriptor::updateScene() noexcept {}
+void SceneDescriptor::updateScene(float deltaTime) noexcept {}
 
 Result<void> SceneDescriptor::unloadScene() noexcept {
   // TODO(ryu613): not implemented

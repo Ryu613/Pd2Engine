@@ -42,12 +42,11 @@ class Asset {
  private:
   friend class AssetManager;
   friend class GltfParser;
+
+  IdType mId;
   CreateInfo mInfo;
-  IdType mId{};
-  // TODO(ryu613): scene node
-  //  转换后的资源数据
-  std::vector<TextureHandle> mTextures;
   std::vector<MeshHandle> mMeshes;
+  std::vector<TextureHandle> mTextures;
 
   explicit Asset(IdType id, CreateInfo info) noexcept
       : mId(std::move(id)),

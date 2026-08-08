@@ -6,5 +6,6 @@ struct EngineConfig {
   u32 windowWidth = global::DefaultWindowWidth;
   u32 windowHeight = global::DefaultWindowHeight;
   bool enableDebug = global::enableDebug;
+  std::string assetBaseDir = ".";
 };
 }  // namespace pd

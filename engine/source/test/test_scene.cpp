@@ -44,7 +44,7 @@ class TriangleScene : public SceneDescriptor {
     return {};
   };
 
-  void onUpdateScene() noexcept override {}
+  void onUpdateScene(float deltaTime) noexcept override {}
 
   Result<void> onUnloadScene() noexcept override { return {}; }
 };

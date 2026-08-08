@@ -13,7 +13,8 @@ class View {
   };
   View() noexcept = default;
   ~View() = default;
-  MOVABLE_ONLY(View);
+  DELETE_COPY(View);
+  DEFAULT_MOVABLE(View);
 
   void setMainCamera(Entity cameraEntity) noexcept { mMainCamera = cameraEntity; }
 
