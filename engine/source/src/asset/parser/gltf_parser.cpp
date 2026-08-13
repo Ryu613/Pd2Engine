@@ -247,6 +247,21 @@ void GltfParser::parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) 
 void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
                             size_t gltfSceneIndex) noexcept {
   const auto& gltfScene = gltfAsset.scenes[gltfSceneIndex];
+  asset.mSceneNodes.reserve(gltfAsset.nodes.size());
+  for (uint32_t nodeIndex = 0; nodeIndex < gltfAsset.nodes.size(); ++nodeIndex) {
+    const auto& node = gltfAsset.nodes[nodeIndex];
+    const auto& trs = std::get<fastgltf::TRS>(node.transform);
+    Node newNode{
+        .name = node.name.empty() ? std::format("node_{}", nodeIndex) : std::string(node.name),
+        .location = glm::vec3{trs.translation.x(), trs.translation.y(), trs.translation.z()},
+        .rotation =
+            glm::quat{trs.rotation.w(), trs.rotation.x(), trs.rotation.y(), trs.rotation.z()},
+        .scale = glm::vec3{trs.scale.x(), trs.scale.y(), trs.scale.z()},
+        .meshIndex =
+            node.meshIndex ? static_cast<uint32_t>(node.meshIndex.value()) : Asset::defaultId,
+    };
+    asset.mSceneNodes.push_back(std::move(newNode));
+  }
   //   auto& em = mEntityManager;
   //   auto& rm = mResourceManager;
   //   // 根据node数创建对应数量的entity,遍历每个node

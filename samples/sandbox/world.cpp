@@ -27,7 +27,7 @@ Result<void> WorldScene::onLoadScene(SceneManager& sceneManager) noexcept {
   auto& entityMgr = sceneManager.getEntityManager();
   auto earthEntity = entityMgr.createEntity();
   // 2.2 create scene node
-  // TODO: scene node format: entityid | transform | asset_id
+  // scene node format: entityid | transform | asset_id
   entityMgr.addComponent<Asset::IdType>(earthEntity, earthAsset->getId());
   // 2.3 add earth to scene
   auto& scene = sceneManager.getScene();
@@ -62,7 +62,7 @@ void WorldScene::onUpdateScene(float deltaTime) noexcept {
 }
 
 Result<void> WorldScene::onUnloadScene() noexcept {
-  // do nothing(let engine clear all resources)
+  // do nothing(let engine clear all resources automately)
   return {};
 }
 }  // namespace sandbox

@@ -9,9 +9,6 @@ struct Node {
   math::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
   math::vec3 scale{1.0f, 1.0f, 1.0f};
   uint32_t meshIndex;
-  uint32_t parent;
-  uint32_t firstChild;
-  uint32_t nextSibling;
 };
 /**
  * @brief 资产对象，包含资产元数据信息，方便后续运行时使用
@@ -21,6 +18,7 @@ class Asset {
  public:
   // 当前为路径字符串
   using IdType = std::string;
+  static inline uint32_t defaultId = UINT32_MAX;
   /**
    * @brief 资产类型
    *
@@ -48,6 +46,8 @@ class Asset {
   [[nodiscard]] bool isNull() const noexcept { return mId.empty(); }
 
   [[nodiscard]] std::string getPath() const noexcept { return mInfo.path; }
+
+  [[nodiscard]] const std::vector<MeshHandle>& getMeshes() const noexcept { return mMeshes; }
 
  private:
   friend class AssetManager;

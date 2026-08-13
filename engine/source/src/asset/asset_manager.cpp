@@ -55,6 +55,14 @@ Result<Asset*> AssetManager::createAsset(const Asset::CreateInfo& assetInfo) noe
   return insertedIt->second.get();
 }
 
+Result<Asset*> AssetManager::getAsset(Asset::IdType assetId) noexcept {
+  auto it = mAssets.find(assetId);
+  if(it == mAssets.end()) {
+    return make_error<Asset*>(ErrorCode::AssetFileNotFound);
+  }
+  return it->second.get();
+}
+
 void AssetManager::initParsers() noexcept {
   mParsers.reserve(8);
   auto gltfParser = std::make_unique<GltfParser>(mFileSystem, mResourceManager);
