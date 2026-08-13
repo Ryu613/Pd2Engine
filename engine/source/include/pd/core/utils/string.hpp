@@ -5,7 +5,7 @@
 
 namespace pd {
 
-namespace stl {
+namespace util {
 /**
  * 此string buffer需要在销毁时用arena总体回收
  */
