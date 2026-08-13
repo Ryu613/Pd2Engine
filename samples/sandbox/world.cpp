@@ -28,7 +28,7 @@ Result<void> WorldScene::onLoadScene(SceneManager& sceneManager) noexcept {
   auto earthEntity = entityMgr.createEntity();
   // 2.2 create scene node
   // TODO: scene node format: entityid | transform | asset_id
-  entityMgr.addComponent<MeshHandle>(earthEntity, earthAsset);
+  entityMgr.addComponent<Asset::IdType>(earthEntity, earthAsset->getId());
   // 2.3 add earth to scene
   auto& scene = sceneManager.getScene();
   scene.addEntity(earthEntity);

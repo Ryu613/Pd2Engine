@@ -28,6 +28,8 @@ class AssetManager {
    */
   Result<Asset*> createAsset(const Asset::CreateInfo& assetInfo) noexcept;
 
+  Result<Asset*> getAsset(Asset::IdType assetId) noexcept;
+
  private:
   IFileSystem* mFileSystem = nullptr;
   ResourceManager* mResourceManager = nullptr;
