@@ -5,7 +5,7 @@
 
 namespace pd {
 /**
- * @brief 平台层，统一处理操作系统及底层库调用差异
+ * @brief 平台层
  *
  */
 class IPlatform {
