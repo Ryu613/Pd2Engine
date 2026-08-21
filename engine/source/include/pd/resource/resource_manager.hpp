@@ -29,13 +29,13 @@ class ResourceManager {
   };
   bool mInitialized = false;
   // todo(ryu613): integrate arena allocator
-  struct hasher {
-    std::size_t operator()(uint64_t key) const noexcept {
-      return static_cast<std::size_t>(rapidhashMicro(&key, sizeof(key)));
+  struct Hasher {
+    size_t operator()(const std::string& key) const noexcept {
+      return static_cast<size_t>(rapidhash(key.data(), key.size()));
     }
   };
   template <typename Tag>
-  using Registry = tsl::robin_map<Resource::IdType, ResourceEntry<Tag>, hasher>;
+  using Registry = tsl::robin_map<Resource::IdType, ResourceEntry<Tag>, Hasher>;
   // key=resource id
   Registry<MeshResource_t> mMeshRegistry;
   Registry<TextureResource_t> mTextureRegistry;

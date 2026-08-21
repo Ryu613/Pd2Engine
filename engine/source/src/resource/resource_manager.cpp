@@ -28,28 +28,23 @@ Result<void> ResourceManager::loadAsset(Asset* pAsset) noexcept {
       return make_error<void>(ErrorCode::ResourceLoadFailed);
     }
     std::string meshResourceIdStr = std::format("mesh_{}_{}", pAsset->getId(), pMesh->id);
-    auto resourceId = generateResourceId(meshResourceIdStr);
-    auto it = mMeshRegistry.find(resourceId);
+    auto it = mMeshRegistry.find(meshResourceIdStr);
     // 1.1.1 若存在，则更新计数
     if (it != mMeshRegistry.end()) {
       it.value().refCount++;
       continue;
     }
     // 1.2 若不存在，则生成mesh resource并注册
-    MeshResource meshResource{resourceId};
+    MeshResource meshResource{meshResourceIdStr};
     meshResource.setRawData(pMesh.get());
     auto handle = mMeshData.insert(std::move(meshResource));
     // 1.3 更新注册表
     auto [insertIt, success] =
-        mMeshRegistry.emplace(resourceId, ResourceEntry<MeshResource_t>{handle, 1});
+        mMeshRegistry.emplace(meshResourceIdStr, ResourceEntry<MeshResource_t>{handle, 1});
     PD_ASSERT_MSG(success, "mesh registry insert failed!");
   }
   // 2. 注册texture资源
   // todo
   return {};
-}
-
-u64 ResourceManager::generateResourceId(std::string_view str) noexcept {
-  return util::hashString(str);
 }
 }  // namespace pd

@@ -6,17 +6,14 @@ namespace pd {
 class IBackend;
 class Resource {
  public:
-  using IdType = u64;
-  static inline u64 nullId = u64_max;
+  using IdType = std::string;
 
   enum class Status : u8 {
     Unload = 1,
     Loading = 2,
     Loaded = 3,
   };
-  Resource() noexcept
-      : mId(nullId) {}
-
+  Resource() = default;
   virtual ~Resource() = default;
   DELETE_COPY(Resource);
   DEFAULT_MOVABLE(Resource);
