@@ -42,6 +42,5 @@ class ResourceManager {
   Pool<MeshResource, MeshResource_t> mMeshData{1024};
   Pool<TextureResource, TextureResource_t> mTextureData{1024};
 
-  u64 generateResourceId(std::string_view str) noexcept;
 };
 }  // namespace pd
