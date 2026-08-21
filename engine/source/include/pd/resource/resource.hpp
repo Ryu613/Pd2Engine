@@ -6,21 +6,20 @@ namespace pd {
 class IBackend;
 class Resource {
  public:
-  using IdType = cstr;
+  using IdType = u64;
+  static inline u64 nullId = u64_max;
 
   enum class Status : u8 {
     Unload = 1,
-    Loading,
-    Loaded,
+    Loading = 2,
+    Loaded = 3,
   };
   Resource() noexcept
-      : mId(nullptr) {}
+      : mId(nullId) {}
 
   virtual ~Resource() = default;
-  Resource(const Resource&) = delete;
-  Resource& operator=(const Resource&) = delete;
-  Resource(Resource&& rhs) noexcept = default;
-  Resource& operator=(Resource&& rhs) noexcept = default;
+  DELETE_COPY(Resource);
+  DEFAULT_MOVABLE(Resource);
 
   [[nodiscard]] const IdType& getId() const noexcept { return mId; }
 

@@ -22,6 +22,8 @@ enum class ErrorCode : u16 {
   AssetFileNotFound = 500,
   AssetFileLoadError,
   AssetParseFailed,
+  AssetLoadFailed,
+  ResourceLoadFailed = 600,
   UnknownError = u16_max,
 };
 
@@ -70,6 +72,10 @@ constexpr cstr default_msg(ErrorCode code) noexcept {
       return "Asset file load error";
     case AssetParseFailed:
       return "Asset parse failed";
+    case AssetLoadFailed:
+      return "Asset load failed";
+    case ResourceLoadFailed:
+      return "resource load failed";
     case UnknownError:
       return "Unknown error";
   }

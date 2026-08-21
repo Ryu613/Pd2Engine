@@ -18,6 +18,8 @@ target_sources(vendor_lib
     vendor/tsl/robin_hash.h
     vendor/tsl/robin_map.h
     vendor/tsl/robin_set.h
+    vendor/rapidhash/rapidhash.h
+    vendor/rapidhash/secret.h
 )
 
 if(PD2_BACKEND STREQUAL "VULKAN")

@@ -5,11 +5,14 @@
 * [*] 核心调用链rhi和backend vulkan打通
 * [*] command buffer的封装
 * [*] render全链路打通
-. triangle scene
+. earth scene
 * [ ] pipeline封装, shader读取
+** [ ] pipeline, shader工程化设计思路和文件组织调研学习, 按现代和最佳实践的方式设计出文件组织结构和代码框架和核心调用链
+** [ ] descriptor, cmd buffer封装
+** [ ] 缓存方案
 * [ ] uniform buffer 打通
 * [ ] triangle全链路打通
-. 场景管理打通
+. 场景管理和渲染打通
 * [ ] scene graph ecs结构补全
 * [ ] 多node scene测试走通
 . 纹理材质设计和实现
@@ -17,13 +20,13 @@
 * [ ] resource层改造
 * [ ] descriptor set封装
 * [ ] 带纹理材质的渲染打通
-. 资产系统打通
+. 资产系统补充
 * [ ] asset场景节点补全
 * [ ] gltf场景渲染打通
 . 功能补全
-* [ ] core模块的vector和string实现并替换
-* [ ] map封装替换
-* [ ] arena正式接入
+* [ ] core模块
+** [ ] map封装替换
+** [ ] arena正式接入
 * [ ] event system
 . 调试和剖析器集成
 * [ ] imgui封装
@@ -39,5 +42,4 @@
 * [ ] instancing
 . 修缮及优化
 * [ ] 文档更新及补全
-* [ ] 整理作品集
 * [ ] 整理经验和心得

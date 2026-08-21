@@ -7,17 +7,15 @@ namespace pd {
  */
 class BaseHandle {
  public:
-  using HandleId = uint32_t;
-  static constexpr HandleId nullId = HandleId{UINT32_MAX};
+  using HandleId = u32;
+  static constexpr HandleId nullId = HandleId{u32_max};
 
   BaseHandle() noexcept
       : mId(nullId),
         mGen(0) {}
   ~BaseHandle() = default;
 
-  bool operator==(const BaseHandle& other) const {
-    return mId == other.mId && mGen == other.mGen;
-  }
+  bool operator==(const BaseHandle& other) const { return mId == other.mId && mGen == other.mGen; }
 
   // 只判断有没有，不判断有效
   explicit operator bool() const noexcept { return mId != nullId; };

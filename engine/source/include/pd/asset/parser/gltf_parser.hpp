@@ -21,12 +21,11 @@ class GltfParser : public IAssetParser {
   IFileSystem* mFileSystem = nullptr;
   ResourceManager* mResourceManager = nullptr;
   std::filesystem::path mBasePath;
-  std::vector<TextureFormat> mTextureFormatCache;
+  //   std::vector<TextureFormat> mTextureFormatCache;
 
   void parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
   void parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
   void parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
-  void parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
-                  size_t gltfSceneIndex) noexcept;
+  void parseScene(Asset& asset, const fastgltf::Asset& gltfAsset, size_t gltfSceneIndex) noexcept;
 };
 }  // namespace pd

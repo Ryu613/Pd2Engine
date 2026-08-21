@@ -1,0 +1,188 @@
+#pragma once
+
+#include <typeindex>
+
+#include "pd/core/utils/pool.hpp"
+#include "pd/backend/backend.hpp"
+#include "pd/resource/resource_handle.hpp"
+#include "pd/resource/resource/texture_resource.hpp"
+#include "pd/resource/resource/mesh_resource.hpp"
+
+namespace pd {
+/**
+ * @brief 统一管理运行时内存资源
+ *
+ */
+class ResourceManager {
+ public:
+  template <typename T>
+  using Handle = ResourceHandle<T>;
+
+  ResourceManager() noexcept = default;
+  ~ResourceManager();
+  DELETE_COPY_MOVE(ResourceManager);
+
+  void initialize(IBackend* pBackend) noexcept;
+
+  void destroy() noexcept;
+
+  template <typename TTag, BaseOfResource T>
+  Handle<TTag> registerResource(T&& t) noexcept {
+    // 判重
+    auto typeIndex = std::type_index(typeid(T));
+    // 若T不存在会创建一个map,若存在则获取这个map
+    auto& resourceTypeMap = mRegistry[typeIndex];
+    auto resourceIt = resourceTypeMap.find(t.mId);
+    // 若已注册，引用计数+1. 返回对应的句柄
+    if (resourceIt != resourceTypeMap.end()) {
+      auto& [handle, refCount] = resourceIt->second;
+      refCount++;
+      // 同一个资源多次注册，handle的id和gen是相同的
+      return Handle<TTag>{handle.id(), handle.gen()};
+    }
+    // 若未注册，把其注册并返回句柄
+    const auto newId = t.mId;
+    auto& pool = findPool<TTag>();
+    auto handle = pool.emplace(std::forward<T>(t));
+    // 写到注册表，key为此resource的id, value为handle的指针
+    resourceTypeMap.emplace(newId, ResourceEntry{
+                                       .handle = BaseHandle{handle.id(), handle.gen()},
+                                       .refCount = 1,
+                                   });
+    return handle;
+  }
+
+  template <typename TTag, BaseOfResource T>
+  bool hasResource(const Resource::IdType& resourceId) noexcept {
+    auto typeIt = mRegistry.find(std::type_index(typeid(T)));
+    if (typeIt == mRegistry.end()) {
+      return false;
+    }
+    auto& resourceMap = typeIt->second;
+    auto resourceIt = resourceMap.find(resourceId);
+    return resourceIt != resourceMap.end();
+  }
+
+  template <typename TTag>
+  auto* getResource(Handle<TTag> handle) noexcept {
+    auto& pool = findPool<TTag>();
+    return pool.get(handle);
+  }
+
+  template <typename TTag, BaseOfResource T>
+  void release(Handle<TTag> handle) noexcept {
+    Resource* resource = getResource<TTag>(handle.getId());
+    if (resource == nullptr) {
+      return;
+    }
+    mRegistry.at(std::type_index(typeid(T))).at(handle.getId()).refCount--;
+  }
+
+  /**
+   * @brief 清除所有资源，一般是在整体关闭时使用
+   */
+  void clearAll() noexcept;
+
+  /**
+   * @brief 加载注册表中的全部资源
+   *
+   */
+  void loadAll() noexcept;
+
+  /**
+   * @brief 检测资源引用记录并清除无引用的资源
+   */
+  void gc() noexcept;
+
+ private:
+  struct ResourceEntry {
+    BaseHandle handle;
+    uint32_t refCount = 0u;
+  };
+  // TODO(ryu613): 待优化
+  // 两阶段存储, 先按resource的类型查询，再按id查询
+  using Registry =
+      std::unordered_map<std::type_index, std::unordered_map<Resource::IdType, ResourceEntry>>;
+  Registry mRegistry;
+  Pool<MeshResource, MeshResource_t> mMeshes{1024};
+  Pool<TextureResource, TextureResource_t> mTextures{1024};
+  IBackend* mBackend = nullptr;
+  bool mInitialized = false;
+
+  template <typename TTag, BaseOfResource T>
+  Resource* getResource(const Resource::IdType& resourceId) noexcept {
+    auto typeIt = mRegistry.find(std::type_index(typeid(T)));
+    if (typeIt == mRegistry.end()) {
+      return nullptr;
+    }
+    auto& resourceMap = typeIt->second;
+    auto resourceIt = resourceMap.find(resourceId);
+    if (resourceIt == resourceMap.end()) {
+      return nullptr;
+    }
+    auto handle = resourceIt->second.handle;
+    if constexpr (std::is_same_v<TTag, TextureResource_t>) {
+      auto typedHandle = Handle<TTag>{handle.id(), handle.gen()};
+      auto* resource = mTextures.get(typedHandle);
+      return resource;
+    } else {
+      static_assert(false, "resource type not supported!");
+    }
+    return nullptr;
+  }
+
+  template <typename TTag>
+  auto& findPool() {
+    if constexpr (std::is_same_v<TTag, TextureResource_t>) {
+      return mTextures;
+    } else if constexpr (std::is_same_v<TTag, MeshResource_t>) {
+      return mMeshes;
+    } else {
+      static_assert(false, "resource type not supported!");
+    }
+  }
+
+  template <typename TResourceType, typename TTag>
+  void loadResources() noexcept {
+    auto typeId = std::type_index(typeid(TResourceType));
+    auto typeIt = mRegistry.find(typeId);
+    if (typeIt == mRegistry.end()) {
+      return;
+    }
+    auto& resources = typeIt->second;
+    auto& pool = findPool<TTag>();
+    for (auto& [id, entry] : resources) {
+      if (entry.refCount == 0) {
+        continue;
+      }
+      TypedHandle<TTag> handle{entry.handle.id(), entry.handle.gen()};
+      auto* pResource = pool.get(handle);
+      if (pResource == nullptr) {
+        continue;
+      }
+      pResource->load(*mBackend);
+    }
+  }
+
+  template <typename TResourceType, typename TTag>
+  void unloadResources(bool isAllClear = false) noexcept {
+    auto typeId = std::type_index(typeid(TResourceType));
+    auto typeIt = mRegistry.find(typeId);
+    if (typeIt == mRegistry.end()) {
+      return;
+    }
+    auto& resources = typeIt->second;
+    auto& pool = findPool<TTag>();
+    for (auto& [id, entry] : resources) {
+      if (entry.refCount == 0 || isAllClear) {
+        TypedHandle<TTag> handle{entry.handle.id(), entry.handle.gen()};
+        auto* pResource = pool.get(handle);
+        if (pResource == nullptr) {
+          continue;
+        }
+        pResource->unload(*mBackend);
+      }
+    }
+  }
+};
+}  // namespace pd

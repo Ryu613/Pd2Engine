@@ -22,6 +22,11 @@ Result<void> WorldScene::onLoadScene(SceneManager& sceneManager) noexcept {
     return make_error<void>(ErrorCode::AssetFileLoadError);
   }
   auto* earthAsset = earthAssetRes.value();
+  // 1.2 register resource
+  auto resourceRes = assetMgr.loadAsset(earthAsset->getId());
+  if (!resourceRes) {
+    return make_error<void>(ErrorCode::AssetLoadFailed);
+  }
   // 2. create scene graph node using earth asset
   // 2.1 create entity
   auto& entityMgr = sceneManager.getEntityManager();

@@ -30,9 +30,12 @@ class AssetManager {
 
   Result<Asset*> getAsset(Asset::IdType assetId) noexcept;
 
+  Result<void> loadAsset(Asset::IdType assetId) noexcept;
+
  private:
   IFileSystem* mFileSystem = nullptr;
   ResourceManager* mResourceManager = nullptr;
+
   std::vector<std::unique_ptr<IAssetParser>> mParsers;
   std::unordered_map<Asset::IdType, std::unique_ptr<Asset>> mAssets;
   bool mInitialized = false;

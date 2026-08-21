@@ -3,11 +3,6 @@
 #include "pd/backend/backend.hpp"
 
 namespace pd {
-MeshResource::MeshResource(Properties props) noexcept
-    : Resource(props.id),
-      mProps(props) {}
-
-MeshResource::~MeshResource() {}
 
 void MeshResource::doLoad(IBackend& backend) noexcept {
   LOG_DEBUG("loading mesh: {}", this->id());
@@ -50,42 +45,42 @@ void MeshResource::doUnload(IBackend& backend) noexcept {
   backend.destroyBuffer(mIndexBuffer);
 }
 
-MeshOutput MeshResource::outputData() noexcept {
-  MeshOutput output;
-  output.primitives.resize(mPrimitives.size());
-  uint64_t indexOffset = 0;
-  for (size_t i = 0; i < mPrimitives.size(); ++i) {
-    auto primitiveIndexCount = mPrimitives[i].indices.size();
-    output.primitives[i].indexCount = primitiveIndexCount;
-    indexOffset += primitiveIndexCount;
-    output.primitives[i].indexOffset = indexOffset;
-    output.vertices.insert(output.vertices.end(), mPrimitives[i].vertices.begin(),
-                           mPrimitives[i].vertices.end());
-    output.indices.insert(output.indices.end(), mPrimitives[i].indices.begin(),
-                          mPrimitives[i].indices.end());
-  }
-  return output;
-}
+// MeshOutput MeshResource::outputData() noexcept {
+//   MeshOutput output;
+//   output.primitives.resize(mPrimitives.size());
+//   uint64_t indexOffset = 0;
+//   for (size_t i = 0; i < mPrimitives.size(); ++i) {
+//     auto primitiveIndexCount = mPrimitives[i].indices.size();
+//     output.primitives[i].indexCount = primitiveIndexCount;
+//     indexOffset += primitiveIndexCount;
+//     output.primitives[i].indexOffset = indexOffset;
+//     output.vertices.insert(output.vertices.end(), mPrimitives[i].vertices.begin(),
+//                            mPrimitives[i].vertices.end());
+//     output.indices.insert(output.indices.end(), mPrimitives[i].indices.begin(),
+//                           mPrimitives[i].indices.end());
+//   }
+//   return output;
+// }
 
 // void MeshResource::draw(IBackend* backend) noexcept {
 //   backend->drawIndexed(mVertexBuffer, mIndexBuffer);
 // }
 
-uint64_t MeshResource::getVertexDataSize() noexcept {
-  uint64_t size = 0;
-  mVertexCount = 0;
-  for (size_t i = 0; i < mPrimitives.size(); ++i) {
-    u32 verticesCount = mPrimitives[i].vertices.size();
-    mVertexCount += verticesCount;
-    size += sizeof(Vertex) * verticesCount;
-  }
-  return size;
-}
-uint64_t MeshResource::getIndexDataSize() noexcept {
-  uint64_t size = 0;
-  for (size_t i = 0; i < mPrimitives.size(); ++i) {
-    size += sizeof(uint32_t) * mPrimitives[i].indices.size();
-  }
-  return size;
-}
+// uint64_t MeshResource::getVertexDataSize() noexcept {
+//   uint64_t size = 0;
+//   mVertexCount = 0;
+//   for (size_t i = 0; i < mPrimitives.size(); ++i) {
+//     u32 verticesCount = mPrimitives[i].vertices.size();
+//     mVertexCount += verticesCount;
+//     size += sizeof(Vertex) * verticesCount;
+//   }
+//   return size;
+// }
+// uint64_t MeshResource::getIndexDataSize() noexcept {
+//   uint64_t size = 0;
+//   for (size_t i = 0; i < mPrimitives.size(); ++i) {
+//     size += sizeof(uint32_t) * mPrimitives[i].indices.size();
+//   }
+//   return size;
+// }
 }  // namespace pd

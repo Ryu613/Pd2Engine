@@ -1,51 +1,36 @@
 #pragma once
 
-#include "pd/core/math/math.hpp"
 #include "pd/resource/resource.hpp"
+#include "pd/resource/resource_types.hpp"
 #include "pd/backend/hw_handle.hpp"
 #include "pd/backend/hw_buffer.hpp"
 
 namespace pd {
+// struct MeshPrimitive {
+//   std::vector<Vertex> vertices;
+//   std::vector<uint32_t> indices;
+//   //   HwHandle<Material_t> material;
+// };
+// struct MeshOutput {
+//   std::vector<Vertex> vertices;
+//   std::vector<uint32_t> indices;
+//   struct PrimitiveInfo {
+//     uint32_t indexOffset = 0;
+//     uint32_t indexCount = 0;
+//     // Material material;  // 材质信息
+//   };
+//   std::vector<PrimitiveInfo> primitives;
+// };
 struct MeshResource_t;
-struct Vertex {
-  math::vec3 position;
-  math::vec3 normal;
-  math::vec2 uv;
-  math::vec3 color;
-};
-struct Aabb {};
-struct MeshPrimitive {
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
-  //   HwHandle<Material_t> material;
-};
-struct MeshOutput {
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
-  struct PrimitiveInfo {
-    uint32_t indexOffset = 0;
-    uint32_t indexCount = 0;
-    // Material material;  // 材质信息
-  };
-  std::vector<PrimitiveInfo> primitives;
-};
 class MeshResource : public Resource {
  public:
-  struct Properties {
-    IdType id{};
-  };
-  MeshResource() noexcept = default;
   explicit MeshResource(IdType id) noexcept
       : Resource(id) {}
-  explicit MeshResource(Properties props) noexcept;
-  ~MeshResource();
+  ~MeshResource() = default;
   DELETE_COPY(MeshResource);
   DEFAULT_MOVABLE(MeshResource);
 
-  void addPrimitive(const MeshPrimitive& primitive) noexcept {
-    mPrimitives.push_back(primitive);
-  }
-  std::vector<MeshPrimitive>& primitives() noexcept { return mPrimitives; }
+  void setRawData(MeshData* pMeshData) noexcept { mRawData = pMeshData; }
 
   [[nodiscard]] HwHandle<Buffer_t> getVertexBuffer() const noexcept { return mVertexBuffer; }
 
@@ -56,15 +41,14 @@ class MeshResource : public Resource {
   void doUnload(IBackend& backend) noexcept override;
 
  private:
-  Properties mProps;
-  std::vector<MeshPrimitive> mPrimitives;
+  MeshData* mRawData = nullptr;
   HwHandle<Buffer_t> mVertexBuffer;
   HwHandle<Buffer_t> mIndexBuffer;
   //   MaterialInstance* mMaterialInstance = nullptr;
   u32 mVertexCount = 0;
-
-  u64 getVertexDataSize() noexcept;
-  u64 getIndexDataSize() noexcept;
-  MeshOutput outputData() noexcept;
+  u32 mIndexCount = 0;
+  //   u64 getVertexDataSize() noexcept;
+  //   u64 getIndexDataSize() noexcept;
+  //   MeshOutput outputData() noexcept;
 };
 }  // namespace pd

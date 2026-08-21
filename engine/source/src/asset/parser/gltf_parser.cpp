@@ -13,48 +13,60 @@
 namespace pd {
 namespace {
 
-MeshPrimitive convertMeshData(const fastgltf::Primitive& primitive,
-                              const fastgltf::Asset& gltfAsset) noexcept {
-  MeshProcessor::Input input{};
-  const auto* posIt = primitive.findAttribute("POSITION");
-  PD_ASSERT_MSG(posIt != primitive.attributes.end(), "gltf primitive is missing POSITION!");
-  const auto& positionAccessor = gltfAsset.accessors[posIt->accessorIndex];
-  input.positions.reserve(positionAccessor.count);
-  fastgltf::iterateAccessor<fastgltf::math::fvec3>(
-      gltfAsset, positionAccessor,
-      [&](fastgltf::math::fvec3 pos) { input.positions.emplace_back(pos.x(), pos.y(), pos.z()); });
-  const auto* normIt = primitive.findAttribute("NORMAL");
-  PD_ASSERT_MSG(normIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
-  const auto& normalAccessor = gltfAsset.accessors[normIt->accessorIndex];
-  input.normals.reserve(normalAccessor.count);
-  fastgltf::iterateAccessor<fastgltf::math::fvec3>(
-      gltfAsset, normalAccessor, [&](fastgltf::math::fvec3 norm) {
-        input.normals.emplace_back(norm.x(), norm.y(), norm.z());
-      });
-  const auto* uvIt = primitive.findAttribute("TEXCOORD_0");
-  if (uvIt != primitive.attributes.end()) {
-    const auto& uvAccessor = gltfAsset.accessors[uvIt->accessorIndex];
-    input.uvs.reserve(uvAccessor.count);
-    fastgltf::iterateAccessor<fastgltf::math::fvec2>(
-        gltfAsset, uvAccessor,
-        [&](fastgltf::math::fvec2 uv) { input.uvs.emplace_back(uv.x(), uv.y()); });
-  }
-  const auto* colorIt = primitive.findAttribute("COLOR_0");
-  if (colorIt != primitive.attributes.end()) {
-    const auto& colorAccessor = gltfAsset.accessors[colorIt->accessorIndex];
-    input.colors.reserve(colorAccessor.count);
-    fastgltf::iterateAccessor<fastgltf::math::fvec3>(
-        gltfAsset, colorAccessor, [&](fastgltf::math::fvec3 color) {
-          input.colors.emplace_back(color.x(), color.y(), color.z());
+void convertMeshData(MeshData& meshData, const fastgltf::Mesh& mesh,
+                     const fastgltf::Asset& gltfAsset) noexcept {
+  meshData.primitives.reserve(mesh.primitives.size());
+  for (size_t i = 0; i < mesh.primitives.size(); ++i) {
+    auto& primitive = mesh.primitives[i];
+    // MeshProcessor::Input input{};
+    meshData.primitives.emplace_back(MeshData::Primitive{});
+    const auto* posIt = primitive.findAttribute("POSITION");
+    PD_ASSERT_MSG(posIt != primitive.attributes.end(), "gltf primitive is missing POSITION!");
+    const auto& positionAccessor = gltfAsset.accessors[posIt->accessorIndex];
+    // input.positions.reserve(positionAccessor.count);
+    meshData.vertices.resize(meshData.vertices.size() + positionAccessor.count);
+    fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(
+        gltfAsset, positionAccessor, [&](fastgltf::math::fvec3 pos, size_t idx) {
+          meshData.vertices[idx].pos = {pos.x(), pos.y(), pos.z()};
         });
+    auto& parsedPrimitive = meshData.primitives.back();
+    parsedPrimitive.indexCount = i == 0 ? 0 : positionAccessor.count;
+    parsedPrimitive.indexOffset = sizeof(Vertex) * positionAccessor.count;
+    auto const auto* normIt = primitive.findAttribute("NORMAL");
+    PD_ASSERT_MSG(normIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
+    const auto& normalAccessor = gltfAsset.accessors[normIt->accessorIndex];
+    fastgltf::iterateAccessor<fastgltf::math::fvec3>(gltfAsset, normalAccessor,
+                                                     [&](fastgltf::math::fvec3 norm) {
+                                                       // input.normals.emplace_back(norm.x(),
+                                                       // norm.y(), norm.z());
+                                                     });
+
+    // const auto* uvIt = primitive.findAttribute("TEXCOORD_0");
+    // if (uvIt != primitive.attributes.end()) {
+    //   const auto& uvAccessor = gltfAsset.accessors[uvIt->accessorIndex];
+    //   input.uvs.reserve(uvAccessor.count);
+    //   fastgltf::iterateAccessor<fastgltf::math::fvec2>(
+    //       gltfAsset, uvAccessor,
+    //       [&](fastgltf::math::fvec2 uv) { input.uvs.emplace_back(uv.x(), uv.y()); });
+    // }
+
+    // const auto* colorIt = primitive.findAttribute("COLOR_0");
+    // if (colorIt != primitive.attributes.end()) {
+    //   const auto& colorAccessor = gltfAsset.accessors[colorIt->accessorIndex];
+    //   input.colors.reserve(colorAccessor.count);
+    //   fastgltf::iterateAccessor<fastgltf::math::fvec3>(
+    //       gltfAsset, colorAccessor, [&](fastgltf::math::fvec3 color) {
+    //         input.colors.emplace_back(color.x(), color.y(), color.z());
+    //       });
+    // }
+    // if (primitive.indicesAccessor.has_value()) {
+    //   const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
+    //   input.indices.reserve(indexAccessor.count);
+    //   fastgltf::iterateAccessor<uint32_t>(
+    //       gltfAsset, indexAccessor, [&](uint32_t index) { input.indices.emplace_back(index); });
+    // }
+    // return MeshProcessor::process(input);
   }
-  if (primitive.indicesAccessor.has_value()) {
-    const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
-    input.indices.reserve(indexAccessor.count);
-    fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor,
-                                        [&](uint32_t index) { input.indices.emplace_back(index); });
-  }
-  return MeshProcessor::process(input);
 }
 
 void copySourceData(std::vector<uint8_t>& target, const void* pSource, size_t size) {
@@ -113,17 +125,10 @@ void GltfParser::parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noe
   auto& meshes = asset.mMeshes;
   meshes.reserve(gltfAsset.meshes.size());
   for (size_t i = 0; i < gltfAsset.meshes.size(); ++i) {
-    const auto& mesh = gltfAsset.meshes[i];
-    // meshes[i].reserve(mesh.primitives.size());
-    {
-      auto* newMesh = new MeshResource(mesh.name.c_str());
-      for (const auto& primitive : mesh.primitives) {
-        auto meshPrimitive = convertMeshData(primitive, gltfAsset);
-        newMesh->addPrimitive(meshPrimitive);
-      }
-      auto handle = mResourceManager->registerResource<MeshResource_t>(std::move(*newMesh));
-      meshes.push_back(handle);
-    }
+    auto parsedMesh = std::unique_ptr<MeshData>();
+    parsedMesh->id = i;
+    convertMeshData(*parsedMesh, gltfAsset.meshes[i], gltfAsset);
+    meshes.push_back(std::move(parsedMesh));
   }
 }
 

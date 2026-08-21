@@ -4,12 +4,9 @@ namespace pd {
 
 using Status = TextureResource::Status;
 
-TextureResource::TextureResource(Properties props, const std::vector<uint8_t>& data) noexcept
-    : Resource(props.path.c_str()),
-      mProperties(std::move(props)),
-      mSourceData(data) {}
-
-TextureResource::~TextureResource() {}
+TextureResource::TextureResource(IdType id, Properties props) noexcept
+    : Resource(id),
+      mProperties(std::move(props)) {}
 
 void TextureResource::doLoad(IBackend& backend) noexcept {}
 void TextureResource::doUnload(IBackend& backend) noexcept {}

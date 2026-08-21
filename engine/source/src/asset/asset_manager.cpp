@@ -2,6 +2,7 @@
 
 #include "pd/platform/file/file_system.hpp"
 #include "pd/asset/parser/gltf_parser.hpp"
+#include "pd/resource/resource_manager.hpp"
 
 namespace pd {
 
@@ -36,7 +37,7 @@ Result<Asset*> AssetManager::createAsset(const Asset::CreateInfo& assetInfo) noe
     return make_error<Asset*>(ErrorCode::AssetFileNotFound);
   }
   // 检查是否已存在此资产, 目前的实现: 把path视为id
-  const Asset::IdType& assetId = assetInfo.path;
+  auto assetId = util::hashString(assetInfo.path);
   auto it = mAssets.find(assetId);
   if (it != mAssets.end()) {
     return it->second.get();
@@ -57,14 +58,26 @@ Result<Asset*> AssetManager::createAsset(const Asset::CreateInfo& assetInfo) noe
 
 Result<Asset*> AssetManager::getAsset(Asset::IdType assetId) noexcept {
   auto it = mAssets.find(assetId);
-  if(it == mAssets.end()) {
+  if (it == mAssets.end()) {
     return make_error<Asset*>(ErrorCode::AssetFileNotFound);
   }
   return it->second.get();
 }
 
+Result<void> AssetManager::loadAsset(Asset::IdType assetId) noexcept {
+  if (assetId == Asset::nullId) {
+    return make_error<void>(ErrorCode::AssetFileNotFound);
+  }
+  auto it = mAssets.find(assetId);
+  if (it == mAssets.end()) {
+    return make_error<void>(ErrorCode::AssetFileNotFound);
+  }
+  auto resourceLoadResult = mResourceManager->loadAsset(it->second.get());
+  return {};
+}
+
 void AssetManager::initParsers() noexcept {
-  mParsers.reserve(8);
+  mParsers.reserve(4);
   auto gltfParser = std::make_unique<GltfParser>(mFileSystem, mResourceManager);
   mParsers.push_back(std::move(gltfParser));
 }
