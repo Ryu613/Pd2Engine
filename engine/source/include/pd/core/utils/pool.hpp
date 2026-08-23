@@ -64,7 +64,7 @@ class Pool {
       // 在清除时gen已经更新过了
       handle.setGen(mGens[handleId].gen);
       mGens[handleId].isAlive = true;
-      mData[handleId] = T(std::forward<Args>(args)...);
+      mData[handleId] = std::move(T(std::forward<Args>(args)...));
     } else {
       mData.emplace_back(std::forward<Args>(args)...);
       mGens.emplace_back(GenerationEntry{1, true});

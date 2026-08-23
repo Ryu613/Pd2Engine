@@ -32,7 +32,7 @@ void convertMeshData(MeshData& meshData, const fastgltf::Mesh& mesh,
     auto& parsedPrimitive = meshData.primitives.back();
     parsedPrimitive.indexCount = i == 0 ? 0 : positionAccessor.count;
     parsedPrimitive.indexOffset = sizeof(Vertex) * positionAccessor.count;
-    auto const auto* normIt = primitive.findAttribute("NORMAL");
+    const auto* normIt = primitive.findAttribute("NORMAL");
     PD_ASSERT_MSG(normIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
     const auto& normalAccessor = gltfAsset.accessors[normIt->accessorIndex];
     fastgltf::iterateAccessor<fastgltf::math::fvec3>(gltfAsset, normalAccessor,

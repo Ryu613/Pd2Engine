@@ -14,8 +14,6 @@ void AssetManager::initialize(IFileSystem* fs, ResourceManager* rm) noexcept {
   mResourceManager = rm;
 
   initParsers();
-
-  // initDefaultAssets();
   mInitialized = true;
 }
 
@@ -36,7 +34,7 @@ Result<Asset*> AssetManager::createAsset(const Asset::CreateInfo& assetInfo) noe
     LOG_ERROR("asset path is illegal: {}", assetPath);
     return make_error<Asset*>(ErrorCode::AssetFileNotFound);
   }
-  // 检查是否已存在此资产, 目前的实现: 把path视为id
+  // 检查是否已存在此资产
   auto assetId = util::hashString(assetInfo.path);
   auto it = mAssets.find(assetId);
   if (it != mAssets.end()) {

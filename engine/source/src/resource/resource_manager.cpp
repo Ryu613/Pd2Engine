@@ -4,10 +4,11 @@
 
 namespace pd {
 
-void ResourceManager::initialize() noexcept {
+void ResourceManager::initialize(IBackend* backend) noexcept {
   if (mInitialized) {
     return;
   }
+  mBackend = backend;
   mInitialized = true;
 }
 
@@ -47,4 +48,22 @@ Result<void> ResourceManager::loadAsset(Asset* pAsset) noexcept {
   // todo
   return {};
 }
+
+void ResourceManager::loadAll() noexcept {
+  // 1. 加载mesh
+  loadResources<MeshResource_t>();
+  // 2. 加载texture
+  loadResources<TextureResource_t>();
+}
+
+void ResourceManager::clearAll() noexcept {
+  unloadResources<MeshResource_t>(true);
+  unloadResources<TextureResource_t>(true);
+  mMeshData.clear();
+  mTextureData.clear();
+  mMeshRegistry.clear();
+  mTextureRegistry.clear();
+}
+
+void ResourceManager::gc() noexcept {}
 }  // namespace pd
