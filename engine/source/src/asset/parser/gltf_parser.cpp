@@ -35,36 +35,34 @@ void convertMeshData(MeshData& meshData, const fastgltf::Mesh& mesh,
     const auto* normIt = primitive.findAttribute("NORMAL");
     PD_ASSERT_MSG(normIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
     const auto& normalAccessor = gltfAsset.accessors[normIt->accessorIndex];
-    fastgltf::iterateAccessor<fastgltf::math::fvec3>(gltfAsset, normalAccessor,
-                                                     [&](fastgltf::math::fvec3 norm) {
-                                                       // input.normals.emplace_back(norm.x(),
-                                                       // norm.y(), norm.z());
-                                                     });
+    fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(
+        gltfAsset, normalAccessor, [&](fastgltf::math::fvec3 norm, size_t idx) {
+          meshData.vertices[idx].normal = {norm.x(), norm.y(), norm.z()};
+        });
 
-    // const auto* uvIt = primitive.findAttribute("TEXCOORD_0");
-    // if (uvIt != primitive.attributes.end()) {
-    //   const auto& uvAccessor = gltfAsset.accessors[uvIt->accessorIndex];
-    //   input.uvs.reserve(uvAccessor.count);
-    //   fastgltf::iterateAccessor<fastgltf::math::fvec2>(
-    //       gltfAsset, uvAccessor,
-    //       [&](fastgltf::math::fvec2 uv) { input.uvs.emplace_back(uv.x(), uv.y()); });
-    // }
+    const auto* uvIt = primitive.findAttribute("TEXCOORD_0");
+    if (uvIt != primitive.attributes.end()) {
+      const auto& uvAccessor = gltfAsset.accessors[uvIt->accessorIndex];
+      fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec2>(
+          gltfAsset, uvAccessor, [&](fastgltf::math::fvec2 uv, size_t idx) {
+            meshData.vertices[idx].uv = {uv.x(), uv.y()};
+          });
+    }
 
-    // const auto* colorIt = primitive.findAttribute("COLOR_0");
-    // if (colorIt != primitive.attributes.end()) {
-    //   const auto& colorAccessor = gltfAsset.accessors[colorIt->accessorIndex];
-    //   input.colors.reserve(colorAccessor.count);
-    //   fastgltf::iterateAccessor<fastgltf::math::fvec3>(
-    //       gltfAsset, colorAccessor, [&](fastgltf::math::fvec3 color) {
-    //         input.colors.emplace_back(color.x(), color.y(), color.z());
-    //       });
-    // }
-    // if (primitive.indicesAccessor.has_value()) {
-    //   const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
-    //   input.indices.reserve(indexAccessor.count);
-    //   fastgltf::iterateAccessor<uint32_t>(
-    //       gltfAsset, indexAccessor, [&](uint32_t index) { input.indices.emplace_back(index); });
-    // }
+    const auto* colorIt = primitive.findAttribute("COLOR_0");
+    if (colorIt != primitive.attributes.end()) {
+      const auto& colorAccessor = gltfAsset.accessors[colorIt->accessorIndex];
+      fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(
+          gltfAsset, colorAccessor, [&](fastgltf::math::fvec3 color, size_t idx) {
+            meshData.vertices[idx].tangent = {color.x(), color.y(), color.z()};
+          });
+    }
+    if (primitive.indicesAccessor.has_value()) {
+      const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
+      meshData.indices.reserve(indexAccessor.count);
+      fastgltf::iterateAccessor<uint32_t>(
+          gltfAsset, indexAccessor, [&](uint32_t index) { meshData.indices.emplace_back(index); });
+    }
     // return MeshProcessor::process(input);
   }
 }

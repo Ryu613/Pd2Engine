@@ -80,8 +80,7 @@ class ResourceManager {
       if (entry.refCount == 0) {
         continue;
       }
-      Handle<Tag> handle{entry.handle.id(), entry.handle.gen()};
-      auto* pResource = pool.get(handle);
+      auto* pResource = pool.get(entry.handle);
       if (pResource == nullptr) {
         continue;
       }
@@ -95,8 +94,7 @@ class ResourceManager {
     auto& pool = findPool<Tag>();
     for (auto& [id, entry] : registry) {
       if (entry.refCount == 0 || isAllClear) {
-        Handle<Tag> handle{entry.handle.id(), entry.handle.gen()};
-        auto* pResource = pool.get(handle);
+        auto* pResource = pool.get(entry.handle);
         if (pResource == nullptr) {
           continue;
         }

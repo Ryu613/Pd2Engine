@@ -7,7 +7,7 @@ struct Vertex {
   math::vec3 pos;
   math::vec3 normal;
   math::vec2 uv;
-  // math::vec4 tangent;
+  math::vec3 tangent;
   // todo(ryu613): skinned vertex data
 };
 struct Aabb {};
