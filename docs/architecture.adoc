@@ -67,9 +67,15 @@
 ....
 @startuml
 start
-:引擎初始化;
-:
-several **lines**;
+:引擎启动;
+:窗口系统启动;
+:渲染后端启动;
+:加载渲染资源;
+repeat :主循环;
+  :渲染逻辑帧;
+repeat while (关闭窗口?) is (no) not (yes)
+:销毁渲染资源;
+:引擎停止;
 stop
 @enduml
 ....
@@ -94,11 +100,11 @@ image::img/architecture.svg[figure1]
 
 ==== 层级及模块划分
 
-. 平台层: 操作系统检测, 线程库，文件系统, 输入设备(HID)，窗口系统(WSI)等
+. 平台层: 操作系统信息, 线程库，文件系统, 输入设备(HID)，窗口系统(WSI)等
 . 核心层: 工具类, 全局类，配置类等，比如: 日志，调试，数学库，profiler, 配置，反射，序列化, 内存管理, 线程池等
-. 资源层: 3d模型，纹理文件，材质文件的读写和生命周期管理
+. 资源层: 网格，纹理文件，材质文件的读写和生命周期管理
 . 渲染层(前端): 材质，特效，渲染pass， render graph,ui界面, 编辑器界面,调试界面等
-. 渲染层(后端): 图形API封装和底层资源管理
+. 渲染层(后端): 图形API封装和渲染底层资源管理
 . 场景层: 场景描述，场景图，相机，视图等
 . 应用层: 通用资源和引擎常用功能封装，方便使用
 
@@ -133,7 +139,7 @@ image::img/architecture.svg[figure1]
 .. shader语言为Slang
 .. 三方库
 ... 数学库: 基于glm封装
-... 标准库: 帧外部分允许使用{cpp} STL, 帧内部分使用自研容器和分配器手动管理资源，详见系统设计
+... 标准库: 帧外部分允许使用{cpp} STL, 帧内部分使用自研容器或三方库容器，使用自定义分配器手动管理资源，详见系统设计
 ... 内存管理: 自研Arena内存分配器
 ... 窗口系统: 基于SDL3封装，并预留WSI接口方便扩展
 ... ECS: 基于EnTT封装，主要用于实现场景图
@@ -141,7 +147,7 @@ image::img/architecture.svg[figure1]
 ... gltf加载: 基于fastgltf封装,用于读取和解析gltf文件
 ... 纹理读取和转换: 基于stb和libktx封装
 ... 文件读写：基于stl filesystem封装并预留接口提供扩展性
-... vulkan封装: vulkan-headers, vulkan-utility, vma, volk, spirv-reflect, slangc
+... vulkan底层封装: 自研，采用vulkan-headers, vulkan-utility, vma, volk, spirv-reflect, slangc
 ... 测试/调试: Catch2, RenderDoc, Tracy，基于imgui提供性能剖析，调试可视化
 
 ==== 对"易于开发, 维护, 扩展, 部署"需求的实现

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pd/resource/resource_alias.hpp"
-#include "pd/core/utils/hash.hpp"
+#include "pd/core/utils/map.hpp"
 #include "pd/core/utils/pool.hpp"
 #include "tsl/robin_map.h"
 
@@ -37,13 +37,8 @@ class ResourceManager {
   IBackend* mBackend = nullptr;
   bool mInitialized = false;
   // todo(ryu613): integrate arena allocator
-  struct Hasher {
-    size_t operator()(const std::string& key) const noexcept {
-      return static_cast<size_t>(rapidhash(key.data(), key.size()));
-    }
-  };
   template <typename Tag>
-  using Registry = tsl::robin_map<Resource::IdType, ResourceEntry<Tag>, Hasher>;
+  using Registry = util::RobinMap<Resource::IdType, ResourceEntry<Tag>, util::StringHasher>;
   // key=resource id
   Registry<MeshResource_t> mMeshRegistry;
   Registry<TextureResource_t> mTextureRegistry;

@@ -32,6 +32,8 @@ target_sources(engine_lib
     include/pd/core/assert.hpp
     include/pd/core/utils/handle.hpp
     include/pd/core/utils/memory.hpp
+    include/pd/core/utils/hash.hpp
+    include/pd/core/utils/map.hpp
     include/pd/core/allocators.hpp
     include/pd/core/context.hpp
     # platform

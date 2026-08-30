@@ -25,9 +25,16 @@
 . 性能剖析
 . 全局配置项
 . 全局基类和接口定义
-. 全局便利工具
+. 引擎无关的工具类
 .. 内存管理
 .. job system
+
+=== 思路
+
+. 尽量纯头文件
+. 使依赖尽量少
+. 工具类尽量独立于引擎
+. 如果涉及三方库类型，尽量在此处封装，不把三方库类型传播到引擎内部，如果传播，尽量使其范围可控
 
 === 内存管理
 
@@ -47,8 +54,6 @@
 
 == 资产/资源管理模块
 
-作为整个引擎的大动脉，是必须清晰整理数据流，逻辑流，状态流
-
 === 设计思路
 
 . 资源的加载整体上分为两块，资产管理和资源管理,此处分别称为(Asset Management(AM)和Resource Management(RM))
@@ -56,6 +61,12 @@
 .. RM: 利用资产管理解析的文件信息，在运行时按照场景需要，把相关资产加载到内存或显存中，供引擎使用，并管理这些资源的生命周期
 . AM,RM解耦，各自管理相关的数据
 . 不与其他子系统耦合，比如场景系统
+. AM: 
+.. 输入: 是资产文件预制件(prefab)，预留各种类型预制件的处理空间，此版支持gltf格式,输出为引擎标准化的数据(asset)
+.. 输出: asset数据，外部使用指针访问, AM管理Asset的生命周期
+. RM:
+.. 输入: Asset, 转为各种resource，并负责resource的生命周期，加载，卸载过程
+.. 输出: resource的handle
 
 === 功能
 
@@ -110,10 +121,10 @@ class Asset {
     暂不对资产类型做进一步区分
     ==
     - String mId
-    - Container<Node*> mSceneNodes
-    - Container<TextureHandle> mTextures
-    - Container<MeshHandle> mMeshes
-    - Container<MaterialHandle> mMaterials
+    - String mName
+    - Container<Node> mNodes
+    - Container<TextureData> mTextures
+    - Container<MeshData> mMeshes
 }
 Interface Parser {
     把资产文件转换并填充到asset中,在AM中注册资源拿到句柄
@@ -126,11 +137,10 @@ class GltfParser implements Parser {
     + void parse(Asset& asset)
 }
 class ResourceEntry {
-    带引用计数和gc支持的资源指针
+    带引用计数的资源指针
     ==
-    + Resource* pResource
+    + Handle resourceHandle
     + uint32_t refCount
-    + bool gcFlag
 }
 class ResourceManager{
     管理运行时资源
@@ -142,9 +152,9 @@ class ResourceManager{
     + void gc()
     + void clearAll()
     --
-    - Container<ResourceId, ResourceEntry> mRegistry
+    - Map<ResourceId, ResourceEntry> mRegistry
+    - ObjectPool<Resource> mData
     --
-    - ResourceId generateId()
 }
 Interface Resource {
     资源接口:定义资源操作
@@ -153,6 +163,7 @@ Interface Resource {
     + {abstract} void unload()
     + Status status()
     --
+    - uint64_t mId
     - Status mStatus
 }
 class TextureResource implements Resource {
@@ -161,14 +172,14 @@ class TextureResource implements Resource {
     + void load()
     + void unload()
     --
-    - BackendHandle<HwTexture> mHwTexture
+    - Handle<HwTexture> mHwTexture
 }
 class Primitive {
     网格的submesh或primitive
     ==
     --
-    - BackendHandle<HwBuffer> mVertexBuffer
-    - BackendHandle<HwBuffer> mIndexBuffer
+    - Handle<HwBuffer> mVertexBuffer
+    - Handle<HwBuffer> mIndexBuffer
     - MaterialHandle mMaterial
 }
 class MeshResource implements Resource {
