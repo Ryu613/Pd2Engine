@@ -7,38 +7,38 @@ namespace pd {
 void MeshResource::doLoad(IBackend& backend) noexcept {
   LOG_DEBUG("loading mesh: {}", this->id());
   // 1. convert resource data to memory friendly form
-  MeshOutput output = outputData();
-  // 2. vertex buffer create & upload
-  auto vertexBufferSize = getVertexDataSize();
-  HwBuffer hwBufferVertex{
-      .usage = BufferUsage::VertexBuffer,
-      .deviceSize = vertexBufferSize,
-  };
-  hwBufferVertex.label = "vertex_buffer";
-  mVertexBuffer = backend.createBuffer(hwBufferVertex);
-  // 3. upload vertex buffer data
-  BufferWriteOptions vertexWriteOptions{
-      .dstBuffer = mVertexBuffer,
-      .byteSize = vertexBufferSize,
-      .pData = output.vertices.data(),
-  };
-  backend.writeBuffer(vertexWriteOptions);
+  //   MeshOutput output = outputData();
+  //   // 2. vertex buffer create & upload
+  //   auto vertexBufferSize = getVertexDataSize();
+  //   HwBuffer hwBufferVertex{
+  //       .usage = BufferUsage::VertexBuffer,
+  //       .deviceSize = vertexBufferSize,
+  //   };
+  //   hwBufferVertex.label = "vertex_buffer";
+  //   mVertexBuffer = backend.createBuffer(hwBufferVertex);
+  //   // 3. upload vertex buffer data
+  //   BufferWriteOptions vertexWriteOptions{
+  //       .dstBuffer = mVertexBuffer,
+  //       .byteSize = vertexBufferSize,
+  //       .pData = output.vertices.data(),
+  //   };
+  //   backend.writeBuffer(vertexWriteOptions);
 
-  // 4. index buffer create
-  auto indexBufferSize = getIndexDataSize();
-  HwBuffer hwBufferIndex{
-      .usage = BufferUsage::IndexBuffer,
-      .deviceSize = indexBufferSize,
-  };
-  hwBufferIndex.label = "index_buffer";
-  mIndexBuffer = backend.createBuffer(hwBufferIndex);
-  // 5. update index buffer data
-  BufferWriteOptions indexWriteOptions{
-      .dstBuffer = mIndexBuffer,
-      .byteSize = indexBufferSize,
-      .pData = output.indices.data(),
-  };
-  backend.writeBuffer(indexWriteOptions);
+  //   // 4. index buffer create
+  //   auto indexBufferSize = getIndexDataSize();
+  //   HwBuffer hwBufferIndex{
+  //       .usage = BufferUsage::IndexBuffer,
+  //       .deviceSize = indexBufferSize,
+  //   };
+  //   hwBufferIndex.label = "index_buffer";
+  //   mIndexBuffer = backend.createBuffer(hwBufferIndex);
+  //   // 5. update index buffer data
+  //   BufferWriteOptions indexWriteOptions{
+  //       .dstBuffer = mIndexBuffer,
+  //       .byteSize = indexBufferSize,
+  //       .pData = output.indices.data(),
+  //   };
+  //   backend.writeBuffer(indexWriteOptions);
 }
 void MeshResource::doUnload(IBackend& backend) noexcept {
   backend.destroyBuffer(mVertexBuffer);

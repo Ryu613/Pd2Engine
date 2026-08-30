@@ -6,7 +6,7 @@ namespace pd {
 struct Node {
   std::string name;
   math::vec3 location{0.0f, 0.0f, 0.0f};
-  math::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+  math::vec3 rotationAuler{0.0f, 0.0f, 0.0f};
   math::vec3 scale{1.0f, 1.0f, 1.0f};
   u32 meshIndex = u32_max;
   u32 parentIndex = u32_max;

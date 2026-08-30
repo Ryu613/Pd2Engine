@@ -69,29 +69,29 @@ void SceneManager::updateRenderables(const std::vector<Entity>& culledEntities) 
   mRenderables.shrink_to_fit();
   mRenderables.reserve(culledEntities.size());
   // shortcut: for testing
-  for (const auto& [entity, transform, assetId] :
-       mEntityManager.viewOf<Transform, Asset::IdType>().each()) {
-    auto AssetRes = mAssetManager->getAsset(assetId);
-    if (!AssetRes) {
-      LOG_ERROR("asset load failed: {}", assetId);
-      return;
-    }
-    auto& asset = *AssetRes.value();
-    for (uint32_t meshIndex = 0; meshIndex < asset.getMeshes().size(); ++meshIndex) {
-      auto& meshes = asset.getMeshes();
-      auto* meshResource = mResourceManager->getResource<MeshResource_t>(meshes[meshIndex]);
-      auto& primitives = meshResource->primitives();
-      for (int i = 0; i < primitives.size(); ++i) {
-        Renderable ren{
-            .transform = transform.toLocalMatrix(),
-            .vertexBuffer = meshResource->getVertexBuffer(),
-            .indexBuffer = meshResource->getIndexBuffer(),
-            .vertexOffset = static_cast<u32>(sizeof(Vertex) * i),
-            .indexOffset = static_cast<u32>(sizeof(u32) * i),
-        };
-        mRenderables.emplace_back(ren);
-      }
-    }
-  }
+  //   for (const auto& [entity, transform, assetId] :
+  //        mEntityManager.viewOf<Transform, Asset::IdType>().each()) {
+  //     auto AssetRes = mAssetManager->getAsset(assetId);
+  //     if (!AssetRes) {
+  //       LOG_ERROR("asset load failed: {}", assetId);
+  //       return;
+  //     }
+  //     auto& asset = *AssetRes.value();
+  //     for (uint32_t meshIndex = 0; meshIndex < asset.getMeshes().size(); ++meshIndex) {
+  //       auto& meshes = asset.getMeshes();
+  //       auto* meshResource = mResourceManager->getResource<MeshResource_t>(meshes[meshIndex]);
+  //       auto& primitives = meshResource->primitives();
+  //       for (int i = 0; i < primitives.size(); ++i) {
+  //         Renderable ren{
+  //             .transform = transform.toLocalMatrix(),
+  //             .vertexBuffer = meshResource->getVertexBuffer(),
+  //             .indexBuffer = meshResource->getIndexBuffer(),
+  //             .vertexOffset = static_cast<u32>(sizeof(Vertex) * i),
+  //             .indexOffset = static_cast<u32>(sizeof(u32) * i),
+  //         };
+  //         mRenderables.emplace_back(ren);
+  //       }
+  //     }
+  //   }
 }
 }  // namespace pd

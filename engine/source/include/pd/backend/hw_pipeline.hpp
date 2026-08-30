@@ -29,7 +29,7 @@ struct HwGraphicsPipeline : HwResource {
 
   // shaders
   HwShaderProgram vertexShader;    // vertex shader
-  HwShaderProgram fragmentShader;  // pixel shader/ fragment shader
+  HwShaderProgram fragmentShader;  // pixel shader / fragment shader
 
   // todo(ryu613): binding layouts
 };

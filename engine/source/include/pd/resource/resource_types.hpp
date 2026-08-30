@@ -7,13 +7,14 @@ struct Vertex {
   math::vec3 pos;
   math::vec3 normal;
   math::vec2 uv;
-  math::vec3 tangent;
+  math::vec4 tangent;
   // todo(ryu613): skinned vertex data
 };
 struct Aabb {};
 
 struct MeshData {
   u32 id = u32_max;
+  std::string name;
   std::vector<Vertex> vertices;
   std::vector<u32> indices;
 

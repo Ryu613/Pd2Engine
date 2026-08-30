@@ -5,6 +5,7 @@
 namespace pd {
 /**
  * @brief 类型安全的对象池
+ * @note 值对象栈上分配
  *
  * @tparam T 类型
  * @tparam H 句柄标签
@@ -55,16 +56,15 @@ class Pool {
       growCapacity();
     }
     TypedHandle<THandleTag> handle;
-    auto handleId = handle.id();
-    auto handleGen = handle.gen();
     // 有空位用空位，没有就加
     if (mFreeIndices.size() > 0) {
-      handle.setId(mFreeIndices.back());
+      auto newId = mFreeIndices.back();
+      handle.setId(newId);
       mFreeIndices.pop_back();
       // 在清除时gen已经更新过了
-      handle.setGen(mGens[handleId].gen);
-      mGens[handleId].isAlive = true;
-      mData[handleId] = std::move(T(std::forward<Args>(args)...));
+      handle.setGen(mGens[newId].gen);
+      mGens[newId].isAlive = true;
+      new (&mData[newId]) T(std::forward<Args>(args)...);
     } else {
       mData.emplace_back(std::forward<Args>(args)...);
       mGens.emplace_back(GenerationEntry{1, true});
@@ -74,10 +74,10 @@ class Pool {
     return handle;
   }
 
-  TypedHandle<THandleTag> insert(const T& t) noexcept { return emplace(t); }
+  //   TypedHandle<THandleTag> insert(const T& t) noexcept { return emplace(t); }
 
   /**
-   * @brief 注：只在复用槽位时才会析构对象，此处只标记可复用
+   * @brief 移除对象，析构，并更新分代，存活信息
    *
    * @param handle
    */
@@ -86,10 +86,9 @@ class Pool {
       return;
     }
     auto handleId = handle.id();
-    auto& entry = mGens[handleId];
-    ++entry.gen;
-    entry.isAlive = false;
-
+    mData[handleId].~T();
+    mGens[handleId].gen++;
+    mGens[handleId].isAlive = false;
     mFreeIndices.push_back(handleId);
   }
 

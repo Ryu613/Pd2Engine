@@ -38,7 +38,7 @@ Result<void> ResourceManager::loadAsset(Asset* pAsset) noexcept {
     // 1.2 若不存在，则生成mesh resource并注册
     MeshResource meshResource{meshResourceIdStr};
     meshResource.setRawData(pMesh.get());
-    auto handle = mMeshData.insert(std::move(meshResource));
+    auto handle = mMeshData.emplace(std::move(meshResource));
     // 1.3 更新注册表
     auto [insertIt, success] =
         mMeshRegistry.emplace(meshResourceIdStr, ResourceEntry<MeshResource_t>{handle, 1});

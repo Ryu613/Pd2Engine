@@ -35,7 +35,7 @@ MeshData::Primitive MeshProcessor::process(Input& input) noexcept {
                               vertices.size(), sizeof(Vertex));
 
   MeshData::Primitive primitive{
-      .firstIndex = 0,
+      // .firstIndex = 0,
   };
   return primitive;
 }

@@ -34,6 +34,7 @@ class StringBuffer {
   [[nodiscard]] size_t capacity() const noexcept { return Capacity; }
   [[nodiscard]] bool empty() const noexcept { return mSize == 0; }
   [[nodiscard]] const char* data() const noexcept { return mData ? mData : &empty_c_str; }
+
   void clear() noexcept {
     mSize = 0;
     if (mData) {
@@ -88,5 +89,5 @@ class StringBuffer {
   size_t mSize = 0;
   char* mData = nullptr;
 };
-}  // namespace stl
+}  // namespace util
 }  // namespace pd

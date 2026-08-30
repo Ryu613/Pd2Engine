@@ -24,11 +24,13 @@ namespace pd {
 struct MeshResource_t;
 class MeshResource : public Resource {
  public:
-  explicit MeshResource(IdType id) noexcept
-      : Resource(id) {}
+  MeshResource() = default;
   ~MeshResource() = default;
   DELETE_COPY(MeshResource);
   DEFAULT_MOVABLE(MeshResource);
+
+  explicit MeshResource(IdType id) noexcept
+      : Resource(id) {}
 
   void setRawData(MeshData* pMeshData) noexcept { mRawData = pMeshData; }
 
