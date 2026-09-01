@@ -9,12 +9,19 @@
 namespace pd {
 PlatformWin32::PlatformWin32(IPlatform::Config config) noexcept
     : mConfig(std::move(config)) {
-// TODO(ryu613): windows raw window system not implemented yet
+  // TODO(ryu613): windows original window system not implemented yet
+  if (mConfig.window.type == WindowType::SDL3) {
 #ifdef WINDOW_SDL3
-  mWindow = std::make_unique<WindowSDL3>(mConfig.window);
+    mWindow = std::make_unique<WindowSDL3>();
 #else
-  PD_ASSERT_MSG(false, "NOT IMPLEMENTED WINDOW SYSTEM");
+    PD_ASSERT_MSG(false, "NOT IMPLEMENTED WINDOW SYSTEM");
 #endif
+  } else {
+    PD_ASSERT_MSG(false, "NOT IMPLEMENTED WINDOW SYSTEM");
+  }
+
+  auto windowInitResult = mWindow->init(mConfig.window);
+  PD_ASSERT_MSG(windowInitResult, "window init failed!");
 
   mFileSystem = std::make_unique<StdFileSystem>();
 }

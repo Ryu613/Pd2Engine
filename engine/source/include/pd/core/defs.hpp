@@ -25,6 +25,22 @@ inline constexpr i8 i8_max = INT8_MAX;
 // string
 using cstr = const char*;
 
+// enums
+enum class BackendType : u8 {
+  Noop = 0,
+  Vulkan = 1,
+  D3D12 = 2,
+  Unknown = u8_max,
+};
+
+enum class WindowType : u8 {
+  Win32 = 1,
+  SDL3,
+  Wayland,
+  Android,
+  Unknown = u8_max,
+};
+
 // containers
 // template <typename T>
 // using vector = std::pmr::vector<T>;

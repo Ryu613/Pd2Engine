@@ -6,13 +6,14 @@ struct SDL_Window;
 namespace pd {
 class WindowSDL3 : public IWindow {
  public:
-  explicit WindowSDL3(IWindow::Config config) noexcept;
+  WindowSDL3() = default;
   ~WindowSDL3() override;
   DELETE_COPY(WindowSDL3);
   DEFAULT_MOVABLE(WindowSDL3);
 
-  bool create() noexcept override;
-  void close() noexcept override;
+  Result<IWindow::Handle> init(const WindowConfig& config) noexcept override;
+  bool createWindow() noexcept override;
+  void closeWindow() noexcept override;
 
   void resize(uint32_t width, uint32_t height) noexcept override;
   void setTitle(const std::string& title) noexcept override;
@@ -28,7 +29,7 @@ class WindowSDL3 : public IWindow {
   [[nodiscard]] std::vector<const char*> getVulkanInstanceExtensions() noexcept override;
 
  private:
-  Config mConfig;
+  WindowConfig mConfig;
   bool mClosed = true;
 
   SDL_Window* mWindow = nullptr;

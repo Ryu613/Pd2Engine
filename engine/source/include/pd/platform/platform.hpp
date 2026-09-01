@@ -16,7 +16,7 @@ class IPlatform {
     AssetsDir,
   };
   struct Config {
-    IWindow::Config window;
+    WindowConfig window;
   };
 
   IPlatform() noexcept = default;

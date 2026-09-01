@@ -6,8 +6,9 @@ namespace pd {
 // TODO(ryu613)
 class WindowWin32 : public IWindow {
  public:
-  bool create() noexcept override;
-  void close() noexcept override;
+  Result<IWindow::Handle> init(const WindowConfig& config) noexcept override;
+  bool createWindow() noexcept override;
+  void closeWindow() noexcept override;
 
   void resize(uint32_t width, uint32_t height) noexcept override;
   void setTitle(const std::string& title) noexcept override;

@@ -3,25 +3,17 @@
 namespace pd {
 class IWindow {
  public:
-  enum class Type : uint8_t {
-    Win32,
-    SDL3,
-    Wayland,
-    Android,
-  };
-  struct Config {
-    std::string title = global::DefaultWindowTitle;
-    uint32_t width = global::DefaultWindowWidth;
-    uint32_t height = global::DefaultWindowHeight;
-  };
+  using Handle = void*;
+
   explicit IWindow() noexcept = default;
   virtual ~IWindow() = default;
   DELETE_COPY(IWindow);
   DEFAULT_MOVABLE(IWindow);
 
   // common opts
-  virtual bool create() noexcept = 0;
-  virtual void close() noexcept = 0;
+  virtual Result<IWindow::Handle> init(const WindowConfig& config) noexcept = 0;
+  virtual bool createWindow() noexcept = 0;
+  virtual void closeWindow() noexcept = 0;
 
   virtual void resize(uint32_t width, uint32_t height) noexcept = 0;
   virtual void setTitle(const std::string& title) noexcept = 0;

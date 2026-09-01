@@ -6,22 +6,26 @@
 #endif
 
 namespace pd {
-WindowSDL3::WindowSDL3(IWindow::Config config) noexcept
-    : mConfig(std::move(config)) {}
 
 WindowSDL3::~WindowSDL3() { closeImpl(); }
 
-bool WindowSDL3::create() noexcept {
+Result<IWindow::Handle> WindowSDL3::init(const WindowConfig& config) noexcept {
+  mConfig = config;
+
+  if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO)) {
+    LOG_ERROR("SDL init failed! {}", SDL_GetError());
+    return make_error<IWindow::Handle>(ErrorCode::WindowInitFailed);
+  }
+
+  return {};
+}
+
+bool WindowSDL3::createWindow() noexcept {
   if (!mClosed) {
     return true;
   }
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
-    LOG_ERROR("SDL init failed! {}", SDL_GetError());
-    return false;
-  }
   mWindow = SDL_CreateWindow(
-      mConfig.title.c_str(), static_cast<int>(mConfig.width),
-      static_cast<int>(mConfig.height),
+      mConfig.title.c_str(), static_cast<int>(mConfig.width), static_cast<int>(mConfig.height),
       SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY);
   if (mWindow == nullptr) {
     LOG_ERROR("SDL create window failed! {}", SDL_GetError());
@@ -32,7 +36,7 @@ bool WindowSDL3::create() noexcept {
   return true;
 }
 
-void WindowSDL3::close() noexcept { closeImpl(); }
+void WindowSDL3::closeWindow() noexcept { closeImpl(); }
 
 void WindowSDL3::closeImpl() noexcept {
   if (mWindow == nullptr) {
@@ -64,10 +68,8 @@ void* WindowSDL3::nativeHandle() const noexcept {
 std::vector<const char*> WindowSDL3::getVulkanInstanceExtensions() noexcept {
   uint32_t instanceExtensionsCount{0};
 #ifdef BACKEND_VULKAN
-  const char* const* instanceExtensions{
-      SDL_Vulkan_GetInstanceExtensions(&instanceExtensionsCount)};
-  return std::vector<const char*>(instanceExtensions,
-                                  instanceExtensions + instanceExtensionsCount);
+  const char* const* instanceExtensions{SDL_Vulkan_GetInstanceExtensions(&instanceExtensionsCount)};
+  return std::vector<const char*>(instanceExtensions, instanceExtensions + instanceExtensionsCount);
 #else
   PD_ASSERT_MSG(false, "illegal operation!");
 #endif

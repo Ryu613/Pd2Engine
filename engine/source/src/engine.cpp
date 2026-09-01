@@ -32,14 +32,14 @@ Result<void> Engine::initialize() noexcept {
       .window =
           {
               .title = mConfig.appName,
-              .width = mConfig.windowWidth,
-              .height = mConfig.windowHeight,
+              .width = mConfig.window.width,
+              .height = mConfig.window.height,
           },
   };
   mPlatform = createPlatform(config);
 
   // 创建窗口
-  if (!mPlatform->window()->create()) {
+  if (!mPlatform->window()->createWindow()) {
     LOG_ERROR("window creation failed!");
     return make_error<void>(ErrorCode::EngineInitializeFailed);
   }
