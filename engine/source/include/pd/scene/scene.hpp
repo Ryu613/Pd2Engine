@@ -11,7 +11,8 @@ class Scene {
  public:
   Scene() noexcept = default;
   ~Scene() = default;
-  MOVABLE_ONLY(Scene);
+  DELETE_COPY(Scene);
+  DEFAULT_MOVABLE(Scene);
 
   void addEntity(Entity entity) noexcept;
   void removeEntity(Entity entity) noexcept;
