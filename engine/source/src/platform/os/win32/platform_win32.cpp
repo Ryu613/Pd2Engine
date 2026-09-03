@@ -10,6 +10,8 @@ Platform::Platform(const PlatformConfig& config)
     : mConfig(config),
       mFileSystem(createFileSystem()) {}
 
+Platform::~Platform() = default;
+
 Result<void> Platform::init() noexcept {
   auto windowInitRes = mWindowSystem.init(mConfig.window);
   if (!windowInitRes) {

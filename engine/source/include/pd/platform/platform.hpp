@@ -11,7 +11,7 @@ namespace pd {
 class Platform {
  public:
   Platform(const PlatformConfig& config);
-  ~Platform() = default;
+  ~Platform();
   DELETE_COPY_MOVE(Platform);
 
   Result<void> init() noexcept;
