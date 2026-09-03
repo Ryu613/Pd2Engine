@@ -70,38 +70,148 @@
 
 === 层级及模块划分介绍
 
-* 引擎整体逻辑上为分层架构，每个层级内部有自己的子架构，每个层级拥有多个模块
-* 模块间保持独立，基于未来扩展的考虑，只以文件夹区分模块，暂不拆分成独立库，模块在构建时静态连接作为一个整体引擎核心库
-* 系统实际模块和对象基于此架构实现，但不一定与代码完全一致，以系统设计文档和实际代码为准
+* 引擎整体逻辑上为分层架构，每个层级相当于一个子系统，子系统内部有自己的子架构，每个层级(子系统)拥有多个模块
+* 平台层放在引擎内部统一处理，平台在构建时按不同平台架构按需引入，引擎为跨平台运行提供扩展性，不需要外部处理平台差异
+* 渲染底层(后端)和平台层在构建时确定，采用编译时绑定，不支持(也没必要)运行时多态
+* 模块在构建时静态连接作为一个整体引擎核心库，核心库部分不支持动态链接
+* 实际模块和对象基于此架构实现，但不一定与代码完全一致，以系统设计文档和实际代码为准
 * 具体设计见系统设计文档和模块设计文档
 
-. 平台层: 操作系统, 文件系统, 输入系统，窗口系统等
+. 平台层: 平台相关底层封装，包括：操作系统, 文件系统, 输入系统，窗口系统等
 . 核心层: 工具类, 架构基类，全局配置类等，比如: 日志，数学库，profiler, 配置，反射，序列化, 内存管理, 线程池等
-. 资源层: 分为离线资源和运行时资源，分别负责处理资产文件导入和运行时资源加载
-. 渲染层(前端): 负责具体的渲染流程定义和具体的材质，特效定义，也包括gui, 比如: render graph, gui等
-. 渲染层(后端): 负责使用RHI与底层GPU API调用和资源管理， 比如vulkan句柄封装，资源管理等
+. 资产层: 负责处理资产文件导入解析，转换为引擎内部格式
+. 资源层: 负责运行时资源管理
+. 渲染层(前端): 负责具体的渲染流水线和材质，特效定义，也包括gui
+. 渲染层(后端): 负责底层图形API封装和资源管理，为渲染前端提供基础能力
 . 场景层: 负责管理场景相关数据，包括：场景描述，场景图，场景对象，相机，视图等
-. 应用层: 通用资源和引擎常用功能封装，方便使用
+. 应用层: 通用资源操作逻辑和引擎常用功能封装，方便引擎使用
 
-=== 引擎架构及核心调用链
+=== 引擎架构及核心流程
 
-.阅读方式
-. 类似泳道流程图，或时序图，从左往右，从上往下
-. 若是相同模块的下一个步骤，放在同一列的下方
-. 若是不同模块且在此模块右侧，则写到同一行对应模块的格子里
-. 若是不同模块且在此模块左侧，写到下一行对应模块的格子里
+此处说明引擎核心架构和流程，实际调用链基于此流程但不一定完全一致，以系统设计文档和代码为准
 
-.引擎核心模块及调用链(high-level)
-[#img-high-level-architecture-layer, caption="图1:"]
-image::img/核心模块及调用链.png[figure1]
+[NOTE]
+====
+* 为了简化表述，此图未说明多线程和异步过程
+* 只有架构高层级模块和核心步骤，子系统具体调用步骤参考系统设计和模块设计文档
+* Engine区别于其他模块，其不是一个平级概念，而是一个顶层协调者，具体执行逻辑由各个子系统负责
+* Application是独立模块，只依赖整个引擎库
+* 资源，资产，场景数据处理采用job system作为任务，由独立线程作为任务完成
+* 主线程与渲染线程独立,主线程只管理全局统筹相关事务，渲染线程只处理渲染相关逻辑
+* 具体技术细节此处不赘述，详见系统设计及模块设计文档
+====
+
+[plantuml]
+....
+actor developer as User
+group 构建
+    User -> Application++: new App()
+    Application -> Engine++: new Engine()
+    Engine -> Engine: init common services(logger, arena, job system, etc)
+    Engine -> Platform++: platform.init()
+    Platform -> Platform: init WindowSystem
+    Platform -> Platform: init FileSystem
+    Platform -> Platform: init InputSystem
+    Engine <-- Platform: platform init finished
+    Engine -> Backend++: init()
+    Backend -> Backend: new Backend()
+    Engine <-- Backend: backend construction(not init) finished
+    Engine -> ResourceManager++: init()
+    Engine -> AssetManager++: init()
+    Engine -> SceneManager++: init()
+    Engine -> Renderer++: new Renderer()
+    Engine <-- Renderer: renderer construction(not init) finished
+    Application <-- Engine: engine construction finished
+    User <-- Application: App construction finished
+end
+group 初始化
+    User -> Application: init()
+    Application -> Engine: init()
+    Engine -> Platform: open window
+    Engine -> Renderer: init()
+    Renderer -> Renderer: init MaterialSystem
+    Renderer -> ResourceManager: register common rendering resources
+    Renderer -> Backend: init()
+    Renderer -> Renderer: init render graph
+    Engine <-- Renderer: renderer init finished
+    Application <-- Engine: engine init finished
+    Application -> Engine: load default assets
+    User <-- Application: app init finished
+end
+group 运行
+    User -> Application: run()
+    Application -> Engine: run()
+    Engine -> SceneManager: load scene
+    SceneManager -> AssetManager: load asset
+    AssetManager -> AssetManager: load file, convert file
+    SceneManager <-- AssetManager: finished asset loading
+    SceneManager -> ResourceManager: register assets
+    SceneManager <-- ResourceManager: finished resources register
+    SceneManager -> SceneManager: build scene data 
+    SceneManager -> ResourceManager: load resources
+    ResourceManager -> Backend: load registered backend resources
+    Engine <-- SceneManager: finished scene load
+    loop
+        Engine -> Platform: poll events and execute callbacks
+        Engine -> SceneManager: update scene data
+        Engine -> Renderer: begin rendering
+        Renderer -> Renderer: new render frame
+        Renderer -> Backend: next swapchain image
+        Renderer -> Renderer: render graph setup, compile, execute
+        Renderer -> Backend: submit recorded rendering commands
+        Backend -> Backend: execute commands
+        Renderer -> Backend: present frame
+        Renderer -> ResourceManager: update deletion queue
+        Renderer -> Renderer: end current frame, update frame index
+    end
+end
+group 用户停止或停止事件触发
+    User -> Application: stop() or engine stop event triggered
+    Application -> Engine: stop()
+    Engine -> Engine: wait job system idle
+    Engine -> Platform: stop event
+    Engine -> Renderer: stop rendering
+    Renderer -> Backend: wait idle
+    Engine <-- Renderer: finished renderer stop
+    Engine -> SceneManager: unload scene
+    SceneManager -> SceneManager: destroy scene data
+    SceneManager -> ResourceManager: destroy resources
+    ResourceManager -> Backend: destroy backend resources
+    SceneManager -> AssetManager: destroy assets
+    Engine <-- SceneManager: finished stop scene
+    Application <-- Engine: finished engine stop
+    User <-- Application: finished app stop
+end
+group 销毁
+    User -> Application: delete App
+    Application -> Engine: delete
+    Engine -> Renderer: delete
+    deactivate Renderer
+    Engine -> SceneManager: delete
+    deactivate SceneManager
+    Engine -> AssetManager: delete
+    deactivate AssetManager
+    Engine -> ResourceManager: delete
+    deactivate ResourceManager
+    Engine -> Backend: delete
+    deactivate Backend
+    Engine -> Platform: delete
+    deactivate Platform
+    Engine -> Engine: delete common services
+    Application <-- Engine: finished engine delete
+    deactivate Engine
+    User <-- Application: finished app delete
+    deactivate Application
+end
+....
 
 === 技术选型
 
-所有库的依赖以满足需求的前提下，优先选轻薄，易用，成熟的库，目前阶段避免：大而全、不上不下、过时、或不够成熟的库
+所有库的依赖以满足需求的前提下，优先选轻薄，易用，依赖少，相对成熟的库，目前阶段避免：大而全、不上不下、过时、或不够成熟的库
 
-三方库调研和对比过程略
+三方库调研过程主要是个人调研，原则是契合上述要求，会参考项目issues，用户反馈意见，较现代，偏稳健，不激进，个人试用感觉可接受，顺手，构建简单，调研过程略
 
-三方库中的类型必须封装成引擎内部类型，保证三方库的类型不强耦合在引擎中
+三方库中的类型如果广泛使用，会封装成引擎内部类型，保证三方库的类型不强耦合在引擎中，尽量实现可插拔能力，但是考虑实现成本，务实执行，不强制
 
 ==== 对"现代图形"需求的实现
 
@@ -114,10 +224,10 @@ image::img/核心模块及调用链.png[figure1]
 .. shader语言为Slang
 .. 三方库
 ... 数学库: 基于glm封装
-... 标准库: 帧外部分允许使用{cpp} STL, 帧内部分使用自研容器或三方库容器，使用自定义分配器手动管理资源，详见系统设计
+... 标准库: 帧外部分允许使用{cpp} STL, 帧内部分和热路径使用自研容器或三方库容器，使用自定义分配器手动管理资源，详见系统设计
 ... 内存管理: 自研Arena内存分配器
-... 窗口系统: 基于SDL3封装，并预留WSI接口方便扩展
-... ECS: 基于EnTT封装，主要用于实现场景图
+... 窗口系统: 基于SDL3封装，并预留WSI接口，方便未来扩展
+... ECS: 基于EnTT封装，主要用于实现DOD场景管理
 ... job system: 基于EnkiTS开发，主要用于异步多线程场景数据处理
 ... gltf加载: 基于fastgltf封装,用于读取和解析gltf文件
 ... 纹理读取和转换: 基于stb和libktx封装
@@ -127,12 +237,12 @@ image::img/核心模块及调用链.png[figure1]
 
 ==== 对"易于开发, 维护, 扩展, 部署"需求的实现
 
-. 采用Git + CMake + vcpkg实现版本管理，模块化构建，三方库管理, 并提供跨平台部署和扩展的扩展性
+. 采用Git + CMake + vcpkg实现版本管理，模块化构建，三方库管理,需要定制的三方库代码会在本地vendor文件夹中，提供跨平台部署和扩展的扩展性
 . 采用clang-format + clang-tidy实现代码格式，代码质量的管理
 
 ==== 对"易于测试"需求的实现
 
-. 采用Catch2实现测试功能，目前以保证核心功能点正常运行为主
+. 采用Catch2实现测试功能，目前以保证核心功能点正常运行为主，由于人力有限，暂不考虑覆盖率
 . 以接口为契约，方便mock
 . 提供基本功能的单元测试用例，和引擎整体使用样例
 
@@ -151,6 +261,16 @@ image::img/核心模块及调用链.png[figure1]
 == 局限
 
 . 由于人力有限，无法充分测试，后期考虑引入AI写测试用例，目前暂不考虑
+
+== 开发策略
+
+. 务实
+. semantic compression思想, 即link:https://caseymuratori.com/blog_0015[语义压缩]，推荐阅读
+. 提前做设计是十分必要的，但是不过度考虑设计和优化问题，优化的前提是发现有性能问题，然后测量，发现主要瓶颈，再解决瓶颈
+. 设计定稿后，非必要不再三番五次修改和重新思考设计问题
+. 全程保证项目可以成功构建，跑通
+. 先定项目的骨架代码，再写具体代码
+. 模块应该基本完成后，再写其他模块
 
 === 附录
 

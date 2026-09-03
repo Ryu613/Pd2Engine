@@ -2,17 +2,20 @@
 
 namespace pd {
 struct WindowConfig {
-  std::string title = global::DefaultWindowTitle;
-  u32 width = global::DefaultWindowWidth;
-  u32 height = global::DefaultWindowHeight;
+  std::string title = "PDEngine";
+  u32 width = 1024;
+  u32 height = 768;
   bool resizable = true;
   bool headless = false;
   WindowType type = WindowType::SDL3;
 };
-struct EngineConfig {
-  std::string appName = global::DefaultWindowTitle;
+struct PlatformConfig {
+  std::string assetBaseDir = ".";
   WindowConfig window{};
+};
+struct EngineConfig {
+  std::string appName = "default";
   bool enableDebug = global::enableDebug;
-  std::string assetDir = ".";
+  PlatformConfig platform{};
 };
 }  // namespace pd

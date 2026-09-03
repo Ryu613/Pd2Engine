@@ -13,6 +13,6 @@ include::architecture.adoc[]
 
 include::system_design.adoc[]
 
-include::module.adoc[]
+include::module_design.adoc[]
 
 :leveloffset: -1

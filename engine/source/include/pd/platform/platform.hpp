@@ -1,43 +1,29 @@
 #pragma once
 
-#include "pd/platform/file/file_system.hpp"
-#include "pd/platform/window/window.hpp"
+#include "pd/platform/fs/file_system.hpp"
+#include "pd/platform/ws/window_system.hpp"
 
 namespace pd {
 /**
- * @brief 平台层
+ * @brief 平台层, 编译期确定，非虚
  *
  */
-class IPlatform {
+class Platform {
  public:
-  enum class BaseDir : u8 {
-    AppDir,
-    DataDir,
-    AssetsDir,
-  };
-  struct Config {
-    WindowConfig window;
-  };
+  Platform(const PlatformConfig& config);
+  ~Platform() = default;
+  DELETE_COPY_MOVE(Platform);
 
-  IPlatform() noexcept = default;
-  virtual ~IPlatform() = default;
-  DELETE_COPY(IPlatform);
-  DEFAULT_MOVABLE(IPlatform);
+  Result<void> init() noexcept;
+  Result<void> destroy() noexcept;
 
-  [[nodiscard]] virtual IFileSystem* fileSystem() noexcept { return nullptr; }
-  [[nodiscard]] virtual IWindow* window() noexcept { return nullptr; };
+  [[nodiscard]] IFileSystem& fileSystem() noexcept { return *mFileSystem; }
+  [[nodiscard]] WindowSystem& windowSystem() noexcept { return mWindowSystem; }
 
-  //   virtual bool initialize(const std::string& appName, uint32_t width, uint32_t
-  //   height,
-  //                           bool enableDebug) noexcept = 0;
-
-  //   virtual void shutdown() noexcept = 0;
-
-  virtual void processEvents() noexcept {}
-
-  //   virtual bool shouldClose() noexcept = 0;
-
-  //   [[nodiscard]] virtual RhiApi& getRhiApi() noexcept = 0;
+ private:
+  PlatformConfig mConfig;
+  std::unique_ptr<IFileSystem> mFileSystem;
+  WindowSystem mWindowSystem;
 };
 
 }  // namespace pd

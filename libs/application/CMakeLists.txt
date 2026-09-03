@@ -6,7 +6,6 @@ target_sources(pd_app
     PUBLIC
         include/pd/app/application.hpp
     PRIVATE
-        src/window/window.hpp
         src/application.cpp
 )
 
