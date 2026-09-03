@@ -7,7 +7,8 @@ class ILayer {
  public:
   ILayer() noexcept = default;
   virtual ~ILayer() = default;
-  MOVABLE_ONLY(ILayer);
+  DELETE_COPY(ILayer);
+  DEFAULT_MOVABLE(ILayer);
 
  protected:
   virtual cstr name() const noexcept { return "base layer"; }
