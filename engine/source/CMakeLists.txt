@@ -42,6 +42,7 @@ target_sources(engine_lib
         include/pd/asset/asset_manager.hpp
         # scene
         include/pd/scene/scene_manager.hpp
+        include/pd/scene/scene_descriptor.hpp
         # rendering
         include/pd/rendering/renderer.hpp
     PRIVATE
@@ -52,6 +53,7 @@ target_sources(engine_lib
         src/resource/resource_manager.cpp
         src/asset/asset_manager.cpp
         src/scene/scene_manager.cpp
+        src/scene/scene_descriptor.cpp
         src/rendering/renderer.cpp
 )
 

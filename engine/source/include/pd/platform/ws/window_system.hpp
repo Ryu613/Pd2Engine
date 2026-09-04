@@ -15,6 +15,10 @@ class WindowSystem {
   Result<void> destroy() noexcept;
 
   Result<void> createWindow() noexcept;
+  void processEvents() noexcept;
+
+  [[nodiscard]] void* nativeWindowHandle() const noexcept;
+  bool shouldClose() const noexcept;
 
  private:
   class Impl;

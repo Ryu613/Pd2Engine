@@ -36,8 +36,8 @@ inline void Application::run(Args&&... args) {
   // 加载场景
   // mEngine.loadScene<T>(std::forward<Args>(args)...);
   // 开始渲染
-  // auto engineRunRes = mEngine.run();
-  // PD_ASSERT_MSG(engineRunRes, "engine run failed");
+  auto engineRunRes = mEngine.run();
+  PD_ASSERT_MSG(engineRunRes, "engine run failed");
 }
 }  // namespace app
 }  // namespace pd

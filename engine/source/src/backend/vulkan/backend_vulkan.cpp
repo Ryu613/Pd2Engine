@@ -11,10 +11,12 @@ class Backend::Impl {
   Result<void> destroy() noexcept { return {}; }
 
  private:
-  BackendConfig mConfig;
+  BackendConfig mConfig{};
 };
 
-Backend::Backend() = default;
+Backend::Backend()
+    : mImpl(std::make_unique<Impl>()) {}
+
 Backend::~Backend() = default;
 
 Result<void> Backend::init(const BackendConfig& config) noexcept {

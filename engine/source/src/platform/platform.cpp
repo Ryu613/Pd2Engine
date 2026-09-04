@@ -23,9 +23,8 @@ Result<void> Platform::init() noexcept {
 }
 
 Result<void> Platform::destroy() noexcept {
-  auto windowDestroyRes = mWindowSystem.destroy();
-  if (!windowDestroyRes) {
-    return windowDestroyRes;
+  if(auto res = mWindowSystem.destroy(); !res) {
+    return res;
   }
 
   return {};

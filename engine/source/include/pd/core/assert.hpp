@@ -13,14 +13,12 @@
 #endif
 
 #ifdef PD_ASSERT_ENABLED
-#define PD_ASSERT(expr)                                                    \
-  ((expr) ? static_cast<void>(0)                                           \
-          : (pd::assert_fail(#expr, "", __FILE__, __LINE__, __FUNCTION__), \
-             PD_DEBUG_BREAK()))
-#define PD_ASSERT_MSG(expr, msg)                                            \
-  ((expr) ? static_cast<void>(0)                                            \
-          : (pd::assert_fail(#expr, msg, __FILE__, __LINE__, __FUNCTION__), \
-             PD_DEBUG_BREAK()))
+#define PD_ASSERT(expr)          \
+  ((expr) ? static_cast<void>(0) \
+          : (pd::assert_fail(#expr, "", __FILE__, __LINE__, __FUNCTION__), PD_DEBUG_BREAK()))
+#define PD_ASSERT_MSG(expr, msg) \
+  ((expr) ? static_cast<void>(0) \
+          : (pd::assert_fail(#expr, msg, __FILE__, __LINE__, __FUNCTION__), PD_DEBUG_BREAK()))
 #else
 #define PD_ASSERT(expr) static_cast<void>(0)
 #define PD_ASSERT_MSG(expr, msg) static_cast<void>(0)
@@ -29,7 +27,7 @@
 namespace pd {
 inline void assert_fail(const char* expr, const char* what, const char* file, int line,
                         const char* function) {
-  LOG_ERROR("assertion fail: '{}'\n\tFile: {}, Line: {}, Function: {}\n\t{}", expr, file,
-             line, function, what);
+  LOG_ERROR("assertion fail: '{}'\n\tFile: {}, Line: {}, Function: {}\n\t{}", expr, file, line,
+            function, what);
 }
 }  // namespace pd

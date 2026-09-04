@@ -7,11 +7,9 @@ Renderer::Renderer(SceneManager* sceneMgr, Backend* backend)
 
 Renderer::~Renderer() {}
 
-Result<void> Renderer::init() noexcept {
-    return {};
-}
+Result<void> Renderer::init() noexcept { return {}; }
 
-Result<void> Renderer::destroy() noexcept {
-    return {};
-}
+Result<void> Renderer::destroy() noexcept { return {}; }
+
+void Renderer::renderFrame() noexcept {}
 }  // namespace pd

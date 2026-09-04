@@ -33,11 +33,12 @@ class Engine {
   Result<void> shutdown() noexcept;
 
   /**
-   * @brief 开始运行
+   * @brief 加载场景并运行
    *
-   * @return EngineResult<void>
+   * @return Result<void>
    */
-  Result<void> run() noexcept;
+  template <DerivedSceneDescriptor T, typename... Args>
+  Result<void> run(Args&&... args) noexcept;
 
   /**
    * @brief 停止运行
@@ -58,5 +59,17 @@ class Engine {
   AssetManager mAssetManager;
   SceneManager mSceneManager;
   Renderer mRenderer;
+
+  void runImpl() noexcept;
+  void loop() noexcept;
 };
+
+template <DerivedSceneDescriptor T, typename... Args>
+inline Result<void> Engine::run(Args&&... args) noexcept {
+  // construct scene descriptor
+  if (auto res = mSceneManager.initScene<T>(std::forward<Args>(args)...); !res) {
+    return res;
+  }
+  runImpl();
+}
 }  // namespace pd

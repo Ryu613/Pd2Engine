@@ -8,6 +8,9 @@ class ResourceManager {
   ~ResourceManager();
   DELETE_COPY_MOVE(ResourceManager);
 
+  Result<void> init() noexcept;
+  Result<void> destroy() noexcept;
+
  private:
   Backend* mBackend = nullptr;
 };

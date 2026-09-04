@@ -1,0 +1,21 @@
+#include "pd/scene/scene_descriptor.hpp"
+
+#include "pd/scene/scene_manager.hpp"
+
+namespace pd {
+
+Result<void> SceneDescriptor::loadScene(SceneManager& sceneManager) noexcept {
+  LOG_INFO("start loading scene");
+  auto loadResult = onLoadScene(sceneManager);
+  if (!loadResult) {
+    LOG_ERROR("scene load failed: {}", loadResult.error().msg);
+    return loadResult;
+  }
+  LOG_INFO("load scene complete!");
+  return {};
+}
+
+void SceneDescriptor::updateScene(float deltaTime) noexcept {}
+
+Result<void> SceneDescriptor::unloadScene(SceneManager& sceneManager) noexcept { return {}; }
+}  // namespace pd

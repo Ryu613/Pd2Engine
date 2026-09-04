@@ -17,6 +17,8 @@ class Platform {
   Result<void> init() noexcept;
   Result<void> destroy() noexcept;
 
+  void processEvents() noexcept;
+
   [[nodiscard]] IFileSystem& fileSystem() noexcept { return *mFileSystem; }
   [[nodiscard]] WindowSystem& windowSystem() noexcept { return mWindowSystem; }
 

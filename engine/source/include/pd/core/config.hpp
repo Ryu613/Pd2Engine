@@ -14,7 +14,7 @@ struct PlatformConfig {
   WindowConfig window{};
 };
 struct BackendConfig {
-  void* pWindow = nullptr;
+  void* windowHandle = nullptr;
 };
 struct EngineConfig {
   std::string appName = "default";

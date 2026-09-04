@@ -13,6 +13,8 @@ class Renderer {
   Result<void> init() noexcept;
   Result<void> destroy() noexcept;
 
+  void renderFrame() noexcept;
+
  private:
   SceneManager* mSceneManager = nullptr;
   Backend* mBackend = nullptr;

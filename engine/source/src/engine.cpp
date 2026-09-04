@@ -38,6 +38,9 @@ Result<void> Engine::shutdown() noexcept {
   if (auto res = mSceneManager.destroy(); !res) {
     PD_ASSERT(res.error().msg.data());
   }
+  if (auto res = mResourceManager.destroy(); !res) {
+    PD_ASSERT(res.error().msg.data());
+  }
   if (auto res = mAssetManager.destroy(); !res) {
     PD_ASSERT(res.error().msg.data());
   }
@@ -54,10 +57,56 @@ Result<void> Engine::shutdown() noexcept {
   return {};
 }
 
-Result<void> Engine::initialize() noexcept { return {}; }
+Result<void> Engine::initialize() noexcept {
+  if (auto res = mPlatform.windowSystem().createWindow(); !res) {
+    return res;
+  }
+  BackendConfig backendCfg{
+      .windowHandle = mPlatform.windowSystem().nativeWindowHandle(),
+  };
+  if (auto res = mBackend.init(backendCfg); !res) {
+    return res;
+  }
+  if (auto res = mResourceManager.init(); !res) {
+    return res;
+  }
+  if (auto res = mAssetManager.init(); !res) {
+    return res;
+  }
+  if (auto res = mSceneManager.init(); !res) {
+    return res;
+  }
+  if (auto res = mRenderer.init(); !res) {
+    return res;
+  }
+  mInitialized = true;
+  return {};
+}
 
-Result<void> Engine::run() noexcept { return {}; }
+void Engine::runImpl() noexcept {
+  // load scene
+  if (auto res = mSceneManager.loadScene(); !res) {
+    PD_ASSERT_MSG(res, res.error().msg.data());
+  }
+  loop();
+  auto engineStopRes = stop();
+  PD_ASSERT(engineStopRes);
+}
 
-Result<void> Engine::stop() noexcept { return {}; }
+void Engine::loop() noexcept {
+  while (!mPlatform.windowSystem().shouldClose()) {
+    mPlatform.processEvents();
+    mSceneManager.updateScene(0);
+
+    mRenderer.renderFrame();
+  }
+}
+
+Result<void> Engine::stop() noexcept {
+  if (auto res = mSceneManager.unloadScene(); !res) {
+    return res;
+  }
+  return {};
+}
 
 }  // namespace pd
