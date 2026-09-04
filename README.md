@@ -49,3 +49,6 @@ Pd2Engine 是一款易于理解，易于开发，易于调试的现代C++3D实�
 ### 设计文档
 
 见[docs/index.adoc](./docs/index.adoc)
+
+> 项目代码为本人原创作品，遵循Apache 2.0 协议
+> 设计文档为本人原创作品，遵循CC-BY 4.0 协议
