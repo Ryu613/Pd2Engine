@@ -1,6 +1,7 @@
 # Pd2Engine(WIP)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](License.txt)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 Pd2Engine 是一款易于理解，易于开发，易于调试的现代C++3D实时渲染引擎(WIP)
 
@@ -51,4 +52,4 @@ Pd2Engine 是一款易于理解，易于开发，易于调试的现代C++3D实�
 见[docs/index.adoc](./docs/index.adoc)
 
 > 项目代码为本人原创作品，遵循Apache 2.0 协议
-> 设计文档为本人原创作品，遵循CC-BY 4.0 协议
+> 项目文档，设计文档为本人原创作品，遵循CC-BY 4.0 协议
