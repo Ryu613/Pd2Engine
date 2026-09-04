@@ -13,6 +13,9 @@ struct PlatformConfig {
   std::string assetBaseDir = ".";
   WindowConfig window{};
 };
+struct BackendConfig {
+  void* pWindow = nullptr;
+};
 struct EngineConfig {
   std::string appName = "default";
   bool enableDebug = global::enableDebug;

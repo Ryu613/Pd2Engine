@@ -8,11 +8,25 @@ class WindowSystem::Impl {
   Impl() = default;
   ~Impl() = default;
 
-  Result<void> init(const WindowConfig& config) noexcept {}
-  Result<void> destroy() noexcept {}
+  Result<void> init(const WindowConfig& config) noexcept {
+    mConfig = config;
+    if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO)) {
+      LOG_ERROR("SDL init failed! {}", SDL_GetError());
+      return make_error<void>(ErrorCode::WindowInitFailed);
+    }
 
-  Result<void> createWindow() noexcept {}
+    return {};
+  }
+
+  Result<void> destroy() noexcept { return {}; }
+
+  Result<void> createWindow() noexcept { return {}; }
+
+ private:
+  WindowConfig mConfig;
 };
+
+
 WindowSystem::WindowSystem()
     : mImpl(std::make_unique<WindowSystem::Impl>()) {}
 

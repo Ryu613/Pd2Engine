@@ -2,12 +2,11 @@
 
 #include "pd/core/allocators.hpp"
 #include "pd/platform/platform.hpp"
-// #include "pd/resource/resource_manager.hpp"
-// #include "pd/asset/asset_manager.hpp"
-// #include "pd/scene/scene_manager.hpp"
-// #include "pd/backend/backend.hpp"
-// #include "pd/rendering/renderer.hpp"
-// #include "pd/rendering/layer/layer.hpp"
+#include "pd/backend/backend.hpp"
+#include "pd/resource/resource_manager.hpp"
+#include "pd/asset/asset_manager.hpp"
+#include "pd/scene/scene_manager.hpp"
+#include "pd/rendering/renderer.hpp"
 
 namespace pd {
 /**
@@ -34,50 +33,6 @@ class Engine {
   Result<void> shutdown() noexcept;
 
   /**
-   * @brief 通过场景描述器加载场景数据
-   *
-   * @tparam T 场景描述派生类型
-   * @tparam Args 构造参数类型
-   * @param args 构造参数
-   * @return Result<void> 场景加载结果
-   */
-  //   template <BaseOfSceneDescriptor T, typename... Args>
-  //   Result<void> loadScene(Args&&... args) noexcept {
-  //     return mSceneManager.initializeScene<T>(std::forward<Args>(args)...);
-  //   }
-
-  /**
-   * @brief 创建界面层, 用于在渲染画面之上显示自定义界面，由引擎构造layer, 支持运行时创建和销毁
-   *
-   * @tparam TLayer 要求派生自Layer接口
-   * @tparam Args Layer构造函数参数
-   * @param args
-   * @return EngineResult<void>
-   */
-  //   template <BaseOfLayer TLayer, typename... Args>
-  //   Result<void> createLayer(Args... args) noexcept {
-  //     auto layer = std::make_unique<TLayer>(std::forward<Args>(args)...);
-  //     return attachLayer(std::move(layer));
-  //   }
-
-  /**
-   * @brief 把界面层附着到引擎中,外部可派生layer来自定义界面逻辑，拥有权转入,外部构造后传入
-   * @see rendering/layer
-   *
-   * @param layer
-   * @return EngineResult<Layer*>
-   */
-  //   Result<void> attachLayer(std::unique_ptr<ILayer>&& layer) noexcept;
-
-  /**
-   * @brief 把界面层从引擎中拔下，拥有权转出
-   *
-   * @param layer
-   * @return EngineResult<std::unique_ptr<Layer>>
-   */
-  //   Result<std::unique_ptr<ILayer>> detachLayer(ILayer* layer) noexcept;
-
-  /**
    * @brief 开始运行
    *
    * @return EngineResult<void>
@@ -98,12 +53,10 @@ class Engine {
   GlobalAllocator mArena;
   // sub systems
   Platform mPlatform;
-  //   ResourceManager mResourceManager;
-  //   AssetManager mAssetManager;
-  //   SceneManager mSceneManager;
-  //   IBackend mBackend;
-  //   Renderer mRenderer;
-  // FIXME: need update for this
-  //   std::vector<std::unique_ptr<ILayer>> mLayers;
+  Backend mBackend;
+  ResourceManager mResourceManager;
+  AssetManager mAssetManager;
+  SceneManager mSceneManager;
+  Renderer mRenderer;
 };
 }  // namespace pd

@@ -10,7 +10,7 @@ namespace pd {
  */
 class Platform {
  public:
-  Platform(const PlatformConfig& config);
+  explicit Platform(const PlatformConfig& config);
   ~Platform();
   DELETE_COPY_MOVE(Platform);
 

@@ -34,12 +34,28 @@ target_sources(engine_lib
         include/pd/platform/platform.hpp
         include/pd/platform/fs/file_system.hpp
         include/pd/platform/fs/std_file_system.hpp
+        # backend
+        include/pd/backend/backend.hpp
+        # resource
+        include/pd/resource/resource_manager.hpp
+        # asset
+        include/pd/asset/asset_manager.hpp
+        # scene
+        include/pd/scene/scene_manager.hpp
+        # rendering
+        include/pd/rendering/renderer.hpp
     PRIVATE
         src/engine.cpp
         src/platform/fs/file_system.cpp
         src/platform/fs/std_file_system.cpp
+        src/platform/platform.cpp
+        src/resource/resource_manager.cpp
+        src/asset/asset_manager.cpp
+        src/scene/scene_manager.cpp
+        src/rendering/renderer.cpp
 )
 
+# platform
 if(WIN32)
  target_sources(engine_lib
     PRIVATE
@@ -50,11 +66,20 @@ endif()
 if(${PD2_WINDOW} STREQUAL "SDL3")
     target_sources(engine_lib
         PRIVATE
-        src/platform/ws/sdl3/window_system_sdl3.cpp
+            src/platform/ws/sdl3/window_system_sdl3.cpp
     )
     target_compile_definitions(engine_lib PRIVATE WINDOW_SDL3)
 endif()
 
+# backend
+
+if(${PD2_BACKEND} STREQUAL "VULKAN")
+target_sources(engine_lib
+    PRIVATE
+        src/backend/vulkan/backend_vulkan.cpp
+)
+target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)
+endif()
 
 
 target_include_directories(engine_lib

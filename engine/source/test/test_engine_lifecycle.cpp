@@ -22,4 +22,6 @@ TEST_CASE("test_engine_lifecycle", "engine") {
 
   //   auto runResult = engine->run();
   //   REQUIRE(runResult);
+  auto shutdownResult = engine.shutdown();
+  REQUIRE(shutdownResult);
 }

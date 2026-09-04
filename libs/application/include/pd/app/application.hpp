@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "pd/app/config.hpp"
 #include "pd/engine.hpp"
 
@@ -11,6 +9,7 @@ class Application {
  public:
   Application(AppConfig config);
   ~Application();
+
   Application(const Application& rhs) = delete;
   Application& operator=(const Application& rhs) = delete;
   Application(Application&& rhs) noexcept = delete;
@@ -19,11 +18,12 @@ class Application {
   template <typename T, typename... Args>
   void run(Args&&... args);
 
-  void close();
+  void stop();
 
  private:
   AppConfig mConfig;
   Engine mEngine;
+  bool mInitialized = false;
 
   void shutdown();
 };
@@ -34,10 +34,10 @@ inline void Application::run(Args&&... args) {
   auto engineInitRes = mEngine.initialize();
   PD_ASSERT_MSG(engineInitRes, "engine init failed");
   // 加载场景
-  mEngine.loadScene<T>(std::forward<Args>(args)...);
+  // mEngine.loadScene<T>(std::forward<Args>(args)...);
   // 开始渲染
-  auto engineRunRes = mEngine.run();
-  PD_ASSERT_MSG(engineRunRes, "engine run failed");
+  // auto engineRunRes = mEngine.run();
+  // PD_ASSERT_MSG(engineRunRes, "engine run failed");
 }
 }  // namespace app
 }  // namespace pd

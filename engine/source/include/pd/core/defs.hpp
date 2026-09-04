@@ -41,6 +41,13 @@ enum class WindowType : u8 {
   Unknown = u8_max,
 };
 
+enum class BackendApi : u8 {
+  Noop = 0,
+  Vulkan = 1,
+  D3D12 = 2,
+  Unknown = u8_max,
+};
+
 // containers
 // template <typename T>
 // using vector = std::pmr::vector<T>;

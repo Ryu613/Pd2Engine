@@ -114,25 +114,21 @@ group 构建
     Platform -> Platform: init InputSystem
     Engine <-- Platform: platform init finished
     Engine -> Backend++: new
-    Engine <-- Backend: backend construction(not init) finished
-    Engine -> ResourceManager++: init()
-    Engine -> AssetManager++: init()
-    Engine -> SceneManager++: init()
-    Engine -> Renderer++: new Renderer()
-    Engine <-- Renderer: renderer construction(not init) finished
+    Engine -> ResourceManager++: new
+    Engine -> AssetManager++: new
+    Engine -> SceneManager++: new
+    Engine -> Renderer++: new
     Application <-- Engine: engine construction finished
     User <-- Application: App construction finished
 end
 group 初始化
     User -> Application: init()
     Application -> Engine: init()
-    Engine -> Platform: open window
+    Engine -> Platform: new window
     Engine -> Backend: init()
+    Engine -> ResourceManager: init()
+    Engine -> AssetManager: init()
     Engine -> Renderer: init()
-    Renderer -> Renderer: init MaterialSystem
-    Renderer -> ResourceManager: register common rendering resources
-    Renderer -> Renderer: init render graph
-    Engine <-- Renderer: renderer init finished
     Application <-- Engine: engine init finished
     User <-- Application: app init finished
 end
@@ -292,5 +288,7 @@ end
 .. vulkan cookbook
 .. modern vulkan cookbook
 .. mastering graphics programming with vulkan
+.. howtovulkan.com by Sascha Willems
+.. vulkan samples by Sascha Willems
 
 还有许多参考资料，由于没有一一记录，此处略
