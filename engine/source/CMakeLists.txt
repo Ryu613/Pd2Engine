@@ -79,7 +79,21 @@ if(${PD2_BACKEND} STREQUAL "VULKAN")
 target_sources(engine_lib
     PRIVATE
         src/backend/vulkan/backend_vulkan.cpp
+        # vk1: vulkan framework
+        src/backend/vulkan/vk1_common.hpp
+        src/backend/vulkan/vk1_context.hpp
+        src/backend/vulkan/vk1_context.cpp
+        src/backend/vulkan/vk1_device.hpp
+        src/backend/vulkan/vk1_device.cpp
+        src/backend/vulkan/vk1_initializer.hpp
+        src/backend/vulkan/vk1_initializer.cpp
+        src/backend/vulkan/vk1_helper.hpp
+        src/backend/vulkan/vk1_swapchain.hpp
+        src/backend/vulkan/vk1_swapchain.cpp
+        src/backend/vulkan/vk1_buffer.hpp
+        src/backend/vulkan/vk1_image.hpp
 )
+
 target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)
 endif()
 

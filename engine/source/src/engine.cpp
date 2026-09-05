@@ -72,6 +72,9 @@ Result<void> Engine::initialize() noexcept {
   }
   BackendConfig backendCfg{
       .windowHandle = mPlatform.windowSystem().nativeWindowHandle(),
+      .width = mConfig.platform.window.width,
+      .height = mConfig.platform.window.height,
+      .enableDebug = mConfig.enableDebug,
   };
   if (auto res = mBackend.init(backendCfg); !res) {
     LOG_ERROR(res.error().msg);

@@ -15,10 +15,14 @@ struct PlatformConfig {
 };
 struct BackendConfig {
   void* windowHandle = nullptr;
+  u32 width = 1024;
+  u32 height = 768;
+  bool enableDebug = true;
 };
 struct EngineConfig {
   std::string appName = "default";
   bool enableDebug = global::enableDebug;
   PlatformConfig platform{};
+  BackendConfig backend{};
 };
 }  // namespace pd
