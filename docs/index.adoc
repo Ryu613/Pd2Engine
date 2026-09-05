@@ -3,10 +3,6 @@
 :toc-title: 目录
 :toclevels: 2
 
-====
-所有文档皆遵循简明扼要，通俗易懂的理念，均为手工编写
-====
-
 :leveloffset: +1
 
 include::architecture.adoc[]
