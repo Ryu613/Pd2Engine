@@ -18,5 +18,9 @@ class Renderer {
  private:
   SceneManager* mSceneManager = nullptr;
   Backend* mBackend = nullptr;
+
+  void beginFrame() noexcept;
+  void doFrame() noexcept;
+  void endFrame() noexcept;
 };
 }  // namespace pd
