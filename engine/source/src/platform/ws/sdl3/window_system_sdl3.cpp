@@ -74,25 +74,11 @@ WindowSystem::WindowSystem()
 
 WindowSystem::~WindowSystem() = default;
 
-Result<void> WindowSystem::init(const WindowConfig& config) noexcept {
-  if (auto res = mImpl->init(config); !res) {
-    return res;
-  }
-  return {};
-}
-Result<void> WindowSystem::destroy() noexcept {
-  if (auto res = mImpl->destroy(); !res) {
-    return res;
-  }
-  return {};
-}
+Result<void> WindowSystem::init(const WindowConfig& config) noexcept { return mImpl->init(config); }
 
-Result<void> WindowSystem::createWindow() noexcept {
-  if (auto res = mImpl->createWindow(); !res) {
-    return res;
-  }
-  return {};
-}
+Result<void> WindowSystem::destroy() noexcept { return mImpl->destroy(); }
+
+Result<void> WindowSystem::createWindow() noexcept { return mImpl->createWindow(); }
 
 void WindowSystem::processEvents() noexcept { mImpl->processEvents(); }
 

@@ -1,7 +1,6 @@
 #pragma once
 
 namespace pd {
-class IWindow;
 class Backend {
  public:
   Backend();

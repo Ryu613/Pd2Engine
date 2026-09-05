@@ -111,7 +111,6 @@ group 构建
     Engine -> Platform++: platform.init()
     Platform -> Platform: init FileSystem
     Platform -> Platform: init WindowSystem
-    Platform -> Platform: init InputSystem
     Engine <-- Platform: platform init finished
     Engine -> Backend++: new
     Engine -> ResourceManager++: new
@@ -140,7 +139,6 @@ group 运行
     AssetManager -> AssetManager: load file, convert file
     SceneManager <-- AssetManager: finished asset loading
     SceneManager -> ResourceManager: register assets
-    SceneManager <-- ResourceManager: finished resources register
     SceneManager -> SceneManager: build scene data 
     SceneManager -> ResourceManager: load resources
     ResourceManager -> Backend: load registered backend resources

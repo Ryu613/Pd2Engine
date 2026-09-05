@@ -16,7 +16,7 @@ struct FileStat {
 using Path = std::filesystem::path;
 
 /**
- * @brief 文件系统抽象，提供统一的接口进行文件的读写等操作，实现类可按平台扩展
+ * @brief 文件系统接口，可按平台和不同文件系统扩展
  *
  */
 class IFileSystem {

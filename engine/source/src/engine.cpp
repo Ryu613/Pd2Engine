@@ -15,40 +15,49 @@ Engine::Engine(EngineConfig config) noexcept
       mAssetManager(&mPlatform.fileSystem()),
       mSceneManager(&mResourceManager, &mAssetManager),
       mRenderer(&mSceneManager, &mBackend) {
-  LOG_INFO("Engine created!");
+  // init common services
+  log::init();
 
+  // init global services
   initContext(mArena);
 
+  // platform must be initialized before other sub systems
   auto platformInitRes = mPlatform.init();
   PD_ASSERT_MSG(platformInitRes, platformInitRes.error().msg.data());
 
   log::logo();
+  LOG_INFO("Engine created!");
 }
 
-Engine::~Engine() noexcept { shutdown(); }
+Engine::~Engine() noexcept {
+  if (auto res = shutdown(); !res) {
+    LOG_ERROR(res.error().msg);
+  }
+}
 
 Result<void> Engine::shutdown() noexcept {
   if (!mInitialized) {
     return {};
   }
   LOG_INFO("shutdown engine");
+
   if (auto res = mRenderer.destroy(); !res) {
-    PD_ASSERT(res.error().msg.data());
+    return res;
   }
   if (auto res = mSceneManager.destroy(); !res) {
-    PD_ASSERT(res.error().msg.data());
+    return res;
   }
   if (auto res = mResourceManager.destroy(); !res) {
-    PD_ASSERT(res.error().msg.data());
+    return res;
   }
   if (auto res = mAssetManager.destroy(); !res) {
-    PD_ASSERT(res.error().msg.data());
+    return res;
   }
   if (auto res = mBackend.destroy(); !res) {
-    PD_ASSERT(res.error().msg.data());
+    return res;
   }
   if (auto res = mPlatform.destroy(); !res) {
-    PD_ASSERT(res.error().msg.data());
+    return res;
   }
 
   global::destroyContext();
@@ -65,18 +74,23 @@ Result<void> Engine::initialize() noexcept {
       .windowHandle = mPlatform.windowSystem().nativeWindowHandle(),
   };
   if (auto res = mBackend.init(backendCfg); !res) {
+    LOG_ERROR(res.error().msg);
     return res;
   }
   if (auto res = mResourceManager.init(); !res) {
+    LOG_ERROR(res.error().msg);
     return res;
   }
   if (auto res = mAssetManager.init(); !res) {
+    LOG_ERROR(res.error().msg);
     return res;
   }
   if (auto res = mSceneManager.init(); !res) {
+    LOG_ERROR(res.error().msg);
     return res;
   }
   if (auto res = mRenderer.init(); !res) {
+    LOG_ERROR(res.error().msg);
     return res;
   }
   mInitialized = true;
@@ -104,6 +118,7 @@ void Engine::loop() noexcept {
 
 Result<void> Engine::stop() noexcept {
   if (auto res = mSceneManager.unloadScene(); !res) {
+    LOG_ERROR(res.error().msg);
     return res;
   }
   return {};
