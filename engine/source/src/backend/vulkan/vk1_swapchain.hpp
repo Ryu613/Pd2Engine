@@ -14,9 +14,8 @@ class Vk1Swapchain {
     std::vector<VkImageView> imageViews;
     std::vector<ImageState> imageStates;
     VkSemaphore presentSemaphore = VK_NULL_HANDLE;
-    // Track the swapchain image layout between frames so the next render pass knows the
-    // correct source state for its first barrier.
   };
+  explicit Vk1Swapchain(Vk1Device& device);
   ~Vk1Swapchain();
   Vk1Swapchain(const Vk1Swapchain&) = delete;
   Vk1Swapchain& operator=(const Vk1Swapchain&) = delete;
@@ -33,8 +32,6 @@ class Vk1Swapchain {
   void present(uint32_t imageIndex, VkSemaphore waitSemaphore);
 
  private:
-  friend class Vk1Device;
-  explicit Vk1Swapchain(Vk1Device& device);
   Info mInfo;
   Vk1Device* mpDevice = nullptr;
   VkSwapchainKHR mSwapchain = VK_NULL_HANDLE;

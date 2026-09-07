@@ -75,7 +75,7 @@ void Vk1Device::init() {
       .physicalDevice = mPhysicalDevice,
       .device = mDevice,
       .pVulkanFunctions = &vkFunctions,
-      .instance = mContext.mInstance,
+      .instance = mContext.getInstance(),
   };
   checkResult(vmaCreateAllocator(&allocatorCI, &mAllocator));
   assert(mAllocator);
@@ -121,14 +121,14 @@ void Vk1Device::createSurface(void* nativeWindowHandle) {
       .hinstance = GetModuleHandle(0),
       .hwnd = (HWND)nativeWindowHandle,
   };
-  vkCreateWin32SurfaceKHR(mContext.mInstance, &createInfo, nullptr, &mSurface);
+  vkCreateWin32SurfaceKHR(mContext.getInstance(), &createInfo, nullptr, &mSurface);
   assert(mSurface);
 #endif
 }
 
 void Vk1Device::destroySurface() {
   if (mSurface) {
-    vkDestroySurfaceKHR(mContext.mInstance, mSurface, 0);
+    vkDestroySurfaceKHR(mContext.getInstance(), mSurface, 0);
   }
   mSurface = 0;
 }
@@ -175,7 +175,7 @@ void Vk1Device::destroyFence(VkFence fence) {
 VkCommandPool Vk1Device::createCommandPool() {
   VkCommandPoolCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      // .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = mGraphicsQueueFamilyIndex,
   };
   VkCommandPool commandPool = 0;

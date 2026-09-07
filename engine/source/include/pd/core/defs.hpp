@@ -48,7 +48,8 @@ enum class BackendApi : u8 {
   Unknown = u8_max,
 };
 
-// containers
-// template <typename T>
-// using vector = std::pmr::vector<T>;
+enum class InFlightFrame : u8 {
+  Double = 2,
+  Triple = 3,
+};
 }  // namespace pd

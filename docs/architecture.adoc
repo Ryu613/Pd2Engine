@@ -288,5 +288,6 @@ end
 .. mastering graphics programming with vulkan
 .. howtovulkan.com by Sascha Willems
 .. vulkan samples by Sascha Willems
+.. siggraph 2026 - vk tutorial
 
 还有许多参考资料，由于没有一一记录，此处略

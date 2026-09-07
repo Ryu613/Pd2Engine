@@ -4,6 +4,7 @@
 #include "vk1_swapchain.hpp"
 #include "vk1_buffer.hpp"
 #include "vk1_image.hpp"
+#include "vk1_helper.hpp"
 
 namespace vk1 {
 class Vk1Device {
@@ -91,6 +92,21 @@ class Vk1Device {
   void present(uint32_t imageIndex, VkSemaphore waitSemaphore);
 
   void waitIdle() { vkDeviceWaitIdle(mDevice); }
+
+  template <typename T>
+  void setDebugName(T handle, VkObjectType objType, const std::string& name) const {
+    if (!mContext.getConfig().enableDebug) {
+      return;
+    }
+    const VkDebugUtilsObjectNameInfoEXT nameInfo{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+        .objectType = objType,
+        .objectHandle = helper::rawHandleToUint64(handle),
+        .pObjectName = name.c_str(),
+    };
+    auto result = vkSetDebugUtilsObjectNameEXT(mDevice, &nameInfo);
+    // checkResult();
+  }
 
  private:
   Vk1Context mContext;

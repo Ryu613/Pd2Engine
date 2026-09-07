@@ -92,6 +92,8 @@ target_sources(engine_lib
         src/backend/vulkan/vk1_swapchain.cpp
         src/backend/vulkan/vk1_buffer.hpp
         src/backend/vulkan/vk1_image.hpp
+        src/backend/vulkan/manager/frame_manager.hpp
+        src/backend/vulkan/manager/frame_manager.cpp
 )
 
 target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)

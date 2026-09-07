@@ -6,8 +6,11 @@
 namespace vk1 {
 Vk1Device Vk1Initializer::Builder::build() {
   volkInitialize();
-  Vk1Context ctx;
+  Vk1Context ctx(mConfig);
   volkLoadInstance(ctx.getInstance());
+  if (mConfig.enableDebug) {
+    ctx.setDebugUtilsMessenger();
+  }
   Vk1Device device(std::move(ctx));
   volkLoadDevice(device.getDevice());
   return device;

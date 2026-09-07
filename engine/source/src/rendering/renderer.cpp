@@ -10,12 +10,10 @@ Renderer::~Renderer() {}
 Result<void> Renderer::init() noexcept {
   // 1. init backend frames
   // 3. init render graph
-  // 4. create swapchain
   return {};
 }
 
 Result<void> Renderer::destroy() noexcept {
-  // 1. destroy swapchain
   // 2. destroy render graph
   // 3. destroy in-frame data
   // 4. destroy frame context

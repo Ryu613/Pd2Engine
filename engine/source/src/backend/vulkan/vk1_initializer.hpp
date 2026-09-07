@@ -10,11 +10,11 @@ class Vk1Initializer {
   class Builder {
    public:
     Builder& enableLayers(std::span<const char*> layerNames) {
-      mConfig.mLayers.assign(layerNames.begin(), layerNames.end());
+      mConfig.instanceLayers.assign(layerNames.begin(), layerNames.end());
       return *this;
     }
     Builder& enableExtensions(std::span<const char*> extNames) {
-      mConfig.mExts.assign(extNames.begin(), extNames.end());
+      mConfig.instanceExtensions.assign(extNames.begin(), extNames.end());
       return *this;
     }
     Builder& enableDebug(bool flag = true) {
@@ -28,12 +28,6 @@ class Vk1Initializer {
     Vk1Device build();
 
    private:
-    struct Config {
-      std::vector<const char*> mLayers;
-      std::vector<const char*> mExts;
-      bool enableSurface = false;
-      bool enableDebug = false;
-    };
     Config mConfig;
   };
 

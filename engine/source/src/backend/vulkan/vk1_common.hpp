@@ -9,12 +9,20 @@
 namespace vk1 {
 namespace global {
 inline constexpr uint32_t invalidIndex = UINT32_MAX;
-}
+inline constexpr size_t maxInflightFrames = 2;
+}  // namespace global
 
 struct ImageState {
   VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
   VkPipelineStageFlags2 pipelineStageMask = VK_PIPELINE_STAGE_2_NONE;
   VkAccessFlags2 accessMask = VK_ACCESS_2_NONE;
   VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+};
+
+struct Config {
+  std::vector<const char*> instanceLayers;
+  std::vector<const char*> instanceExtensions;
+  bool enableSurface = false;
+  bool enableDebug = false;
 };
 }  // namespace vk1
