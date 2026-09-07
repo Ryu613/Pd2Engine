@@ -39,7 +39,7 @@ class Vk1Device {
   void createSwapchain(void* nativeWindowHandle, uint32_t width, uint32_t height);
   void destroySwapchain();
 
-  Vk1Swapchain::Info getSwapchainInfo() const noexcept { return mSwapchain.getInfo(); }
+  const Vk1Swapchain::Info& getSwapchainInfo() const noexcept { return mSwapchain.getInfo(); }
 
   VkSemaphore createSemaphore();
   void destroySemaphore(VkSemaphore semaphore);

@@ -13,7 +13,7 @@ class Vk1Swapchain {
     std::vector<VkImage> images;
     std::vector<VkImageView> imageViews;
     std::vector<ImageState> imageStates;
-    VkSemaphore presentSemaphore = VK_NULL_HANDLE;
+    std::vector<VkSemaphore> presentSemaphores;
   };
   explicit Vk1Swapchain(Vk1Device& device);
   ~Vk1Swapchain();

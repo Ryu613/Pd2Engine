@@ -1,6 +1,10 @@
 #pragma once
 
 namespace pd {
+struct FrameData {
+  uint32_t swapchainImageIndex = u32_max;
+};
+
 class Backend {
  public:
   Backend();
@@ -11,6 +15,10 @@ class Backend {
   Result<void> destroy() noexcept;
 
   [[nodiscard]] BackendApi backendApi() const noexcept;
+
+  FrameData beginFrame() noexcept;
+
+  void endFrame(const FrameData& frameData) noexcept;
 
  private:
   class Impl;

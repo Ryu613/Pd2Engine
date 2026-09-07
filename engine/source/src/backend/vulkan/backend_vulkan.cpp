@@ -40,6 +40,20 @@ class Backend::Impl {
     return {};
   }
 
+  FrameData beginFrame() noexcept {
+    auto frameData = mFrameManager.beginFrame();
+    return {
+        .swapchainImageIndex = frameData.swapchainImageIndex,
+    };
+  }
+
+  void endFrame(const FrameData& frameData) noexcept {
+    vk1::FrameData vk1FrameData{
+        .swapchainImageIndex = frameData.swapchainImageIndex,
+    };
+    mFrameManager.endFrame(vk1FrameData);
+  }
+
  private:
   BackendConfig mConfig{};
   vk1::Vk1Device mVulkanDevice;
@@ -54,4 +68,8 @@ Backend::~Backend() = default;
 Result<void> Backend::init(const BackendConfig& config) noexcept { return mImpl->init(config); }
 
 Result<void> Backend::destroy() noexcept { return mImpl->destroy(); }
+
+FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
+
+void Backend::endFrame(const FrameData& frameData) noexcept { mImpl->endFrame(frameData); }
 }  // namespace pd

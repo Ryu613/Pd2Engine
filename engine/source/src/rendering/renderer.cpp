@@ -21,28 +21,30 @@ Result<void> Renderer::destroy() noexcept {
 }
 
 void Renderer::renderFrame() noexcept {
-  beginFrame();
-  doFrame();
-  endFrame();
+  auto FrameData = beginFrame();
+  doFrame(FrameData);
+  endFrame(FrameData);
 }
 
-void Renderer::beginFrame() noexcept {
-  // 1. get current frame
+FrameData Renderer::beginFrame() noexcept {
+  // 1. begin new frame
+  return mBackend->beginFrame();
   // 1. acquire backend next frame
   // 1.1 recreate swapchain if needed
 }
 
-void Renderer::doFrame() noexcept {
+void Renderer::doFrame(FrameData& data) noexcept {
   // 1. create render graph
   // 1.1 add render pass
   // 1.2 compile render graph
   // 1.3 execute render graph
 }
 
-void Renderer::endFrame() noexcept {
+void Renderer::endFrame(FrameData& data) noexcept {
   // 1. submit commands
   // 2. present frame
   // 3. end frame
+  mBackend->endFrame(data);
   // 4. update frame data
 }
 }  // namespace pd

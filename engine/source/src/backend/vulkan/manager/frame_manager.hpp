@@ -6,7 +6,9 @@
 #include <array>
 
 namespace vk1 {
-
+struct FrameData {
+  uint32_t swapchainImageIndex = global::invalidIndex;
+};
 template <size_t FrameCount>
 class FrameManager {
  public:
@@ -21,6 +23,9 @@ class FrameManager {
 
   void init() noexcept;
   void destroy() noexcept;
+
+  FrameData beginFrame() noexcept;
+  void endFrame(const FrameData& frameData) noexcept;
 
  private:
   struct Frame {
@@ -38,7 +43,7 @@ class FrameManager {
           .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
           .commandBufferCount = 1,
       };
-      checkResult(vkAllocateCommandBuffers(pDevice->getDevice(), &allocInfo, &frameMainCmdBuffer));
+      checkResult(vkAllocateCommandBuffers(pDevice->getDevice(), &allocInfo, &mainCmdBuffer));
 
       // create depth image
       auto [width, height] = pDevice->getSwapchainInfo().extent;
@@ -56,6 +61,8 @@ class FrameManager {
                               std::format("acquireImageSemaphore[{}]", frameIndex));
         pDevice->setDebugName(cmdPool, VK_OBJECT_TYPE_COMMAND_POOL,
                               std::format("frameCmdPool[{}]", frameIndex));
+        pDevice->setDebugName(mainCmdBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER,
+                              std::format("frameCmdBuffer[{}]", frameIndex));
         pDevice->setDebugName(depthImage.image, VK_OBJECT_TYPE_IMAGE,
                               std::format("depthImage[{}]", frameIndex));
         pDevice->setDebugName(depthImageView.imageView, VK_OBJECT_TYPE_IMAGE_VIEW,
@@ -76,7 +83,7 @@ class FrameManager {
     VkFence frameFence = VK_NULL_HANDLE;
     VkSemaphore acquireImageSemaphore = VK_NULL_HANDLE;
     VkCommandPool cmdPool = VK_NULL_HANDLE;
-    VkCommandBuffer frameMainCmdBuffer = VK_NULL_HANDLE;
+    VkCommandBuffer mainCmdBuffer = VK_NULL_HANDLE;
     Vk1Image depthImage{};
     Vk1ImageView depthImageView{};
   };
@@ -98,6 +105,69 @@ inline void FrameManager<FrameCount>::destroy() noexcept {
   for (auto& frame : mFrames) {
     frame.destroy();
   }
+}
+
+template <size_t FrameCount>
+inline FrameData FrameManager<FrameCount>::beginFrame() noexcept {
+  auto& currentFrame = mFrames[mCurrentFrameIndex];
+  auto vkDevice = mDevice->getDevice();
+
+  mDevice->waitFences(currentFrame.frameFence);
+  uint32_t imageIndex = mDevice->acquireNextImage(currentFrame.acquireImageSemaphore);
+  vkResetCommandPool(vkDevice, currentFrame.cmdPool, 0);
+
+  VkCommandBufferBeginInfo cmdBufferBeginInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+  };
+  vkBeginCommandBuffer(currentFrame.mainCmdBuffer, &cmdBufferBeginInfo);
+
+  return {
+      .swapchainImageIndex = imageIndex,
+  };
+}
+
+template <size_t FrameCount>
+inline void FrameManager<FrameCount>::endFrame(const FrameData& frameData) noexcept {
+  auto& currentFrame = mFrames[mCurrentFrameIndex];
+
+  vkEndCommandBuffer(currentFrame.mainCmdBuffer);
+
+  // submit commands
+  {
+    auto vkQueue = mDevice->getQueue();
+    auto& swapchainInfo = mDevice->getSwapchainInfo();
+    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    const std::array commandBufferInfos = {VkCommandBufferSubmitInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+        .commandBuffer = currentFrame.mainCmdBuffer,
+    }};
+    const std::array waitInfos = {VkSemaphoreSubmitInfo{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+        .semaphore = currentFrame.acquireImageSemaphore,
+        .stageMask = waitFlags,
+    }};
+    const std::array signalInfos = {VkSemaphoreSubmitInfo{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+        .semaphore = swapchainInfo.presentSemaphores[frameData.swapchainImageIndex],
+        .stageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+    }};
+    const VkSubmitInfo2 submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+        .waitSemaphoreInfoCount = waitInfos.size(),
+        .pWaitSemaphoreInfos = waitInfos.data(),
+        .commandBufferInfoCount = commandBufferInfos.size(),
+        .pCommandBufferInfos = commandBufferInfos.data(),
+        .signalSemaphoreInfoCount = signalInfos.size(),
+        .pSignalSemaphoreInfos = signalInfos.data(),
+    };
+    mDevice->resetFences(currentFrame.frameFence);
+    vkQueueSubmit2(vkQueue, 1, &submitInfo, currentFrame.frameFence);
+  }
+
+  mDevice->present(frameData.swapchainImageIndex, currentFrame.acquireImageSemaphore);
+
+  mCurrentFrameIndex = (mCurrentFrameIndex + 1) % global::maxInflightFrames;
 }
 
 }  // namespace vk1

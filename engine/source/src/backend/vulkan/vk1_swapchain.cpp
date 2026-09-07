@@ -47,6 +47,7 @@ void Vk1Swapchain::create(VkSurfaceKHR surface, uint32_t queueFamilyIndex, uint3
   // create swapchain image views
   mInfo.imageViews.resize(mInfo.images.size());
   mInfo.imageStates.resize(mInfo.images.size());
+  mInfo.presentSemaphores.resize(mInfo.images.size());
   auto subResourceRange = helper::createImageSubresourceRange();
   for (size_t i = 0; i < mInfo.images.size(); ++i) {
     mInfo.imageViews[i] =
@@ -55,6 +56,9 @@ void Vk1Swapchain::create(VkSurfaceKHR surface, uint32_t queueFamilyIndex, uint3
     mInfo.imageStates[i] = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
     };
+    // create present semaphore
+    mInfo.presentSemaphores[i] = mpDevice->createSemaphore();
+    assert(mInfo.presentSemaphores[i]);
   }
 }
 
@@ -62,12 +66,20 @@ void Vk1Swapchain::destroy() {
   if (!mSwapchain) {
     return;
   }
-  if (!mInfo.imageViews.empty()) {
-    for (auto imageView : mInfo.imageViews) {
-      vkDestroyImageView(mpDevice->getDevice(), imageView, 0);
+  auto vkDevice = mpDevice->getDevice();
+  vkDeviceWaitIdle(vkDevice);
+
+  if (!mInfo.presentSemaphores.empty()) {
+    for (auto presentSemaphore : mInfo.presentSemaphores) {
+      mpDevice->destroySemaphore(presentSemaphore);
     }
   }
-  vkDestroySwapchainKHR(mpDevice->getDevice(), mSwapchain, 0);
+  if (!mInfo.imageViews.empty()) {
+    for (auto imageView : mInfo.imageViews) {
+      vkDestroyImageView(vkDevice, imageView, 0);
+    }
+  }
+  vkDestroySwapchainKHR(vkDevice, mSwapchain, 0);
   mInfo = {};
 }
 
@@ -85,6 +97,6 @@ void Vk1Swapchain::present(uint32_t imageIndex, VkSemaphore waitSemaphore) {
       .pSwapchains = &mSwapchain,
       .pImageIndices = &imageIndex,
   };
-  vkQueuePresentKHR(mpDevice->getQueue(), &presentInfo);
+  checkResult(vkQueuePresentKHR(mpDevice->getQueue(), &presentInfo));
 }
 }  // namespace vk1
