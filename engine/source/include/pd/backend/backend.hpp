@@ -1,8 +1,12 @@
 #pragma once
 
+#include "pd/backend/cmd_recorder.hpp"
+
 namespace pd {
+
 struct FrameData {
   uint32_t swapchainImageIndex = u32_max;
+  CommandRecorder cmdRecorder;
 };
 
 class Backend {

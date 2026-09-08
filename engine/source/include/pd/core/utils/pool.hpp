@@ -131,7 +131,7 @@ class Pool {
 };
 
 template <typename T, typename H>
-void Pool<T, H>::growCapacity() noexcept {
+inline void Pool<T, H>::growCapacity() noexcept {
   mCapacity *= 2;
   PD_ASSERT(mCapacity < UINT32_MAX && mCapacity > 0);
   mData.reserve(mCapacity);

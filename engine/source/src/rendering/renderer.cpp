@@ -21,19 +21,21 @@ Result<void> Renderer::destroy() noexcept {
 }
 
 void Renderer::renderFrame() noexcept {
-  auto FrameData = beginFrame();
-  doFrame(FrameData);
-  endFrame(FrameData);
+  auto frameData = beginFrame();
+  doFrame(frameData);
+  endFrame(frameData);
 }
 
 FrameData Renderer::beginFrame() noexcept {
   // 1. begin new frame
   return mBackend->beginFrame();
-  // 1. acquire backend next frame
-  // 1.1 recreate swapchain if needed
 }
 
 void Renderer::doFrame(FrameData& data) noexcept {
+  auto& recorder = data.cmdRecorder;
+  recorder.recordCmd(DrawCmdArgs{
+      .vertexCount = 1,
+  });
   // 1. create render graph
   // 1.1 add render pass
   // 1.2 compile render graph
@@ -42,9 +44,8 @@ void Renderer::doFrame(FrameData& data) noexcept {
 
 void Renderer::endFrame(FrameData& data) noexcept {
   // 1. submit commands
-  // 2. present frame
-  // 3. end frame
+  data.cmdRecorder.submit();
+  // 2. end frame
   mBackend->endFrame(data);
-  // 4. update frame data
 }
 }  // namespace pd
