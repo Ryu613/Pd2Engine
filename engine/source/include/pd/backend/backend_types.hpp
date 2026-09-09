@@ -47,8 +47,6 @@ struct ClearColorImageArgs {
 
 struct CommandPayload {
   CmdType type;
-  u32 frameIndex = u32_max;
-  u32 imageIndex = u32_max;
   std::array<u64, 10> args;
 };
 struct FrameData {

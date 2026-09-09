@@ -48,12 +48,12 @@ class Backend::Impl {
     };
   }
 
-  void endFrame(const CommandRecorder& recorder, const FrameData& frameData) noexcept {
+  void endFrame(const CommandRecorder& recorder) noexcept {
     vk1::FrameData vk1FrameData{
-        .frameIndex = frameData.frameIndex,
-        .swapchainImageIndex = frameData.swapchainImageIndex,
+        .frameIndex = recorder.getInfo().frameIndex,
+        .swapchainImageIndex = recorder.getInfo().swapchainImageIndex,
     };
-    mFrameManager.endFrame(recorder, vk1FrameData);
+    mFrameManager.endFrame(recorder);
   }
 
  private:
@@ -73,7 +73,7 @@ Result<void> Backend::destroy() noexcept { return mImpl->destroy(); }
 
 pd::FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
 
-void Backend::endFrame(const CommandRecorder& recorder, const FrameData& frameData) noexcept {
-  mImpl->endFrame(recorder, frameData);
+void Backend::endFrame(const CommandRecorder& recorder) noexcept {
+  mImpl->endFrame(recorder);
 }
 }  // namespace pd

@@ -84,9 +84,9 @@ FrameData FrameManager::beginFrame() noexcept {
   };
 }
 
-void FrameManager::endFrame(const pd::CommandRecorder recorder,
-                            const FrameData& frameData) noexcept {
-  auto& frame = mFrames[frameData.frameIndex];
+void FrameManager::endFrame(const pd::CommandRecorder recorder) noexcept {
+  auto [frameIndex, imageIndex] = recorder.getInfo();
+  auto& frame = mFrames[frameIndex];
 
   replayCommands(recorder);
 
@@ -108,7 +108,7 @@ void FrameManager::endFrame(const pd::CommandRecorder recorder,
     }};
     const std::array signalInfos = {VkSemaphoreSubmitInfo{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-        .semaphore = swapchainInfo.presentSemaphores[frameData.swapchainImageIndex],
+        .semaphore = swapchainInfo.presentSemaphores[imageIndex],
         .stageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
     }};
     const VkSubmitInfo2 submitInfo{
@@ -124,32 +124,34 @@ void FrameManager::endFrame(const pd::CommandRecorder recorder,
     vkQueueSubmit2(vkQueue, 1, &submitInfo, frame.frameFence);
   }
 
-  mDevice->present(frameData.swapchainImageIndex, frame.acquireImageSemaphore);
+  mDevice->present(imageIndex, frame.acquireImageSemaphore);
 
-  advanceFrameIndex(frameData.frameIndex);
+  advanceFrameIndex(frameIndex);
 }
 
 void FrameManager::replayCommands(const pd::CommandRecorder& recorder) noexcept {
   auto commands = recorder.getCommands();
+  auto [frameIndex, imageIndex] = recorder.getInfo();
   for (auto& cmd : commands) {
-    replayCmd(cmd);
+    replayCmd(cmd, frameIndex, imageIndex);
   }
 }
 
-void FrameManager::replayCmd(const pd::CommandPayload& payload) noexcept {
+void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIndex,
+                             uint32_t imageIndex) noexcept {
   auto& swapchainInfo = mDevice->getSwapchainInfo();
   switch (payload.type) {
     using enum pd::CmdType;
     case BeginRendering: {
       const auto* args = reinterpret_cast<const pd::BeginRenderingArgs*>(&payload.args[0]);
-      auto& frame = mFrames[payload.frameIndex];
+      auto& frame = mFrames[frameIndex];
       VkClearValue clearValue{};
       clearValue.color = {36.0f / 255.0f, 10.0f / 255.0f, 48.0f / 255.0f};
       VkClearValue depthClearValue{};
       depthClearValue.depthStencil.depth = 1.0F;
       std::array colorAtts = {VkRenderingAttachmentInfo{
           .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-          .imageView = swapchainInfo.imageViews[payload.imageIndex],
+          .imageView = swapchainInfo.imageViews[imageIndex],
           .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
           .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
           .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -180,7 +182,7 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload) noexcept {
     }
     case SetViewport: {
       const auto* args = reinterpret_cast<const pd::SetViewportArgs*>(&payload.args[0]);
-      auto& frame = mFrames[payload.frameIndex];
+      auto& frame = mFrames[frameIndex];
       VkViewport viewport{
           .x = 0.f,
           .y = static_cast<float>(swapchainInfo.extent.height),
@@ -194,7 +196,7 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload) noexcept {
     }
     case SetScissor: {
       const auto* args = reinterpret_cast<const pd::SetScissorArgs*>(&payload.args[0]);
-      auto& frame = mFrames[payload.frameIndex];
+      auto& frame = mFrames[frameIndex];
       VkRect2D scissor{};
       scissor.extent.height = static_cast<float>(swapchainInfo.extent.height);
       scissor.extent.width = static_cast<float>(swapchainInfo.extent.width);
@@ -203,18 +205,18 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload) noexcept {
     }
     case BindPipeline: {
       const auto* args = reinterpret_cast<const pd::SetScissorArgs*>(&payload.args[0]);
-      auto& frame = mFrames[payload.frameIndex];
+      auto& frame = mFrames[frameIndex];
       break;
     }
     case EndRendering: {
       const auto* args = reinterpret_cast<const pd::EndRenderingArgs*>(&payload.args[0]);
-      auto& frame = mFrames[payload.frameIndex];
+      auto& frame = mFrames[frameIndex];
       vkCmdEndRendering(frame.mainCmdBuffer);
       break;
     }
     case ClearColorImage: {
       const auto* args = reinterpret_cast<const pd::EndRenderingArgs*>(&payload.args[0]);
-      auto& frame = mFrames[payload.frameIndex];
+      auto& frame = mFrames[frameIndex];
       VkClearColorValue color{
           .float32 = {1.f, 0.f, 1.f, 1.f},
       };
@@ -223,7 +225,7 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload) noexcept {
           .levelCount = 1,
           .layerCount = 1,
       };
-      vkCmdClearColorImage(frame.mainCmdBuffer, swapchainInfo.images[payload.imageIndex],
+      vkCmdClearColorImage(frame.mainCmdBuffer, swapchainInfo.images[frameIndex],
                            VK_IMAGE_LAYOUT_GENERAL, &color, 1, &subResourceRange);
       break;
     }

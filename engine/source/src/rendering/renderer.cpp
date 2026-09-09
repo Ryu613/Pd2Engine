@@ -31,20 +31,21 @@ Renderer::FrameContext Renderer::beginFrame() noexcept {
   FrameContext ctx{
       .data = frameData,
   };
+  ctx.cmdRecorder.setInfo(frameData.frameIndex, frameData.swapchainImageIndex);
   return ctx;
 }
 
 void Renderer::doFrame(Renderer::FrameContext& ctx) noexcept {
   auto& recorder = ctx.cmdRecorder;
-  recorder.recordCmd(ctx.data, BeginRenderingArgs{});
-  recorder.recordCmd(ctx.data, SetViewportArgs{});
-  recorder.recordCmd(ctx.data, SetScissorArgs{});
-  recorder.recordCmd(ctx.data, BindPipelineArgs{});
-  recorder.recordCmd(ctx.data, EndRenderingArgs{});
+  recorder.addCmd(BeginRenderingArgs{});
+  recorder.addCmd(SetViewportArgs{});
+  recorder.addCmd(SetScissorArgs{});
+  recorder.addCmd(BindPipelineArgs{});
+  recorder.addCmd(EndRenderingArgs{});
 }
 
 void Renderer::endFrame(Renderer::FrameContext& ctx) noexcept {
   // 2. end frame
-  mBackend->endFrame(ctx.cmdRecorder, ctx.data);
+  mBackend->endFrame(ctx.cmdRecorder);
 }
 }  // namespace pd

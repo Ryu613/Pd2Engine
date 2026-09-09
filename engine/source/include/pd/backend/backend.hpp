@@ -18,7 +18,7 @@ class Backend {
 
   FrameData beginFrame() noexcept;
 
-  void endFrame(const CommandRecorder& cmdRecorder, const FrameData& frameData) noexcept;
+  void endFrame(const CommandRecorder& cmdRecorder) noexcept;
 
  private:
   class Impl;

@@ -9,15 +9,17 @@ concept CmdArgsRequire =
     (sizeof(T) <= sizeof(CommandPayload::args));  // 2. 大小不能超过 80 字节(sizeof(u64) * 10)
 class CommandRecorder {
  public:
+  struct Info {
+    u32 frameIndex = u32_max;
+    u32 swapchainImageIndex = u32_max;
+  };
   CommandRecorder() { mCmds.reserve(4096); }
   ~CommandRecorder() = default;
 
   template <CmdArgsRequire CmdArgs>
-  void recordCmd(const FrameData& frameData, const CmdArgs& cmdArgs) {
+  void addCmd(const CmdArgs& cmdArgs) {
     CommandPayload payload{
         .type = CmdArgs::type,
-        .frameIndex = frameData.frameIndex,
-        .imageIndex = frameData.swapchainImageIndex,
     };
 
     std::memcpy(&payload.args[0], &cmdArgs, sizeof(CmdArgs));
@@ -25,11 +27,19 @@ class CommandRecorder {
     mCmds.push_back(payload);
   }
 
-  void reset() { mCmds.clear(); }
+  void clear() { mCmds.clear(); }
 
   const auto& getCommands() const noexcept { return mCmds; }
 
+  void setInfo(u32 frameIndex, u32 swapchainIndex) noexcept {
+    mInfo.frameIndex = frameIndex;
+    mInfo.swapchainImageIndex = swapchainIndex;
+  }
+
+  const Info& getInfo() const noexcept { return mInfo; }
+
  private:
+  Info mInfo;
   std::vector<CommandPayload> mCmds;
 };
 }  // namespace pd

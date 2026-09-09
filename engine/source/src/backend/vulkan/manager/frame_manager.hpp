@@ -29,7 +29,7 @@ class FrameManager {
   void destroy() noexcept;
 
   FrameData beginFrame() noexcept;
-  void endFrame(const pd::CommandRecorder recorder, const FrameData& frameData) noexcept;
+  void endFrame(const pd::CommandRecorder recorder) noexcept;
 
  private:
   struct Frame {
@@ -54,7 +54,7 @@ class FrameManager {
   size_t mCurrentFrameIndex = 0;
 
   void replayCommands(const pd::CommandRecorder& recorder) noexcept;
-  void replayCmd(const pd::CommandPayload& payload) noexcept;
+  void replayCmd(const pd::CommandPayload& payload, uint32_t frameIndex, uint32_t imageIndex) noexcept;
   void advanceFrameIndex(uint32_t currentFrameIndex) noexcept;
 };
 
