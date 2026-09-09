@@ -16,11 +16,16 @@ class Renderer {
   void renderFrame() noexcept;
 
  private:
+  struct FrameContext {
+    FrameData data;
+    CommandRecorder cmdRecorder;
+  };
+
   SceneManager* mSceneManager = nullptr;
   Backend* mBackend = nullptr;
 
-  FrameData beginFrame() noexcept;
-  void doFrame(FrameData& data) noexcept;
-  void endFrame(FrameData& data) noexcept;
+  FrameContext beginFrame() noexcept;
+  void doFrame(FrameContext& data) noexcept;
+  void endFrame(FrameContext& data) noexcept;
 };
 }  // namespace pd

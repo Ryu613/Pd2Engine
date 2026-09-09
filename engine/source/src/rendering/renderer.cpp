@@ -21,31 +21,30 @@ Result<void> Renderer::destroy() noexcept {
 }
 
 void Renderer::renderFrame() noexcept {
-  auto frameData = beginFrame();
-  doFrame(frameData);
-  endFrame(frameData);
+  auto ctx = beginFrame();
+  doFrame(ctx);
+  endFrame(ctx);
 }
 
-FrameData Renderer::beginFrame() noexcept {
-  // 1. begin new frame
-  return mBackend->beginFrame();
+Renderer::FrameContext Renderer::beginFrame() noexcept {
+  auto frameData = mBackend->beginFrame();
+  FrameContext ctx{
+      .data = frameData,
+  };
+  return ctx;
 }
 
-void Renderer::doFrame(FrameData& data) noexcept {
-  auto& recorder = data.cmdRecorder;
-  recorder.recordCmd(DrawCmdArgs{
-      .vertexCount = 1,
-  });
-  // 1. create render graph
-  // 1.1 add render pass
-  // 1.2 compile render graph
-  // 1.3 execute render graph
+void Renderer::doFrame(Renderer::FrameContext& ctx) noexcept {
+  auto& recorder = ctx.cmdRecorder;
+  recorder.recordCmd(ctx.data, BeginRenderingArgs{});
+  recorder.recordCmd(ctx.data, SetViewportArgs{});
+  recorder.recordCmd(ctx.data, SetScissorArgs{});
+  recorder.recordCmd(ctx.data, BindPipelineArgs{});
+  recorder.recordCmd(ctx.data, EndRenderingArgs{});
 }
 
-void Renderer::endFrame(FrameData& data) noexcept {
-  // 1. submit commands
-  data.cmdRecorder.submit();
+void Renderer::endFrame(Renderer::FrameContext& ctx) noexcept {
   // 2. end frame
-  mBackend->endFrame(data);
+  mBackend->endFrame(ctx.cmdRecorder, ctx.data);
 }
 }  // namespace pd

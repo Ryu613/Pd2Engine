@@ -40,24 +40,26 @@ class Backend::Impl {
     return {};
   }
 
-  FrameData beginFrame() noexcept {
+  pd::FrameData beginFrame() noexcept {
     auto frameData = mFrameManager.beginFrame();
     return {
+        .frameIndex = frameData.frameIndex,
         .swapchainImageIndex = frameData.swapchainImageIndex,
     };
   }
 
-  void endFrame(const FrameData& frameData) noexcept {
+  void endFrame(const CommandRecorder& recorder, const FrameData& frameData) noexcept {
     vk1::FrameData vk1FrameData{
+        .frameIndex = frameData.frameIndex,
         .swapchainImageIndex = frameData.swapchainImageIndex,
     };
-    mFrameManager.endFrame(vk1FrameData);
+    mFrameManager.endFrame(recorder, vk1FrameData);
   }
 
  private:
   BackendConfig mConfig{};
   vk1::Vk1Device mVulkanDevice;
-  vk1::FrameManager<vk1::global::maxInflightFrames> mFrameManager;
+  vk1::FrameManager mFrameManager;
 };
 
 Backend::Backend()
@@ -69,7 +71,9 @@ Result<void> Backend::init(const BackendConfig& config) noexcept { return mImpl-
 
 Result<void> Backend::destroy() noexcept { return mImpl->destroy(); }
 
-FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
+pd::FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
 
-void Backend::endFrame(const FrameData& frameData) noexcept { mImpl->endFrame(frameData); }
+void Backend::endFrame(const CommandRecorder& recorder, const FrameData& frameData) noexcept {
+  mImpl->endFrame(recorder, frameData);
+}
 }  // namespace pd

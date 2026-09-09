@@ -1,13 +1,9 @@
 #pragma once
 
-#include "pd/backend/cmd_recorder.hpp"
+#include "pd/backend/command_recorder.hpp"
+#include "pd/backend/backend_types.hpp"
 
 namespace pd {
-
-struct FrameData {
-  uint32_t swapchainImageIndex = u32_max;
-  CommandRecorder cmdRecorder;
-};
 
 class Backend {
  public:
@@ -22,7 +18,7 @@ class Backend {
 
   FrameData beginFrame() noexcept;
 
-  void endFrame(const FrameData& frameData) noexcept;
+  void endFrame(const CommandRecorder& cmdRecorder, const FrameData& frameData) noexcept;
 
  private:
   class Impl;

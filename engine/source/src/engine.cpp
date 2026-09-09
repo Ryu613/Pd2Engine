@@ -117,13 +117,11 @@ void Engine::loop() noexcept {
 
     mRenderer.renderFrame();
   }
+  auto engineStopRes = stop();
+  PD_ASSERT_MSG(engineStopRes, engineStopRes.error().msg.data());
 }
 
 Result<void> Engine::stop() noexcept {
-  if (auto res = mSceneManager.unloadScene(); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
-  }
   return {};
 }
 

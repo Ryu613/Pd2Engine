@@ -3,10 +3,6 @@
 #include "pd/backend/backend_types.hpp"
 
 namespace pd {
-struct CommandPayload {
-  CmdType type;
-  std::array<u64, 10> args;
-};
 template <typename T>
 concept CmdArgsRequire =
     std::is_trivially_copyable_v<T> &&            // 1. 必须是平凡可拷贝
@@ -17,9 +13,11 @@ class CommandRecorder {
   ~CommandRecorder() = default;
 
   template <CmdArgsRequire CmdArgs>
-  void recordCmd(const CmdArgs& cmdArgs) {
+  void recordCmd(const FrameData& frameData, const CmdArgs& cmdArgs) {
     CommandPayload payload{
         .type = CmdArgs::type,
+        .frameIndex = frameData.frameIndex,
+        .imageIndex = frameData.swapchainImageIndex,
     };
 
     std::memcpy(&payload.args[0], &cmdArgs, sizeof(CmdArgs));
@@ -27,9 +25,9 @@ class CommandRecorder {
     mCmds.push_back(payload);
   }
 
-  void submit() {}
-
   void reset() { mCmds.clear(); }
+
+  const auto& getCommands() const noexcept { return mCmds; }
 
  private:
   std::vector<CommandPayload> mCmds;
