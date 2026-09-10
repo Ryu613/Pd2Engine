@@ -8,15 +8,16 @@ Renderer::Renderer(SceneManager* sceneMgr, Backend* backend)
 Renderer::~Renderer() {}
 
 Result<void> Renderer::init() noexcept {
-  // 1. init backend frames
-  // 3. init render graph
+  if (auto res = mMaterialManager.init(); !res) {
+    return res;
+  }
   return {};
 }
 
 Result<void> Renderer::destroy() noexcept {
-  // 2. destroy render graph
-  // 3. destroy in-frame data
-  // 4. destroy frame context
+  if (auto res = mMaterialManager.destroy(); !res) {
+    return res;
+  }
   return {};
 }
 

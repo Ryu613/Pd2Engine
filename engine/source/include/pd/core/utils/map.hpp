@@ -11,7 +11,7 @@ struct StringHasher {
   }
 };
 
-template <typename Key, typename T, typename Hasher>
+template <typename Key, typename T, typename Hasher = std::hash<Key>>
 using RobinMap = tsl::robin_map<Key, T, Hasher>;
 }  // namespace util
 }  // namespace pd

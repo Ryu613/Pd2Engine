@@ -1,6 +1,12 @@
 #pragma once
 
+#include "pd/core/utils/handle.hpp"
+
 namespace pd {
+
+template <typename T>
+using BackendHandle = TypedHandle<T>;
+
 enum class CmdType : u8 {
   BeginRendering,
   EndRendering,
@@ -53,4 +59,6 @@ struct FrameData {
   u32 frameIndex = u32_max;
   u32 swapchainImageIndex = u32_max;
 };
+
+struct Pipeline_t;
 }  // namespace pd

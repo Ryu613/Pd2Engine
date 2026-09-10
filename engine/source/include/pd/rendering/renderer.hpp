@@ -2,6 +2,7 @@
 
 #include "pd/scene/scene_manager.hpp"
 #include "pd/backend/backend.hpp"
+#include "pd/rendering/material/material_manager.hpp"
 
 namespace pd {
 class Renderer {
@@ -23,6 +24,8 @@ class Renderer {
 
   SceneManager* mSceneManager = nullptr;
   Backend* mBackend = nullptr;
+
+  MaterialManager mMaterialManager;
 
   FrameContext beginFrame() noexcept;
   void doFrame(FrameContext& data) noexcept;
