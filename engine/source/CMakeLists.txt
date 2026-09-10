@@ -45,6 +45,10 @@ target_sources(engine_lib
         include/pd/scene/scene_descriptor.hpp
         # rendering
         include/pd/rendering/renderer.hpp
+        include/pd/rendering/material/material_types.hpp
+        include/pd/rendering/material/material_definition.hpp
+        include/pd/rendering/material/material_instance.hpp
+        include/pd/rendering/material/material_manager.hpp
     PRIVATE
         src/engine.cpp
         src/platform/fs/file_system.cpp
@@ -55,6 +59,7 @@ target_sources(engine_lib
         src/scene/scene_manager.cpp
         src/scene/scene_descriptor.cpp
         src/rendering/renderer.cpp
+        src/rendering/material_manager.cpp
 )
 
 # platform

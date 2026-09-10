@@ -3,7 +3,8 @@
 namespace pd {
 Renderer::Renderer(SceneManager* sceneMgr, Backend* backend)
     : mSceneManager(sceneMgr),
-      mBackend(backend) {}
+      mBackend(backend),
+      mMaterialManager(backend) {}
 
 Renderer::~Renderer() {}
 

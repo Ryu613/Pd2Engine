@@ -8,32 +8,21 @@
 #include "pd/core/utils/hash.hpp"
 
 namespace pd {
+class Backend;
 class MaterialManager {
  public:
   using IdType = MaterialDefinition::IdType;
 
-  MaterialManager() = default;
+  explicit MaterialManager(Backend* backend);
   ~MaterialManager() = default;
   DELETE_COPY_MOVE(MaterialManager);
 
-  Result<void> init() noexcept { return {}; }
-  Result<void> destroy() noexcept { return {}; }
+  Result<void> init() noexcept;
+  Result<void> destroy() noexcept;
 
-  IdType registerMaterial(MaterialDefinition&& def) {
-    // 1. 获取名称, 在nameToId查询是否存在
-    // 2. 判断存在
-    // 2.1. 若存在，直接返回这个id
-    // 2.2. 若不存在, 执行注册
-    // 3. 注册: 生成id, 把数据搬到definition data里
-    // 3.1. 更新name to id表
-    return {};
-  }
+  IdType registerMaterial(MaterialDefinition&& def);
 
-  IdType createInstance(IdType definitionId) {
-    // 1. 在definition data里看是否存在
-    // 2. 若存在，需要对instance判重吗?感觉不需要
-    return {};
-  }
+  IdType createInstance(IdType definitionId);
 
  private:
   struct PipelineKey {
@@ -46,6 +35,8 @@ class MaterialManager {
   struct PipelineKeyHasher {
     size_t operator()(const PipelineKey& k) const noexcept { return rapidhash(&k, sizeof(k)); }
   };
+
+  Backend* mBackend = nullptr;
 
   // id找对象
   template <typename T>
