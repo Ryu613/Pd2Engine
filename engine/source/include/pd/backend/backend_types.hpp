@@ -60,5 +60,11 @@ struct FrameData {
   u32 swapchainImageIndex = u32_max;
 };
 
+struct Buffer_t;
+struct Texture_t;
 struct Pipeline_t;
+
+using BufferBHandle = BackendHandle<Buffer_t>;
+using TextureBHandle = BackendHandle<Texture_t>;
+using PipelineBHandle = BackendHandle<Pipeline_t>;
 }  // namespace pd
