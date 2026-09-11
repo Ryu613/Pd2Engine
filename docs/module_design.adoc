@@ -17,7 +17,7 @@
 . 全局核心事务和跨系统的重要事务由引擎负责，具体事务由子系统自己内部控制
 . 子系统之间的非核心调用将通过事件系统解耦
 . main loop由其驱动
-. 平台层，窗口系统在engine内部，外部不用特别处理
+. 跨平台相关处理放在在engine内部，由Platform层负责，engine使用者不用特别处理平台相关事务
 
 == core模块
 
@@ -39,14 +39,13 @@
 
 . 尽量纯头文件
 . 使依赖尽量少
-. 工具类尽量独立于引擎
-. 如果涉及三方库类型，尽量在此处封装，不把三方库类型传播到引擎内部，如果传播，尽量使其范围可控
+. 工具类尽量可独立于引擎
+. 如果涉及三方库类型，尽量在此处封装，不把三方库类型传播到引擎内部，如果仍旧决定传播，尽量使其范围可控
 . 采用自行开发，没有采用诸如stl, eastl, 搬运其他开源项目代码的方式
 
 === 内存管理
 
 . 引擎有内存池，内存对齐，自定义分配算法，适配自定义容器的需求，故采取自研内存管理器以便更好地支持这些需求
-. 参考filament Arena的设计思路,自行实现
 .. Policy-Based Class Template实现，内存资源和分配算法分离
 .. 支持内存追踪，线程安全, 内存对齐
 .. 自带对象池实现，使用TLSF实现
@@ -55,49 +54,87 @@
 
 == 资源管理模块
 
-. 引擎所有运行时资源都通过resource manager管理，外部不可自行持有或管理资源
-. 外部使用通过handle，而非指针或对象
+. 引擎所有运行时资源都通过resource manager管理，外部不可自行持有或管理资源，而是通过handle访问
+. rm具有资源防重，复用机制
+. rm能追踪资源状态,能控制资源加载时机
+. rm能够管理和分发handle
 . 支持多线程异步，异步任务分派给job system执行
 . 资源指的是运行时资源，与资产作出区分，资源管理由resource manager负责，资产管理由asset manager负责
-. rm内部分类型由不同的对象池管理不同类型的资源
-. rm具有防重，复用机制
-. rm能够管理和分发handle
-. rm支持异步，能追踪资源状态,能控制资源加载时机
-. rm能管理CPU侧资源，也负责驱动GPU侧资源的加载卸载操作
-. rm只依赖backend
+. 资源系统只依赖backend以便调度GPU资源，但是rm不会直接管理GPU资源，而是由backend的具体实现自己管理
 
 === handle
 
-. handle是一种资源凭证，与指针区分
-. rm的handle是带类型的，方便区分
-. 为了避免ABA问题，handle带分代信息，表示版本号
+. handle是一种资源凭证
+. rm的handle是带类型的，方便区分不同类型的资源
+. 为了避免ABA问题，及预留未来热重载扩展性，handle带分代信息，表示版本号
 . handle的生成，包括id分发由RM负责
 . handle可拷贝可移动
 
 === resource
 
-. 运行时资源主要包括mesh, texture, buffer等，GPU资源是通过句柄，由各类resource持有
-. 提供一个模板类resource<T>,具体资源为T，模板类提供通用操作和数据成员定义
+. 运行时资源主要包括mesh, texture, buffer等，GPU资源是通过backend句柄，由各类resource内部持有
+. 资源应该带有计数器，需要严格控制析构时机，并且支持自定义内存分配，不使用shared_ptr, 引用计数由rm负责
 
 === 本版边界
 
-. 暂不实现流式加载，热重载
+. 暂不实现流式加载，热重载,但是设计上预留空间，比如分代handle,资源带状态，标签隔离能力等
+
+=== 核心调用链梳理
+
+[plantuml]
+....
+actor developer as User
+group 资产文件读取，资源加载，场景加载
+    Engine -> Engine: run()
+    Engine -> SceneManager: loadScene()
+    SceneManager -> SceneManager: reset scene data
+    SceneManager -> SceneDescriptor: onSceneLoad()
+    SceneDescriptor -> AssetManager: parseAsset()
+    AssetManager -> AssetParser: parse()
+    AssetManager <-- AssetParser: new Asset
+    AssetManager -> AssetManager: own Asset
+    SceneDescriptor <-- AssetManager: parsed Asset
+    SceneDescriptor -> ResourceManager: register Asset
+    ResourceManager -> ResourceManager: convert asset to resources, register info, own resources data
+    SceneDescriptor <-- ResourceManager: finished assets register
+    SceneDescriptor -> ResourceManager: load resources
+    ResourceManager -> Backend: load gpu resources
+    Backend -> Backend: load resources, return Handles
+    ResourceManager <-- Backend: finished gpu resources loading
+    SceneDescriptor <-- ResourceManager: finished resources loading
+    SceneDescriptor -> SceneManager: create Scene entities
+    SceneDescriptor -> SceneDescriptor: set scene entities transforms, cameras, resources handle binding etc.
+    SceneManager <-- SceneDescriptor: finished onSceneLoad()
+end
+group 资源更新
+    Engine -> SceneManager: updateScene()
+    SceneManager -> SceneDescriptor: onSceneUpdate()
+    SceneDescriptor -> SceneDescriptor: custom per-frame scene data update
+end
+group 资源卸载
+
+end
+group 资产卸载
+
+end
+....
 
 == 资产管理模块
 
 . 引擎所有需要读入的外部资产，都由asset manager负责
-. am会把外部资产文件读取并转换为内部文件格式，叫Asset
-. asset会注册到rm中，rm会把asset拆成具体的resource并管理
+. am会把外部资产文件读取并转换为统一的内部格式，叫Asset
+. asset会注册到rm中，rm会把asset拆成具体的各类resource并管理
 . asset只有一份，但是允许多个实例
-. asset只有原始数据
-. am支持多种文件格式的读取解析，包括预制件类型,比如gltf
-.. 场景数据会解析成node，故不依赖scene manager，不碰scene的数据
-. am也支持做出额外资产文件处理，比如利用mesh optimizer
+. asset只有原始数据，不与其它系统耦合，比如rm, scene manager等
+. am应该可以支持多种文件格式的读取解析，包括预制件，复合类型资产,比如gltf
+. am可支持做出额外资产文件处理，比如利用mesh optimizer做mesh优化等
 . am只依赖filesystem接口,不与其他模块,比如resource manager, scene manager耦合
 
 === 本版边界
 
+. 架构具备扩展性，包括预留多种类型资产加载的能力
 . 实现gltf和ktx的读取，解析，转换，运行时加载，正确渲染
+. 支持pbr材质
 . 不实现gltf的蒙皮，动作，多场景解析
 . 不实现gltf修改，导出
 
@@ -142,14 +179,13 @@
 
 === 设计思路
 
-. 负责引擎具体的渲染相关事务，其在专门的渲染线程上运行
-. 依赖scene manager, backend, resource manager
-.. sm用来获取场景数据
-.. backend用来定义需要的底层渲染操作
+. 只负责具体的渲染命令编排，同步命令调用，和录制，不负责后端如何执行
+. 依赖backend
+.. backend用来执行需要的底层渲染操作
 . 通过render graph去控制整个rendering pipeline
 . 构建并管理每个渲染帧数据
 . gui作为子模块
-. renderer带有自己的内存管理器，主要用于管理帧内资源，实现高效分配和回收，保证内存局部性和连续性
+. 材质系统作为子模块
 
 === 功能
 
@@ -160,7 +196,6 @@
 
 === 边界
 
-. 暂不做多线程命令录制
 . 不直接操作和接触RM和RHI层的资源，只描述操作过程
 . 以实现功能为主，设计上采用数据驱动和自动rg，架构上会预留扩展空间，但暂不保证测试覆盖，和性能
 
@@ -183,7 +218,6 @@
 === 边界
 
 . 不实现多backend，只实现vulkan backend
-. 为了减轻工作量，本版暂不实现完整RHI，其实质是vulkan backend的别名,但是vulkan backend的接口会设计为rhi ready
 . 本版只支持引擎需要的功能，接口不一定全，但是易于扩展
 
 === 设计思路
@@ -200,20 +234,5 @@
 
 == vulkan后端
 
-=== 职责
-
-. 具体执行渲染绘制指令
-. 对底层资源进行生命周期管理
-. 对底层操作进行便利封装
-. 继承RHI接口并提供实际功能实现
-
-=== 功能
-
-. 支持执行各种绘制指令
-. 基础vulkan功能运行正常，功能点可扩展
-. 资源和同步管理
-
-=== 边界
-
-. 主要保证渲染层需要的基础能力，暂不做高度优化
+=== 设计思路
 

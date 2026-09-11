@@ -2,28 +2,26 @@
 
 == 设计目标
 
-一个高级版现代图形渲染引擎，本项目需要易于开发，维护，扩展，调试，测试，部署，理解，使用
+一个高级现代3D实时图形渲染引擎，本项目需要易于开发，维护，扩展，调试，测试，部署，理解，使用
 
 == 关键指导思想
 
 . KISS: 设计和实现简单，易于理解
 . YAGNI: 不高估未来的需求，避免过度设计，过度工程化，过早优化
-. SOLID: 高内聚、低耦合，多扩展少修改, 用抽象建立契约, 接口和实现分离，慎重引入依赖，依赖要倒置
+. SOLID: 高内聚、低耦合，多扩展少修改, 用抽象建立契约, 接口和实现分离，慎重引入依赖，依赖倒置
 . EA: 演进式架构，基于版本稳步演进
 
 务实执行上述思想，不教条，使用工具和开发规约保障基本底线，平衡开发效率和质量
 
 == 开发目标
 
-. 功能实现符合预期，核心渲染循环具备可预测性
-. 代码质量良好: 由工具和规约保障底线
+. 完全自主设计和研发，只参考，不抄袭，保证高度原创，暂不引入AI
+. 代码质量良好: 由工具和文档规约保障
 . 代码易于测试: 为了平衡单人开发效率，有关键功能的简单测试，并保证通过
-. 代码易于理解：由注释和文档保障，完成功能的同时，同时尽量减少代码量和高层次抽象，现阶段以体现设计思路，完成功能为主
+. 代码易于理解：现阶段以体现设计思路，完成功能为主，由注释和文档保障易理解，尽量减少代码量和高层次抽象，
 . 代码易于调试: 主要由日志，调试工具，和可视化窗口保障
 
-对于扩展性和健壮性，会在设计时基于具体场景进行权衡，一般来说会保留扩展空间，但不做过于超前的设计
-
-目前整个引擎的设计为自主设计，代码和文档为手写，暂不引入AI
+对于扩展性和健壮性，会在设计时基于具体场景进行权衡，一般来说会在代码基座和骨架层面做铺底，但不过度
 
 === 运行时目标
 
@@ -63,10 +61,7 @@
 
 == 架构及核心调用链
 
-本引擎的架构是以工业级引擎的架构作为参考，并且结合实际情况做了精简和提炼。最终形成了本架构的设计
-
-* 由于引擎是一项复杂工程，将采用逐步演进的方法实现目标
-* 项目为自主设计和手动实现，虽有大量借鉴，但为完整自主设计和实现的作品，坚持不抄袭，独立设计和手写实现
+本引擎的架构是以工业级引擎的架构作为参考，并且结合实际情况做了精简和提炼，根据个人理解和重新整合，最终形成了本架构的设计
 
 === 层级及模块划分介绍
 
@@ -74,16 +69,16 @@
 * 平台层放在引擎内部统一处理，平台在构建时按不同平台架构按需引入，平台层也提供了窗口系统封装，引擎为跨平台运行提供扩展性，不需要外部处理平台差异，基本实现开箱即用
 * 渲染底层(后端)和平台层在构建时确定，采用编译时绑定，不支持(也没必要)运行时多态
 * 模块在构建时静态连接作为一个整体引擎核心库，核心库部分不支持动态链接
-* 实际模块和对象基于此架构实现，但不一定与代码完全一致，以系统设计文档和实际代码为准
+* 实际代码会基于此架构实现，但不一定与文档所述完全一致，以系统设计文档和实际代码为准
 * 具体设计见系统设计文档和模块设计文档
 
 . 平台层: 平台相关底层封装，包括：操作系统, 文件系统, 输入系统，窗口系统等
-. 核心层: 工具类, 架构基类，全局配置类等，比如: 日志，数学库，profiler, 配置，反射，序列化, 内存管理, 线程池等
-. 资产层: 负责处理资产文件导入解析，转换为引擎内部格式
-. 资源层: 负责运行时资源管理
-. 渲染层(前端): 负责具体的渲染流水线和材质，特效定义，也包括gui
+. 核心层: 工具类, 架构基类，全局配置类等，比如: 日志，数学库，profiler, 配置，反射，序列化, 内存管理, 自定义容器等
+. 资产层: 负责读取各种资产文件，解析并转换为引擎内部格式的数据
+. 资源层: 负责运行时资源的管理，包括GPU侧资源的加载，卸载时机
+. 渲染层(前端): 负责定义和执行具体的渲染流水线，也包括材质系统，效果，gui等
 . 渲染层(后端): 负责底层图形API封装和资源管理，为渲染前端提供基础能力
-. 场景层: 负责管理场景相关数据，包括：场景描述，场景图，场景对象，相机，视图等
+. 场景层: 负责管理场景相关数据，包括：场景描述接口，场景图，相机等
 . 应用层: 通用资源操作逻辑和引擎常用功能封装，方便引擎使用
 
 === 引擎架构及核心流程
@@ -96,15 +91,15 @@
 * 只有架构高层级模块和核心步骤，子系统具体调用步骤参考系统设计和模块设计文档
 * Engine区别于其他模块，其不是一个平级概念，而是一个顶层协调者，具体执行逻辑由各个子系统负责
 * Application是独立模块，只依赖整个引擎库
-* 资源，资产，场景数据处理采用job system作为任务，由独立线程作为任务完成
-* 主线程与渲染线程独立,主线程只管理全局统筹相关事务，渲染线程只处理渲染相关逻辑
+* 资源，资产，场景数据处理会委托job system的独立线程完成任务
+* 主线程与后端线程独立,主线程只管理全局统筹相关事务，执行main loop,录制渲染命令，后端线程只处理渲染底层逻辑
 * 具体技术细节此处不赘述，详见系统设计及模块设计文档
 ====
 
 [plantuml]
 ....
 actor developer as User
-group 构建
+group 构造
     User -> Application++: new App()
     Application -> Engine++: new Engine()
     Engine -> Engine: init common services(logger, arena, job system, etc)
@@ -127,6 +122,7 @@ group 初始化
     Engine -> Backend: init()
     Engine -> ResourceManager: init()
     Engine -> AssetManager: init()
+    Engine -> SceneManager: init()
     Engine -> Renderer: init()
     Application <-- Engine: engine init finished
     User <-- Application: app init finished
@@ -136,25 +132,28 @@ group 运行
     Application -> Engine: run()
     Engine -> SceneManager: load scene
     SceneManager -> AssetManager: load asset
-    AssetManager -> AssetManager: load file, convert file
-    SceneManager <-- AssetManager: finished asset loading
+    AssetManager -> AssetManager: load file, convert file to Asset data
+    SceneManager <-- AssetManager: finished asset file loading & parsing
     SceneManager -> ResourceManager: register assets
     SceneManager -> SceneManager: build scene data 
     SceneManager -> ResourceManager: load resources
     ResourceManager -> Backend: load registered backend resources
-    Engine <-- SceneManager: finished scene load
+    Engine <-- SceneManager: finished scene loading
     loop
         Engine -> Platform: poll events and execute callbacks
         Engine -> SceneManager: update scene data
         Engine -> Renderer: begin rendering
-        Renderer -> Renderer: new render frame
-        Renderer -> Backend: next swapchain image
+        Renderer -> Renderer: prepare rendering context data
+        Renderer -> Backend: new render frame
+        Backend -> Backend: acquire next swapchain image, prepare frame data
+        Renderer <-- Backend: new frame ready
         Renderer -> Renderer: render graph setup, compile, execute
         Renderer -> Backend: submit recorded rendering commands
         Backend -> Backend: execute commands
-        Renderer -> Backend: present frame
+        Renderer -> Backend: end frame
+        Backend -> Backend: end commands, end rendering, present etc.
+        Renderer <-- Backend: ended frame
         Renderer -> ResourceManager: update deletion queue
-        Renderer -> Renderer: end current frame, update frame index
     end
 end
 group 用户停止或停止事件触发
@@ -166,31 +165,32 @@ group 用户停止或停止事件触发
     Renderer -> Backend: wait idle
     Engine <-- Renderer: finished renderer stop
     Engine -> SceneManager: unload scene
-    SceneManager -> SceneManager: destroy scene data
-    SceneManager -> ResourceManager: destroy resources
-    ResourceManager -> Backend: destroy backend resources
-    SceneManager -> AssetManager: destroy assets
+    SceneManager -> SceneManager: clear scene data, reset status
+    SceneManager -> ResourceManager: unload resources
+    ResourceManager -> ResourceManager: unload scene resources
+    ResourceManager -> Backend: unload backend resources
     Engine <-- SceneManager: finished stop scene
     Application <-- Engine: finished engine stop
     User <-- Application: finished app stop
 end
 group 销毁
     User -> Application: delete App
-    Application -> Engine: delete
-    Engine -> Renderer: delete
+    Application -> Engine: destroy()
+    Engine -> Renderer: destroy()
     deactivate Renderer
-    Engine -> SceneManager: delete
+    Engine -> SceneManager: destroy()
     deactivate SceneManager
-    Engine -> AssetManager: delete
+    Engine -> AssetManager: destroy()
     deactivate AssetManager
-    Engine -> ResourceManager: delete
+    Engine -> ResourceManager: destroy()
     deactivate ResourceManager
-    Engine -> Backend: delete
+    Engine -> Backend: destroy()
     deactivate Backend
-    Engine -> Platform: delete
+    Engine -> Platform: destroy()
     deactivate Platform
-    Engine -> Engine: delete common services
-    Application <-- Engine: finished engine delete
+    Engine -> Engine: destroy common services
+    Application <-- Engine: finished engine destroy
+    Application -> Engine: delete engine
     deactivate Engine
     User <-- Application: finished app delete
     deactivate Application
@@ -205,15 +205,18 @@ end
 
 三方库中的类型如果广泛使用，会封装成引擎内部类型，保证三方库的类型不强耦合在引擎中，尽量实现可插拔能力，但是考虑实现成本，务实执行，不强制
 
-==== 对"现代图形"需求的实现
+==== 对"高级现代C++图形"需求的实现
 
-. 采用C++23和Vulkan1.3作为主要技术
-.. 20/23主要会使用的特性包括:
-... concept: 用于约束模板类型
-... designated init: 用于方便的在构造时确定参数
-... expected: 代替错误码，异常，性能更好且易读
+. 采用C++23作为主要编程语言，会使用的新特性包括
+.. concept: 用于约束模板类型
+.. designated init: 用于方便的在构造时确定参数
+.. expected: 代替错误码，不使用异常，性能更好且易读
+.. 基于C++23的核心基础类，工具类
+. 采用RHI层屏蔽渲染后端API差异，采用vulkan1.3作为当前版本的主要渲染后端
 .. Vulkan支持dynamic rendering, bindless
 .. shader语言为Slang
+.. 支持渲染指令异步录制
+.. 驱动线程主线程分离架构
 .. 三方库
 ... 数学库: 基于glm封装
 ... 标准库: 帧外部分允许使用{cpp} STL, 帧内部分和热路径使用自研容器或三方库容器，使用自定义分配器手动管理资源，详见系统设计
@@ -234,9 +237,8 @@ end
 
 ==== 对"易于测试"需求的实现
 
-. 采用Catch2实现测试功能，目前以保证核心功能点正常运行为主，由于人力有限，暂不考虑覆盖率
-. 以接口为契约，方便mock
-. 提供基本功能的单元测试用例，和引擎整体使用样例
+. 采用Catch2实现测试功能，由于人力有限，目前以保证核心功能点正常运行为主
+. 提供基本功能的单元测试用例，和引擎使用样例
 
 ==== 对"易于调试"需求的实现
 
@@ -252,7 +254,7 @@ end
 
 == 局限
 
-. 由于人力有限，无法充分测试，后期考虑引入AI写测试用例，目前暂不考虑
+. 由于人力有限，无法充分测试
 
 == 开发策略
 

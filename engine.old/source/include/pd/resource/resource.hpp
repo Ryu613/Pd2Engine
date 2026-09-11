@@ -13,8 +13,8 @@ class Resource {
     Loading = 2,
     Loaded = 3,
   };
-  Resource() = default;
-  virtual ~Resource() = default;
+  Resource();
+  virtual ~Resource();
   DELETE_COPY(Resource);
   DEFAULT_MOVABLE(Resource);
 

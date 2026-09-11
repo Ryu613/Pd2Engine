@@ -29,12 +29,16 @@ class ResourceManager {
   Result<void> gc() noexcept;
 
  private:
+  struct ResourceEntry {
+    BaseHandle handle;
+    u32 refCount = 0;
+  };
   Backend* mBackend = nullptr;
 
-  util::RobinMap<std::string, Resource::IdType, util::StringHasher> mRegistry;
+  util::RobinMap<std::string, ResourceEntry, util::StringHasher> mRegistry;
 
   template <typename T>
-  using Data = util::RobinMap<Resource::IdType, std::unique_ptr<T>>;
+  using Data = util::RobinMap<IdType, std::unique_ptr<T>>;
   Data<MeshResource> mMeshes;
   Data<TextureResource> mTextures;
 

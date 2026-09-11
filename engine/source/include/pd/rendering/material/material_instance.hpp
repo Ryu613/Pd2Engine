@@ -18,7 +18,6 @@ class MaterialInstance {
       float f;
       float vec3[3];
       float vec4[4];
-      // Handle,后面再加
       Value()
           : vec4(0.0f, 0.0f, 0.0f, 0.0f) {}
     };

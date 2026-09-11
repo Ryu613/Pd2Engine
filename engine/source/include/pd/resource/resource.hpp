@@ -8,7 +8,7 @@ class Resource {
  public:
   using IdType = u64;
 
-  virtual ~Resource() = default;
+  virtual ~Resource();
   DELETE_COPY(Resource);
   DEFAULT_MOVABLE(Resource);
 
@@ -23,8 +23,8 @@ class Resource {
   friend class ResourceManager;
   IdType mId;
   std::string name;
-  ResourceStatus mStatus;
+  ResourceStatus mStatus = ResourceStatus::Unload;
 
-  explicit Resource(IdType id);
+  explicit Resource(IdType id, const std::string& name);
 };
 }  // namespace pd
