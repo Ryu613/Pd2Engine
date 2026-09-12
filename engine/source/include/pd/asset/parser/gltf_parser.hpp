@@ -24,6 +24,6 @@ class GltfParser : public IAssetParser {
   void parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
   void parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
   void parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
-  void parseScene(Asset& asset, const fastgltf::Asset& gltfAsset, size_t gltfSceneIndex) noexcept;
+  void parseScene(Asset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept;
 };
 }  // namespace pd
