@@ -39,7 +39,11 @@ target_sources(engine_lib
         # resource
         include/pd/resource/resource_manager.hpp
         # asset
+        include/pd/asset/asset_types.hpp
+        include/pd/asset/asset.hpp
         include/pd/asset/asset_manager.hpp
+        include/pd/asset/parser/asset_parser.hpp
+        include/pd/asset/parser/gltf_parser.hpp
         # scene
         include/pd/scene/scene_manager.hpp
         include/pd/scene/scene_descriptor.hpp
@@ -60,6 +64,8 @@ target_sources(engine_lib
         src/scene/scene_descriptor.cpp
         src/rendering/renderer.cpp
         src/rendering/material_manager.cpp
+        src/asset/asset_manager.cpp
+        src/asset/gltf_parser.cpp
 )
 
 # platform

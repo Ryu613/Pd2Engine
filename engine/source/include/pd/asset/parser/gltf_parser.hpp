@@ -1,0 +1,29 @@
+#pragma once
+
+#include "pd/asset/parser/asset_parser.hpp"
+
+#include "fastgltf/types.hpp"
+
+namespace pd {
+class IFileSystem;
+class ResourceManager;
+class GltfParser : public IAssetParser {
+ public:
+  explicit GltfParser(IFileSystem* fs);
+  ~GltfParser() override;
+  DEFAULT_MOVABLE(GltfParser);
+  DELETE_COPY(GltfParser);
+
+  Result<void> parse(Asset& asset) noexcept override;
+
+ private:
+  IFileSystem* mFs = nullptr;
+  std::filesystem::path mBasePath;
+  //   std::vector<TextureFormat> mTextureFormatCache;
+
+  void parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
+  void parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
+  void parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
+  void parseScene(Asset& asset, const fastgltf::Asset& gltfAsset, size_t gltfSceneIndex) noexcept;
+};
+}  // namespace pd

@@ -34,14 +34,18 @@ class TextureData {
 
 class MeshData {
  public:
+  struct SubMesh {};
   explicit MeshData(const DataInfo& info)
       : mDataInfo(info) {}
 
   DEFAULT_MOVABLE(MeshData);
   DELETE_COPY(MeshData);
 
+  void addSubMesh(const SubMesh& subMesh) { mSubMeshes.push_back(subMesh); }
+
  private:
   DataInfo mDataInfo;
+  std::vector<SubMesh> mSubMeshes;
 };
 
 class Asset {
@@ -56,18 +60,22 @@ class Asset {
   DEFAULT_MOVABLE(Asset);
   DELETE_COPY(Asset);
 
+  AssetIdType id() const noexcept { return mId; }
   std::span<const TextureData> textures() const noexcept { return mTextures; }
   std::span<const MeshData> meshes() const noexcept { return mMeshes; }
   const CreateInfo& info() const noexcept { return mInfo; }
 
  private:
   friend class AssetManager;
+  friend class GltfParser;
 
   AssetIdType mId;
   CreateInfo mInfo;
   std::vector<TextureData> mTextures;
   std::vector<MeshData> mMeshes;
 
-  explicit Asset(AssetIdType id, CreateInfo info);
+  explicit Asset(AssetIdType id, CreateInfo info)
+      : mId(std::move(id)),
+        mInfo(std::move(info)) {}
 };
 }  // namespace pd

@@ -37,7 +37,7 @@ class AssetManager {
   ResourceManager* mResourceManager = nullptr;
 
   std::vector<std::unique_ptr<IAssetParser>> mParsers;
-  std::unordered_map<Asset::IdType, std::unique_ptr<const Asset>> mAssets;
+  std::unordered_map<Asset::IdType, std::unique_ptr<Asset>> mAssets;
   bool mInitialized = false;
 
   void initParsers() noexcept;
