@@ -5,3 +5,4 @@ vcpkg_installed/
 CMakeUserPresets.json
 *.drawio*
 *.spv
+.clang-format

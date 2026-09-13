@@ -2,7 +2,7 @@
 BasedOnStyle: Google
 
 # 代码一行最多多少个字符: 100
-ColumnLimit: 100
+ColumnLimit: 120
 
 # 对#include头文件在哪一行进行自动排序: 从不
 SortIncludes: Never

@@ -8,9 +8,7 @@
 
 namespace pd {
 namespace {
-math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) {
-  return {};
-}
+math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) { return {}; }
 
 }  // namespace
 GltfParser::GltfParser(IFileSystem* fs)
@@ -37,14 +35,15 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
   auto options = fastgltf::Options::LoadExternalBuffers | fastgltf::Options::DecomposeNodeMatrices;
   auto gltfAssetRes = parser.loadGltf(data.get(), gltfFilePath.parent_path(), options);
   if (auto error = gltfAssetRes.error(); error != fastgltf::Error::None) {
-    LOG_ERROR("gltf asset file parse failed: {}, reason: {}", gltfFilePath.string(),
-              fastgltf::getErrorMessage(error));
+    LOG_ERROR("gltf asset file parse failed: {}, reason: {}", gltfFilePath.string(), fastgltf::getErrorMessage(error));
     return make_error<void>(ErrorCode::AssetParseFailed);
   }
   // 2.1 创建gltf Asset
   auto& gltfAsset = gltfAssetRes.get();
   size_t scene0 = gltfAsset.defaultScene.value_or(0);
-  parseScene(asset, gltfAsset, scene0);
+  if (auto res = parseScene(asset, gltfAsset, scene0); !res) {
+    return res;
+  }
   // 2.2 解析网格数据
   // parseMeshes(asset, gltfAsset);
   // 2.3 解析texture(samplers)
@@ -72,22 +71,78 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
 //   }
 // }
 
-void GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset,
-                            size_t sceneIndex) noexcept {
-  std::function<void(u32, const math::mat4&)> traverseNode =
-      [&](u32 nodeIndex, const math::mat4& parentTransform) {
-        const fastgltf::Node& gltfNode = gltfAsset.nodes[nodeIndex];
-        const math::mat4 worldTransform = parentTransform * getGltfNodeLocalTransform(gltfNode);
+Result<void> GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
+  std::function<void(u32, const math::mat4&)> traverseNode = [&](u32 nodeIndex, const math::mat4& parentTransform) {
+    const fastgltf::Node& gltfNode = gltfAsset.nodes[nodeIndex];
+    const math::mat4 worldTransform = parentTransform * getGltfNodeLocalTransform(gltfNode);
 
-        // todo: handle camera data
+    // todo: handle camera data
 
-        // 处理node的mesh数据
-        if(gltfNode.meshIndex.has_value()) {
-
-        }
+    // 处理node的mesh数据
+    if (gltfNode.meshIndex.has_value()) {
+      const fastgltf::Mesh& mesh = gltfAsset.meshes[gltfNode.meshIndex.value()];
+      const u32 primitiveCount = mesh.primitives.size();
+      MeshData meshData{
+          .dataInfo =
+              {
+                  .dataId = nodeIndex,
+                  .name = std::format("mesh_{}", nodeIndex),
+              },
       };
+      meshData.subMeshes.resize(primitiveCount);
+      for (u32 primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex) {
+        const auto& primitive = mesh.primitives[primitiveIndex];
+        if (primitive.type != fastgltf::PrimitiveType::Triangles) {
+          return make_error<void>(ErrorCode::AssetParseFailed, "primitive type not supported!");
+        }
+        auto& submesh = meshData.subMeshes[primitiveIndex];
+        submesh.name = std::format("{}_{}", meshData.dataInfo.name, primitiveIndex);
+        // positions
+        const auto positionIt = primitive.findAttribute("POSITION");
+        PD_ASSERT_MSG(positionIt != primitive.attributes.end(), "gltf primitive is missing POSITION!");
+        const auto& positionAccessor = gltfAsset.accessors[positionIt->accessorIndex];
+        // input.positions.reserve(positionAccessor.count);
+        submesh.vertices.resize(positionAccessor.count);
+        fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(
+            gltfAsset, positionAccessor, [&](fastgltf::math::fvec3 pos, size_t idx) {
+              submesh.vertices[idx].position = {pos.x(), pos.y(), pos.z()};
+            });
+        const auto* uvIt = primitive.findAttribute("TEXCOORD_0");
+        if (uvIt != primitive.attributes.end()) {
+          const auto& uvAccessor = gltfAsset.accessors[uvIt->accessorIndex];
+          fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec2>(
+              gltfAsset, uvAccessor,
+              [&](fastgltf::math::fvec2 uv, size_t idx) { submesh.vertices[idx].uv = {uv.x(), uv.y()}; });
+        }
+        const auto normalIt = primitive.findAttribute("NORMAL");
+        PD_ASSERT_MSG(normalIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
+        const auto& normalAccessor = gltfAsset.accessors[normalIt->accessorIndex];
+        fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(
+            gltfAsset, normalAccessor, [&](fastgltf::math::fvec3 norm, size_t idx) {
+              submesh.vertices[idx].normal = {norm.x(), norm.y(), norm.z()};
+            });
+        const auto tangentIt = primitive.findAttribute("TANGENT");
+        if (tangentIt != primitive.attributes.end()) {
+          const auto& tanAccessor = gltfAsset.accessors[tangentIt->accessorIndex];
+          fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec4>(
+              gltfAsset, tanAccessor, [&](fastgltf::math::fvec4 tan, size_t idx) {
+                submesh.vertices[idx].tangent = {tan.x(), tan.y(), tan.z(), tan.w()};
+              });
+        }
+        if (primitive.indicesAccessor.has_value()) {
+          const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
+          submesh.indices.reserve(indexAccessor.count);
+          fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor,
+                                              [&](uint32_t index) { submesh.indices.emplace_back(index); });
+        }
+      }
+    }
+    // 处理scene node
+  };
   for (const int nodeIndex : gltfAsset.scenes[sceneIndex].nodeIndices) {
     traverseNode(nodeIndex, math::mat4{1.0f});
   }
+
+  return {};
 }
 }  // namespace pd

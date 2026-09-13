@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pd/asset/asset_types.hpp"
+#include "pd/core/math/math.hpp"
 
 #include <span>
 
@@ -32,20 +33,22 @@ class TextureData {
   std::vector<uint8_t> mPixels;
 };
 
-class MeshData {
- public:
-  struct SubMesh {};
-  explicit MeshData(const DataInfo& info)
-      : mDataInfo(info) {}
+struct Vertex {
+  math::vec3 position{};
+  math::vec2 uv{};
+  math::vec3 normal{};
+  math::vec4 tangent{1.0f, 0.0f, 0.0f, 1.0f};
+};
 
-  DEFAULT_MOVABLE(MeshData);
-  DELETE_COPY(MeshData);
+struct MeshData {
+  struct SubMesh {
+    std::string name;
+    std::vector<Vertex> vertices;
+    std::vector<u32> indices;
+  };
 
-  void addSubMesh(const SubMesh& subMesh) { mSubMeshes.push_back(subMesh); }
-
- private:
-  DataInfo mDataInfo;
-  std::vector<SubMesh> mSubMeshes;
+  DataInfo dataInfo;
+  std::vector<SubMesh> subMeshes;
 };
 
 class Asset {
