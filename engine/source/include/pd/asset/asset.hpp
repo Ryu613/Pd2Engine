@@ -51,6 +51,18 @@ struct MeshData {
   std::vector<SubMesh> subMeshes;
 };
 
+struct SceneNode {
+  std::string name;
+  math::vec3 pos{};
+  math::vec3 eulerAngles{};
+  math::vec3 scale{1.f};
+  u32 meshId = invalidAssetId;
+  // todo: texture ids
+  // u32 parentIndex = invalidAssetId;
+  // u32 firstChild = invalidAssetId;
+  // u32 nextSibling = invalidAssetId;
+};
+
 class Asset {
  public:
   struct CreateInfo {
@@ -76,6 +88,7 @@ class Asset {
   CreateInfo mInfo;
   std::vector<TextureData> mTextures;
   std::vector<MeshData> mMeshes;
+  std::vector<SceneNode> mNodes;
 
   explicit Asset(AssetIdType id, CreateInfo info)
       : mId(std::move(id)),

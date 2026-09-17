@@ -8,7 +8,31 @@
 
 namespace pd {
 namespace {
-math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) { return {}; }
+
+math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) {
+  // todo
+  return {};
+}
+
+SceneNode makeParsedNode(const u32 nodeIndex, const math::mat4& transform) {
+  SceneNode node{
+      .name = std::format("node_{}", nodeIndex),
+      .pos = math::vec3{transform[3]},
+      .scale = math::vec3{glm::length(glm::vec3{transform[0]}), glm::length(glm::vec3{transform[1]}),
+                          glm::length(glm::vec3{transform[2]})},
+  };
+  // 参考自siggraph2026_vulkan
+  glm::mat3 rotationMatrix{1.0F};
+  for (glm::length_t column = 0; column < 3; ++column) {
+    const float axisScale = node.scale[column];
+    if (axisScale > 0.0F) {
+      rotationMatrix[column] = glm::vec3{transform[column]} / axisScale;
+    }
+  }
+  node.eulerAngles = glm::eulerAngles(glm::quat_cast(rotationMatrix));
+
+  return node;
+}
 
 }  // namespace
 GltfParser::GltfParser(IFileSystem* fs)
@@ -52,7 +76,6 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
   //   parseMaterials(asset, gltfAsset);
   //   // 2.5 解析scene,目前默认只解析第一个场景
   //   size_t scene0 = gltfAsset.defaultScene.value_or(0);
-  //   parseScene(asset, gltfAsset, scene0);
   return {};
 }
 
@@ -135,9 +158,23 @@ Result<void> GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAss
           fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor,
                                               [&](uint32_t index) { submesh.indices.emplace_back(index); });
         }
+        // 处理scene node
+        const auto& gltfNode = gltfAsset.nodes[nodeIndex];
+        const auto& trs = std::get<fastgltf::TRS>(gltfNode.transform);
+        auto translation = math::vec3{trs.translation.x(), trs.translation.y(), trs.translation.z()};
+        auto rotation = math::quat{trs.rotation.w(), trs.rotation.x(), trs.rotation.y(), trs.rotation.z()};
+        auto scale = math::vec3{trs.scale.x(), trs.scale.y(), trs.scale.z()};
+        auto localTransform = glm::translate(glm::mat4{1.0F}, translation) * glm::mat4_cast(rotation) *
+                              glm::scale(glm::mat4{1.0F}, scale);
+        const auto worldTransform = parentTransform * localTransform;
+        auto node = makeParsedNode(nodeIndex, worldTransform);
+        node.meshId = primitiveIndex;
+        asset.mNodes.push_back(node);
       }
     }
-    // 处理scene node
+    for (const int childIndex : gltfNode.children) {
+      traverseNode(childIndex, worldTransform);
+    }
   };
   for (const int nodeIndex : gltfAsset.scenes[sceneIndex].nodeIndices) {
     traverseNode(nodeIndex, math::mat4{1.0f});
