@@ -2,6 +2,7 @@
 
 #include "vk1_initializer.hpp"
 #include "manager/frame_manager.hpp"
+#include "manager/resource_registry.hpp"
 
 namespace pd {
 namespace {
@@ -17,7 +18,8 @@ class Backend::Impl {
  public:
   Impl()
       : mVulkanDevice(createVulkanDevice()),
-        mFrameManager(mVulkanDevice) {}
+        mFrameManager(mVulkanDevice),
+        mResourceManager(mVulkanDevice) {}
 
   ~Impl() {}
 
@@ -26,6 +28,8 @@ class Backend::Impl {
 
     // create swapchain
     mVulkanDevice.createSwapchain(mConfig.windowHandle, mConfig.width, mConfig.height);
+    // init resource mgr
+    mResourceManager.init();
     // init frame data
     mFrameManager.init();
 
@@ -35,6 +39,8 @@ class Backend::Impl {
   Result<void> destroy() noexcept {
     // destroy frame data
     mFrameManager.destroy();
+    // destroy resources
+    mResourceManager.destroy();
     // destroy swapchain
     mVulkanDevice.destroySwapchain();
     return {};
@@ -56,9 +62,16 @@ class Backend::Impl {
     mFrameManager.endFrame(recorder);
   }
 
+  PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
+    auto layoutHandle = mResourceManager.createPipelineLayout({});
+    auto pipelineHandle = mResourceManager.createGraphicsPipeline(desc);
+    return {layoutHandle, pipelineHandle};
+  }
+
  private:
   BackendConfig mConfig{};
   vk1::Vk1Device mVulkanDevice;
+  vk1::ResourceRegistry mResourceManager;
   vk1::FrameManager mFrameManager;
 };
 
@@ -73,7 +86,9 @@ Result<void> Backend::destroy() noexcept { return mImpl->destroy(); }
 
 pd::FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
 
-void Backend::endFrame(const CommandRecorder& recorder) noexcept {
-  mImpl->endFrame(recorder);
+void Backend::endFrame(const CommandRecorder& recorder) noexcept { mImpl->endFrame(recorder); }
+
+PipelineData Backend::createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
+  return mImpl->createGraphicsPipeline(desc);
 }
 }  // namespace pd

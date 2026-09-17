@@ -53,6 +53,8 @@ target_sources(engine_lib
         include/pd/rendering/material/material_definition.hpp
         include/pd/rendering/material/material_instance.hpp
         include/pd/rendering/material/material_manager.hpp
+        include/pd/rendering/shader/shader_manager.hpp
+        include/pd/rendering/shader/shader_compiler.hpp
     PRIVATE
         src/engine.cpp
         src/platform/fs/file_system.cpp
@@ -63,7 +65,8 @@ target_sources(engine_lib
         src/scene/scene_manager.cpp
         src/scene/scene_descriptor.cpp
         src/rendering/renderer.cpp
-        src/rendering/material_manager.cpp
+        src/rendering/material/material_manager.cpp
+        src/rendering/shader/shader_manager.cpp
         src/asset/asset_manager.cpp
         src/asset/gltf_parser.cpp
 )
@@ -103,11 +106,23 @@ target_sources(engine_lib
         src/backend/vulkan/vk1_swapchain.cpp
         src/backend/vulkan/vk1_buffer.hpp
         src/backend/vulkan/vk1_image.hpp
+        src/backend/vulkan/vk1_pipeline_layout.hpp
+        src/backend/vulkan/vk1_pipeline.hpp
         src/backend/vulkan/manager/frame_manager.hpp
         src/backend/vulkan/manager/frame_manager.cpp
+        src/backend/vulkan/manager/Resource_registry.cpp
+        src/backend/vulkan/manager/Resource_registry.cpp
 )
 
 target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)
+endif()
+
+if(${PD2_SHADER_LANG} STREQUAL "SLANG")
+target_sources(engine_lib
+    PRIVATE
+        src/rendering/shader/compiler/slang_compiler.cpp
+)
+target_compile_definitions(engine_lib PRIVATE SHADER_SLANG)
 endif()
 
 

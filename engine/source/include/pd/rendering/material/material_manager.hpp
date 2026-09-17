@@ -49,7 +49,7 @@ class MaterialManager {
   util::RobinMap<std::string, IdType, util::StringHasher> mNameToId;
 
   // 通过pipeline某些特征生成的key来找对应的pipeline handle
-  util::RobinMap<PipelineKey, BackendHandle<Pipeline_t>, PipelineKeyHasher> mPipelineHandles;
+  util::RobinMap<PipelineKey, HwGraphicsPipelineHandle, PipelineKeyHasher> mPipelineHandles;
 
   IdType nextDefinitionId = 1;
   IdType nextInstanceId = 1;

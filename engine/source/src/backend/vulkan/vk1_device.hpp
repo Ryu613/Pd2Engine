@@ -15,8 +15,7 @@ class Vk1Device {
   Vk1Device& operator=(const Vk1Device&) = delete;
   Vk1Device(Vk1Device&& rhs) noexcept
       : mContext(std::move(rhs.mContext)),
-        mGraphicsQueueFamilyIndex(
-            std::exchange(rhs.mGraphicsQueueFamilyIndex, global::invalidIndex)),
+        mGraphicsQueueFamilyIndex(std::exchange(rhs.mGraphicsQueueFamilyIndex, global::invalidIndex)),
         mDevice(std::exchange(rhs.mDevice, VK_NULL_HANDLE)),
         mSurface(std::exchange(rhs.mSurface, VK_NULL_HANDLE)),
         mQueue(std::exchange(rhs.mQueue, VK_NULL_HANDLE)),
@@ -50,19 +49,16 @@ class Vk1Device {
   VkCommandPool createCommandPool();
   void destroyCommandPool(VkCommandPool pool);
 
-  Vk1Image createImage(VkFormat format, uint32_t width, uint32_t height,
-                       VkImageUsageFlags usageFlags);
+  Vk1Image createImage(VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags);
   void destroyImage(Vk1Image& image);
 
-  Vk1ImageView createImageView(const Vk1Image& image, VkFormat format,
-                               VkImageSubresourceRange subResourceRange);
-  VkImageView createImageView(VkImage image, VkFormat format,
-                              VkImageSubresourceRange subResourceRange);
+  Vk1ImageView createImageView(const Vk1Image& image, VkFormat format, VkImageSubresourceRange subResourceRange);
+  VkImageView createImageView(VkImage image, VkFormat format, VkImageSubresourceRange subResourceRange);
   void destroyImageView(Vk1ImageView& imageView);
   void destroyImageView(VkImageView imageView);
 
-  Vk1Buffer createBuffer(uint64_t dataSize, VkBufferUsageFlags usage,
-                         VmaAllocationCreateFlags allocCreateFlag, VmaMemoryUsage memUsage);
+  Vk1Buffer createBuffer(uint64_t dataSize, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocCreateFlag,
+                         VmaMemoryUsage memUsage);
   void destroyBuffer(Vk1Buffer& buffer);
 
   VkDescriptorSetLayout createDescriptorSetLayout();
@@ -73,17 +69,13 @@ class Vk1Device {
 
   std::vector<VkFramebuffer> createFramebuffers(VkRenderPass renderpass);
 
-  VkFramebuffer createFramebuffer(VkRenderPass renderpass, VkImageView imageView, uint32_t width,
-                                  uint32_t height);
+  VkFramebuffer createFramebuffer(VkRenderPass renderpass, VkImageView imageView, uint32_t width, uint32_t height);
   void destroyFramebuffer(VkFramebuffer frameBuffer);
 
   VkPipelineLayout createPipelineLayout(VkDescriptorSetLayout setLayout);
   void destroyPipelineLayout(VkPipelineLayout layout);
 
-  VkPipeline createPyramidPipeline(VkRenderPass renderpass, VkPipelineLayout layout,
-                                   VkPipelineCache pipelineCache, VkShaderModule shaderModule);
-  VkPipeline createPyramid2Pipeline(VkRenderPass renderpass, VkPipelineLayout layout,
-                                    VkPipelineCache pipelineCache, VkShaderModule shaderModule);
+  VkPipeline createTestPipeline(VkPipelineLayout layout);
   void destroyPipeline(VkPipeline pipeline);
 
   void waitFences(VkFence fence);

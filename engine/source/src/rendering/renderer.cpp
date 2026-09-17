@@ -9,6 +9,7 @@ Renderer::Renderer(SceneManager* sceneMgr, Backend* backend)
 Renderer::~Renderer() {}
 
 Result<void> Renderer::init() noexcept {
+  LOG_INFO("renderer init()");
   if (auto res = mMaterialManager.init(); !res) {
     return res;
   }
@@ -16,6 +17,7 @@ Result<void> Renderer::init() noexcept {
 }
 
 Result<void> Renderer::destroy() noexcept {
+  LOG_INFO("renderer destroy()");
   if (auto res = mMaterialManager.destroy(); !res) {
     return res;
   }
@@ -42,7 +44,9 @@ void Renderer::doFrame(Renderer::FrameContext& ctx) noexcept {
   recorder.addCmd(BeginRenderingArgs{});
   recorder.addCmd(SetViewportArgs{});
   recorder.addCmd(SetScissorArgs{});
-  recorder.addCmd(BindPipelineArgs{});
+  recorder.addCmd(BindPipelineArgs{
+      .pipeline = {},
+  });
   recorder.addCmd(EndRenderingArgs{});
 }
 

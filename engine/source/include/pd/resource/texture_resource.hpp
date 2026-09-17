@@ -21,11 +21,8 @@ class TextureResource : public Resource {
   friend class ResourceManager;
 
   std::span<uint8_t> mRawData;
-  TextureBHandle mTextureHandle;
+  HwTextureHandle mTexture;
 
-  explicit TextureResource(
-      IdType id, const std::string& name, const Desc info,
-      std::span<uint8_t>
-          rawData);
+  explicit TextureResource(IdType id, const std::string& name, const Desc info, std::span<uint8_t> rawData);
 };
 }  // namespace pd

@@ -20,6 +20,9 @@ class Backend {
 
   void endFrame(const CommandRecorder& cmdRecorder) noexcept;
 
+  // resources
+  PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept;
+
  private:
   class Impl;
   std::unique_ptr<Impl> mImpl;

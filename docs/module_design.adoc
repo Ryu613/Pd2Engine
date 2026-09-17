@@ -236,3 +236,92 @@ end
 
 === 设计思路
 
+== shader编译方案
+
+=== 需求
+
+. 预留支持多种shader语言的扩展性
+. 支持不同rhi后端
+. 支持shader反射
+. 不会中途切换rhi或shader lang
+
+=== 为什么是运行时不是离线？
+
+. 方便调试
+. 不是不支持离线，设想是release版是离线编译，engine直接读取编译好的代码,运行时还是离线是可以选择的
+
+风险：设计上和代码实现可能会增加复杂度
+
+=== 为什么是slang?
+
+. 本项目有跨平台需求,而slang原生方便跨平台，其他语言也有解决方案
+. 本项目是全新项目，没有技术债，适合引入
+
+风险：比较新，有学习成本
+
+=== 为什么要做反射?
+
+. 方便调试，提高生效率
+
+风险: 增大代码量，硬要说就是破坏原有API设计哲学，比如vulkan要求的显式声明
+
+=== 为什么不放在vulkan封装层内部?
+
+. shader的编译和使用是rhi共有的需求，避免每个rhi实现重复实现
+. 用spir-v作为中间产物，支持跨后端
+
+风险：代码量，调用链更长更复杂
+
+=== 谁来调用?什么时候调用?
+
+. 由renderer调用，遍历renderable时，若material(material manager负责)对应的pipeline不存在触发job system编译
+. 不存在时先用默认材质
+
+=== 怎么与材质关联？
+
+. material 里pipeline key中的pipelineStateFlag对应，这个state是特征位bit组合出来的
+
+=== 怎么与pipeline关联？
+
+. 同上，关联的责任在material manager，通过pipeline key
+
+=== 怎么实现热加载？懒加载？异步加载？
+
+. 预想通过文件监视观测shader文件变化驱动material manager重新加载pipeline，目前暂不实现
+. 异步是通过job system执行加载过程，pipeline是handle，替换handle
+
+=== 与RHI层，rendering(渲染前端)层,具体实现(vulkan)层的关系？
+
+. 放到rendering层里的独立模块，由material manager调用
+
+=== 要不要中间产物？如果要，为什么是spir-v?
+
+. spir-v跨平台或者有跨平台方案
+. 目前后端就是vulkan，方便实现
+
+== 设计思路
+
+. shader模块放到rendering下，由material manager调用，但是shader相关的数据由shader模块自己管理
+. shader与rhi实现解耦，shader的创建调用rhi的对应接口，只提供一个数据结构体，返回rhi handle
+. compiler为编译时确定，没必要支持运行时确定和切换，与rhi一致
+. shader模块不会负责文件读取，由asset mgr提供的材质信息决定要哪些pipeline，然后让其去读取pipeline需要的shader原始代码(也就是asset mgr内部需要有一个pipeline对应的shader的文件列表？)
+. 原始代码会编译为spirv, rhi的接口统一收的是spirv, 返回的是shader module的handle
+. 目前让用户去决定要读取的shader在哪里，是哪些，在创建definition的时候传入
+
+[plantuml]
+....
+    AssetManager -> AssetManager: loadAsset()
+    AssetManager -> AssetManager: parseMaterial()
+    AssetManager -> AssetManager: output Asset
+    SceneManager -> SceneDescriptor: onLoadScene()
+    SceneDescriptor -> SceneDescriptor: user defined logic: load asset, register these assets, load shaders(user knows which shaders should be load, and get compiled shaders using shader manager), create materials(with compiled shaders), create material instances, create scene entites(id, mesh handle, material instance, ....)
+    SceneManager <-- SceneDescriptor: scene loaded
+group mainloop
+    Renderer -> Renderer: for each renderable scene entities
+    Renderer -> MaterialManager: get material instance from each entity data, if material's pipeline not exist then create pipeline and save the pipeline handle
+    Renderer -> Renderer: bind pipeline, and render
+end
+
+....
+
+

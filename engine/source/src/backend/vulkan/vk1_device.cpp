@@ -232,14 +232,14 @@ std::vector<VkFramebuffer> Vk1Device::createFramebuffers(VkRenderPass renderpass
   auto swapchainInfo = mSwapchain.getInfo();
   std::vector<VkFramebuffer> framebuffers{swapchainInfo.images.size()};
   for (size_t i = 0; i < framebuffers.size(); ++i) {
-    framebuffers[i] = createFramebuffer(renderpass, swapchainInfo.imageViews[i],
-                                        swapchainInfo.extent.width, swapchainInfo.extent.height);
+    framebuffers[i] = createFramebuffer(renderpass, swapchainInfo.imageViews[i], swapchainInfo.extent.width,
+                                        swapchainInfo.extent.height);
   }
   return framebuffers;
 }
 
-VkFramebuffer Vk1Device::createFramebuffer(VkRenderPass renderpass, VkImageView imageView,
-                                           uint32_t width, uint32_t height) {
+VkFramebuffer Vk1Device::createFramebuffer(VkRenderPass renderpass, VkImageView imageView, uint32_t width,
+                                           uint32_t height) {
   VkFramebufferCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
       .renderPass = renderpass,
@@ -284,19 +284,14 @@ void Vk1Device::destroyPipelineLayout(VkPipelineLayout layout) {
   }
 }
 
-void Vk1Device::waitFences(VkFence fence) {
-  vkWaitForFences(mDevice, 1, &fence, VK_TRUE, UINT64_MAX);
-}
+void Vk1Device::waitFences(VkFence fence) { vkWaitForFences(mDevice, 1, &fence, VK_TRUE, UINT64_MAX); }
 void Vk1Device::resetFences(VkFence fence) { vkResetFences(mDevice, 1, &fence); }
-uint32_t Vk1Device::acquireNextImage(VkSemaphore semaphore) {
-  return mSwapchain.acquireNextImage(semaphore);
-}
+uint32_t Vk1Device::acquireNextImage(VkSemaphore semaphore) { return mSwapchain.acquireNextImage(semaphore); }
 void Vk1Device::present(uint32_t imageIndex, VkSemaphore waitSemaphore) {
   mSwapchain.present(imageIndex, waitSemaphore);
 }
 
-Vk1Image Vk1Device::createImage(VkFormat format, uint32_t width, uint32_t height,
-                                VkImageUsageFlags usageFlags) {
+Vk1Image Vk1Device::createImage(VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags) {
   VkImageCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
       .imageType = VK_IMAGE_TYPE_2D,
@@ -320,8 +315,7 @@ Vk1Image Vk1Device::createImage(VkFormat format, uint32_t width, uint32_t height
       .usage = VMA_MEMORY_USAGE_AUTO,
   };
   Vk1Image image;
-  checkResult(
-      vmaCreateImage(mAllocator, &createInfo, &allocCI, &image.image, &image.allocation, nullptr));
+  checkResult(vmaCreateImage(mAllocator, &createInfo, &allocCI, &image.image, &image.allocation, nullptr));
   assert(image.image);
   return image;
 }
@@ -351,8 +345,7 @@ Vk1ImageView Vk1Device::createImageView(const Vk1Image& vk1Image, VkFormat forma
   return imageView;
 }
 
-VkImageView Vk1Device::createImageView(VkImage image, VkFormat format,
-                                       VkImageSubresourceRange subResourceRange) {
+VkImageView Vk1Device::createImageView(VkImage image, VkFormat format, VkImageSubresourceRange subResourceRange) {
   VkImageViewCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       .image = image,
@@ -380,8 +373,7 @@ void Vk1Device::destroyImageView(VkImageView imageView) {
   }
 }
 
-Vk1Buffer Vk1Device::createBuffer(uint64_t dataSize, VkBufferUsageFlags usage,
-                                  VmaAllocationCreateFlags allocCreateFlag,
+Vk1Buffer Vk1Device::createBuffer(uint64_t dataSize, VkBufferUsageFlags usage, VmaAllocationCreateFlags allocCreateFlag,
                                   VmaMemoryUsage memUsage) {
   VkBufferCreateInfo bufferCreateInfo{
       .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -394,8 +386,8 @@ Vk1Buffer Vk1Device::createBuffer(uint64_t dataSize, VkBufferUsageFlags usage,
       .usage = memUsage,
   };
   Vk1Buffer vk1Buffer;
-  vmaCreateBuffer(mAllocator, &bufferCreateInfo, &allocInfo, &vk1Buffer.buffer,
-                  &vk1Buffer.allocation, &vk1Buffer.allocationInfo);
+  vmaCreateBuffer(mAllocator, &bufferCreateInfo, &allocInfo, &vk1Buffer.buffer, &vk1Buffer.allocation,
+                  &vk1Buffer.allocationInfo);
   assert(vk1Buffer.buffer);
 
   VkBufferDeviceAddressInfo bufferBdaInfo{

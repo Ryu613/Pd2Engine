@@ -71,5 +71,7 @@ inline Result<void> Engine::run(Args&&... args) noexcept {
     return res;
   }
   runImpl();
+
+  return {};
 }
 }  // namespace pd
