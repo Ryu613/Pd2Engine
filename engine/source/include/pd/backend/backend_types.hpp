@@ -123,6 +123,8 @@ struct ShaderData {
 };
 
 struct ShaderSpec {
+  std::string moduleName;
+  std::string modulePath;
   std::vector<u8> code;
   ShaderLang lang = ShaderLang::Slang;
 };

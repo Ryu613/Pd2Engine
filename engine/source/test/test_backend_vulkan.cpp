@@ -35,10 +35,13 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   REQUIRE(backend.init(backendCfg));
   // test pipeline
   auto& fs = platform.fileSystem();
-  auto shaderCode = fs.readFileBinary(ASSET_DIR "shader/pyramid/pyramid.slang");
+  std::string filePath = ASSET_DIR "shader/pyramid/pyramid.slang";
+  auto shaderCode = fs.readFileBinary(filePath);
   // return spir-v code, and reflect info
   ShaderManager shaderManager;
   auto shaderDataRes = shaderManager.compile({
+      .moduleName = "pyramid",
+      .modulePath = filePath,
       .code = shaderCode,
   });
   REQUIRE(shaderDataRes);

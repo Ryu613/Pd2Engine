@@ -33,6 +33,8 @@ enum class ErrorCode : u16 {
   WindowError = 700,
   WindowInitFailed,
   WindowCreateFailed,
+  ShaderError = 800,
+  ShaderCompileError,
   UnknownError = u16_max,
 };
 
@@ -103,6 +105,10 @@ constexpr std::string_view default_msg(ErrorCode code) noexcept {
       return "window init failed";
     case WindowCreateFailed:
       return "window create failed";
+    case ShaderError:
+      return "shader error";
+    case ShaderCompileError:
+      return "shader compile error";
     case UnknownError:
       return "Unknown error";
   }

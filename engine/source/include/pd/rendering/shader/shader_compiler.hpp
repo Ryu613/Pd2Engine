@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pd/backend/backend_types.hpp"
+
 namespace pd {
 class ShaderCompiler {
  public:
@@ -7,7 +9,7 @@ class ShaderCompiler {
   ~ShaderCompiler();
   DELETE_COPY_MOVE(ShaderCompiler);
 
-  Result<std::vector<u8>> compile(const std::vector<u8>& code) noexcept;
+  Result<ShaderData> compile(const ShaderSpec& spec) noexcept;
 
  private:
   class Impl;

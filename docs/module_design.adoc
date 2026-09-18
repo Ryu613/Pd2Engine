@@ -308,20 +308,36 @@ end
 . 原始代码会编译为spirv, rhi的接口统一收的是spirv, 返回的是shader module的handle
 . 目前让用户去决定要读取的shader在哪里，是哪些，在创建definition的时候传入
 
+
+=== 流程设计
+
+. 由于目前没有材质定义文件，先由用户来做material definition的创建
+. asset mgr是负责文件加载的入口，让其负责读取shader文件
+. 用户通过scene descriptor接口，在里面暴露material manager去直接创建材质定义，并用定义生成实例，最后绑定到场景实体上
+
 [plantuml]
 ....
-    AssetManager -> AssetManager: loadAsset()
-    AssetManager -> AssetManager: parseMaterial()
-    AssetManager -> AssetManager: output Asset
-    SceneManager -> SceneDescriptor: onLoadScene()
-    SceneDescriptor -> SceneDescriptor: user defined logic: load asset, register these assets, load shaders(user knows which shaders should be load, and get compiled shaders using shader manager), create materials(with compiled shaders), create material instances, create scene entites(id, mesh handle, material instance, ....)
-    SceneManager <-- SceneDescriptor: scene loaded
+    actor developer as User
+    User -> AssetManager: loadShader()
+    User <-- AssetManager: output shader spec
+    SceneManager -> SceneManager: onLoadScene()
+    User -> MaterialManager: createMaterialDefinition(ShaderSpec)
+    User <-- MaterialManager: new MaterialDefinition
+    User -> MaterialManager: createMaterialInstance(MaterialDefinition)
+    User <-- MaterialManager: new MaterialInstance
+    User -> SceneManager: (user defined)create scene entites(id, mesh handle, material instance, ....)
 group mainloop
     Renderer -> Renderer: for each renderable scene entities
-    Renderer -> MaterialManager: get material instance from each entity data, if material's pipeline not exist then create pipeline and save the pipeline handle
-    Renderer -> Renderer: bind pipeline, and render
+    Renderer -> Renderer: get entity's material instance
+    Renderer <-- MaterialManager: bind instance's pipeline & descriptor set layout
+    Renderer -> Renderer: draw command
 end
 
 ....
+
+=== 本版边界
+
+. 暂不做异步，热重载
+. 暂不做材质定义配置文件，由用户手动定义
 
 
