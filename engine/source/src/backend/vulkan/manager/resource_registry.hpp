@@ -25,8 +25,14 @@ class ResourceRegistry {
 
   pd::HwPipelineLayoutHandle createPipelineLayout(const pd::PipelineLayoutDesc& desc) noexcept;
   void destroyPipelineLayout(pd::HwPipelineLayoutHandle) noexcept;
-  pd::HwGraphicsPipelineHandle createGraphicsPipeline(const pd::GraphicsPipelineDesc& desc) noexcept;
+  pd::HwGraphicsPipelineHandle createGraphicsPipeline(pd::HwPipelineLayoutHandle handle, const pd::GraphicsPipelineDesc& desc) noexcept;
   void destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle) noexcept;
+
+  template <typename Tag>
+  auto* getResource(Handle<Tag> handle) noexcept;
+
+  template <typename Tag>
+  auto& findPool() noexcept;
 
  private:
   template <typename Tag, typename T>
@@ -71,5 +77,27 @@ inline void ResourceRegistry::setObjectName(VkDevice device, VkObjectType type, 
   };
   vkSetDebugUtilsObjectNameEXT(device, &nameInfo);
 #endif
+}
+
+template <typename Tag>
+inline auto& ResourceRegistry::findPool() noexcept {
+  if constexpr (std::is_same_v<Tag, pd::PipelineLayout_t>) {
+    return mPipelineLayouts;
+  } else if (std::is_same_v<Tag, pd::GraphicsPipeline_t>) {
+    return mGraphicsPipelines;
+  }
+  PD_ASSERT_MSG(false, "vulkan resource pool error: not supported tag");
+}
+
+template <typename Tag>
+inline auto* ResourceRegistry::getResource(Handle<Tag> handle) noexcept {
+  auto& dataPool = findPool<Tag>();
+  auto it = dataPool.find(handle.data.id);
+  if (it != dataPool.end()) {
+    // todo: gen equality
+    return &(it->second.resource);
+  }
+  using ResourcePtr = decltype(&(it->second.resource));
+  return static_cast<ResourcePtr>(nullptr);
 }
 }  // namespace vk1

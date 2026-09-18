@@ -53,12 +53,12 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   pipelineDesc.shaderPrograms.push_back({
       .shaderCodeIndex = pipelineDesc.shaderDatas.size() - 1,
       .stage = ShaderStage::Vertex,
-      .entryPoint = "vertex",
+      .entryPoint = "vertMain",
   });
   pipelineDesc.shaderPrograms.push_back({
       .shaderCodeIndex = pipelineDesc.shaderDatas.size() - 1,
       .stage = ShaderStage::Fragment,
-      .entryPoint = "fragment",
+      .entryPoint = "fragMain",
   });
 
   // pipeline data contains pipeline, layout handles, and other infos

@@ -130,6 +130,7 @@ struct ShaderSpec {
 };
 struct GraphicsPipelineDesc {
   std::string_view debugName;
+  HwPipelineLayoutHandle layout;
   std::vector<ShaderData> shaderDatas;
   std::vector<ShaderProgram> shaderPrograms;
 };

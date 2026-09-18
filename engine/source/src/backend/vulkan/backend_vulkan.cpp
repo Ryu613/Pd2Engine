@@ -18,8 +18,8 @@ class Backend::Impl {
  public:
   Impl()
       : mVulkanDevice(createVulkanDevice()),
-        mFrameManager(mVulkanDevice),
-        mResourceManager(mVulkanDevice) {}
+        mResourceRegistry(mVulkanDevice),
+        mFrameManager(mVulkanDevice, mResourceRegistry) {}
 
   ~Impl() {}
 
@@ -29,7 +29,7 @@ class Backend::Impl {
     // create swapchain
     mVulkanDevice.createSwapchain(mConfig.windowHandle, mConfig.width, mConfig.height);
     // init resource mgr
-    mResourceManager.init();
+    mResourceRegistry.init();
     // init frame data
     mFrameManager.init();
 
@@ -40,7 +40,7 @@ class Backend::Impl {
     // destroy frame data
     mFrameManager.destroy();
     // destroy resources
-    mResourceManager.destroy();
+    mResourceRegistry.destroy();
     // destroy swapchain
     mVulkanDevice.destroySwapchain();
     return {};
@@ -63,15 +63,15 @@ class Backend::Impl {
   }
 
   PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
-    auto layoutHandle = mResourceManager.createPipelineLayout({});
-    auto pipelineHandle = mResourceManager.createGraphicsPipeline(desc);
+    auto layoutHandle = mResourceRegistry.createPipelineLayout({});
+    auto pipelineHandle = mResourceRegistry.createGraphicsPipeline(layoutHandle, desc);
     return {layoutHandle, pipelineHandle};
   }
 
  private:
   BackendConfig mConfig{};
   vk1::Vk1Device mVulkanDevice;
-  vk1::ResourceRegistry mResourceManager;
+  vk1::ResourceRegistry mResourceRegistry;
   vk1::FrameManager mFrameManager;
 };
 

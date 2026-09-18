@@ -204,8 +204,12 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
       break;
     }
     case BindPipeline: {
-      const auto* args = reinterpret_cast<const pd::SetScissorArgs*>(&payload.args[0]);
+      const auto* args = reinterpret_cast<const pd::BindPipelineArgs*>(&payload.args[0]);
+      const auto& pipelineHandle = args->pipeline;
+      const Vk1Pipeline* pip = mRegistry->getResource(pipelineHandle);
+      PD_ASSERT_MSG(pip, "pip not exist!");
       auto& frame = mFrames[frameIndex];
+      vkCmdBindPipeline(frame.mainCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pip->handle);
       break;
     }
     case EndRendering: {

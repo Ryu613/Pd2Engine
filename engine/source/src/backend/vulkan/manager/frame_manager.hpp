@@ -2,6 +2,7 @@
 
 #include "pd/backend/command_recorder.hpp"
 
+#include "resource_registry.hpp"
 #include "../vk1_device.hpp"
 #include "../vk1_helper.hpp"
 
@@ -16,8 +17,9 @@ class FrameManager {
  public:
   inline static constexpr size_t FrameCount = global::maxInflightFrames;
 
-  explicit FrameManager(Vk1Device& device)
-      : mDevice(&device) {}
+  explicit FrameManager(Vk1Device& device, ResourceRegistry& registry)
+      : mDevice(&device),
+        mRegistry(&registry) {}
 
   ~FrameManager() = default;
   FrameManager(const FrameManager&) = delete;
@@ -50,6 +52,7 @@ class FrameManager {
   };
 
   Vk1Device* mDevice = nullptr;
+  ResourceRegistry* mRegistry = nullptr;
   std::array<Frame, FrameCount> mFrames;
   size_t mCurrentFrameIndex = 0;
 
