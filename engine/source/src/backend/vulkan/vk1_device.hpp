@@ -34,6 +34,7 @@ class Vk1Device {
 
   VkDevice getDevice() { return mDevice; }
   VkQueue getQueue() { return mQueue; }
+  VmaAllocator getAllocator() { return mAllocator; }
 
   void createSwapchain(void* nativeWindowHandle, uint32_t width, uint32_t height);
   void destroySwapchain();

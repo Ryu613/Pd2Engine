@@ -6,6 +6,7 @@
 
 #include "../vk1_pipeline_layout.hpp"
 #include "../vk1_pipeline.hpp"
+#include "../vk1_buffer.hpp"
 
 namespace vk1 {
 class ResourceRegistry {
@@ -25,11 +26,19 @@ class ResourceRegistry {
 
   pd::HwPipelineLayoutHandle createPipelineLayout(const pd::PipelineLayoutDesc& desc) noexcept;
   void destroyPipelineLayout(pd::HwPipelineLayoutHandle) noexcept;
-  pd::HwGraphicsPipelineHandle createGraphicsPipeline(pd::HwPipelineLayoutHandle handle, const pd::GraphicsPipelineDesc& desc) noexcept;
-  void destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle) noexcept;
+  pd::HwGraphicsPipelineHandle createGraphicsPipeline(pd::HwPipelineLayoutHandle handle,
+                                                      const pd::GraphicsPipelineDesc& desc) noexcept;
+  void destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle handle) noexcept;
+
+  pd::HwBufferHandle createBuffer(const pd::BufferCreateDesc& desc) noexcept;
+  void writeBuffer(const pd::BufferWriteDesc& desc) noexcept;
+  void destroyBuffer(pd::HwBufferHandle buffer) noexcept;
 
   template <typename Tag>
   auto* getResource(Handle<Tag> handle) noexcept;
+
+  template <typename Tag>
+  void destroyResource(Handle<Tag> handle) noexcept;
 
   template <typename Tag>
   auto& findPool() noexcept;
@@ -54,6 +63,7 @@ class ResourceRegistry {
 
   DataPool<pd::PipelineLayout_t, Vk1PipelineLayout> mPipelineLayouts;
   DataPool<pd::GraphicsPipeline_t, Vk1Pipeline> mGraphicsPipelines;
+  DataPool<pd::Buffer_t, Vk1Buffer> mBuffers;
 };
 
 template <typename Tag>
@@ -83,8 +93,10 @@ template <typename Tag>
 inline auto& ResourceRegistry::findPool() noexcept {
   if constexpr (std::is_same_v<Tag, pd::PipelineLayout_t>) {
     return mPipelineLayouts;
-  } else if (std::is_same_v<Tag, pd::GraphicsPipeline_t>) {
+  } else if constexpr (std::is_same_v<Tag, pd::GraphicsPipeline_t>) {
     return mGraphicsPipelines;
+  } else if constexpr (std::is_same_v<Tag, pd::Buffer_t>) {
+    return mBuffers;
   }
   PD_ASSERT_MSG(false, "vulkan resource pool error: not supported tag");
 }
@@ -100,4 +112,7 @@ inline auto* ResourceRegistry::getResource(Handle<Tag> handle) noexcept {
   using ResourcePtr = decltype(&(it->second.resource));
   return static_cast<ResourcePtr>(nullptr);
 }
+
+template <typename Tag>
+inline void ResourceRegistry::destroyResource(Handle<Tag> handle) noexcept {}
 }  // namespace vk1

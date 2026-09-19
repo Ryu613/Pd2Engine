@@ -68,6 +68,21 @@ class Backend::Impl {
     return {layoutHandle, pipelineHandle};
   }
 
+  void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept {}
+
+  HwBufferHandle createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept {
+    auto handle = mResourceRegistry.createBuffer(bufferCreateDesc);
+    return handle;
+  }
+
+  void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept {
+    mResourceRegistry.writeBuffer(bufferWriteDesc);
+  }
+
+  void destroyBuffer(HwBufferHandle handle) noexcept {
+    mResourceRegistry.destroyBuffer(handle);
+  }
+
  private:
   BackendConfig mConfig{};
   vk1::Vk1Device mVulkanDevice;
@@ -91,4 +106,14 @@ void Backend::endFrame(const CommandRecorder& recorder) noexcept { mImpl->endFra
 PipelineData Backend::createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
   return mImpl->createGraphicsPipeline(desc);
 }
+
+void Backend::destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept {
+  mImpl->destroyGraphicsPipeline(handle);
+}
+
+HwBufferHandle Backend::createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept {
+  return mImpl->createBuffer(bufferCreateDesc);
+}
+void Backend::writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept { mImpl->writeBuffer(bufferWriteDesc); }
+void Backend::destroyBuffer(HwBufferHandle handle) noexcept { mImpl->destroyBuffer(handle); }
 }  // namespace pd

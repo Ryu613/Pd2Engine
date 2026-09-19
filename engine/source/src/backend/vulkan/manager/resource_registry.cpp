@@ -191,4 +191,60 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipe
               .gen = 0,
           }};
 }
+
+void ResourceRegistry::destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle handle) noexcept {}
+
+pd::HwBufferHandle ResourceRegistry::createBuffer(const pd::BufferCreateDesc& desc) noexcept {
+  const auto vkDevice = mDevice->getDevice();
+  VkBufferCreateInfo bufferCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .size = desc.deviceSize,
+      .usage = util::ToVkBufferUsage(desc.usage),
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+  };
+  VmaAllocationCreateInfo allocInfo{
+      .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+               VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+      .usage = VMA_MEMORY_USAGE_AUTO,
+  };
+  Vk1Buffer vk1Buffer;
+  checkResult(vmaCreateBuffer(mDevice->getAllocator(), &bufferCreateInfo, &allocInfo, &vk1Buffer.handle,
+                              &vk1Buffer.allocation, &vk1Buffer.allocationInfo));
+  assert(vk1Buffer.handle);
+
+  if (desc.usage == pd::BufferUsage::UniformBuffer) {
+    VkBufferDeviceAddressInfo bufferBdaInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+        .buffer = vk1Buffer.handle,
+    };
+    // able to access the buffer in shader
+    vk1Buffer.deviceAddress = vkGetBufferDeviceAddress(vkDevice, &bufferBdaInfo);
+  }
+
+  Slot<pd::Buffer_t, Vk1Buffer> slot{
+      .gen = 0,
+      .resource = vk1Buffer,
+  };
+  auto newId = nextId<pd::Buffer_t>();
+  mBuffers.emplace(newId, slot);
+
+  setObjectName(vkDevice, VK_OBJECT_TYPE_BUFFER, vk1Buffer.handle, desc.debugName);
+
+  return {{
+      newId,
+      0,
+  }};
+}
+
+void ResourceRegistry::writeBuffer(const pd::BufferWriteDesc& desc) noexcept {
+  auto* buffer = getResource(desc.buffer);
+  assert(buffer->handle);
+  memcpy(buffer->allocationInfo.pMappedData, desc.pData, desc.deviceSize);
+}
+
+void ResourceRegistry::destroyBuffer(pd::HwBufferHandle buffer) noexcept {
+  auto* vk1Buffer = getResource(buffer);
+  assert(vk1Buffer->handle);
+  // todo
+}
 }  // namespace vk1

@@ -4,7 +4,7 @@
 
 namespace vk1 {
 struct Vk1Buffer {
-  VkBuffer buffer{VK_NULL_HANDLE};
+  VkBuffer handle{VK_NULL_HANDLE};
   VmaAllocation allocation{VK_NULL_HANDLE};
   VmaAllocationInfo allocationInfo{};
   VkDeviceAddress deviceAddress{};

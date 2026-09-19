@@ -26,7 +26,29 @@ enum class CmdType : u8 {
   SetViewport,
   SetScissor,
   BindPipeline,
+  DrawIndexed,
   ClearColorImage,
   Count,
+};
+
+enum class BufferUsage : u8 {
+  VertexBuffer,
+  IndexBuffer,
+  UniformBuffer,
+};
+
+enum class SharingMode : u8 {
+  Exclusive,
+  Concurrent,
+};
+
+enum class MemoryUsage : u8 {
+  Unknow,
+  GpuOnly,
+  CpuOnly,
+  CpuToGpu,
+  GpuToCpu,
+  CpuCopy,
+  GpuLazilyAllocated,
 };
 }  // namespace pd

@@ -4,7 +4,7 @@ namespace pd {
 ShaderManager::ShaderManager() {}
 ShaderManager::~ShaderManager() {}
 
-Result<ShaderData> ShaderManager::compile(ShaderSpec spec) noexcept {
+Result<ShaderData> ShaderManager::compile(ShaderDesc spec) noexcept {
   auto compileRes = mCompiler.compile(spec);
   if (!compileRes) {
     LOG_ERROR("shader compile error: {}", compileRes.error().msg);

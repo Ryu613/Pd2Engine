@@ -6,6 +6,8 @@
 #include "pd/backend/command_recorder.hpp"
 #include "pd/rendering/shader/shader_manager.hpp"
 
+#include "pd/core/math/math.hpp"
+
 #ifndef ASSET_DIR
 #define ASSET_DIR ./
 #endif
@@ -61,6 +63,61 @@ TEST_CASE("core_cmds", "backend_vulkan") {
       .entryPoint = "fragMain",
   });
 
+  // buffers
+  struct Vertex {
+    math::vec3 pos;
+    math::vec3 normal;
+    math::vec2 uv;
+  };
+  std::array<Vertex, 4> vertices;
+  vertices[0] = {
+      math::vec3{-0.5f, 0.5f, 0.0f},
+      math::vec3{1.0f, 0.0f, 1.0f},
+      math::vec2{0.0f, 0.0f},
+  };
+  vertices[1] = {
+      math::vec3{-0.5f, -0.5f, 0.0f},
+      math::vec3{0.0f, 1.0f, 1.0f},
+      math::vec2{0.0f, 1.0f},
+  };
+  vertices[2] = {
+      math::vec3{0.5f, -0.5f, 0.0f},
+      math::vec3{0.0f, 0.0f, 1.0f},
+      math::vec2{1.0f, 1.0f},
+  };
+  vertices[3] = {
+      math::vec3{0.5f, 0.5f, 0.0f},
+      math::vec3{0.0f, 1.0f, 0.0f},
+      math::vec2{1.0f, 0.0},
+  };
+
+  std::array<u32, 12> indices{
+      0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 1,
+  };
+  auto vertexBuffer = backend.createBuffer({
+      .debugName = "vertex",
+      .usage = BufferUsage::VertexBuffer,
+      .memoryUsage = MemoryUsage::GpuOnly,
+      .deviceSize = sizeof(vertices[0]) * vertices.size(),
+  });
+  backend.writeBuffer({
+      .buffer = vertexBuffer,
+      .pData = vertices.data(),
+      .offset = 0,
+  });
+  auto indexBuffer = backend.createBuffer({
+      .debugName = "index",
+      .usage = BufferUsage::IndexBuffer,
+      .memoryUsage = MemoryUsage::GpuOnly,
+      .deviceSize = sizeof(indices[0]) * indices.size(),
+  });
+  backend.writeBuffer({
+      .buffer = indexBuffer,
+      .pData = indices.data(),
+      .deviceSize = sizeof(indices[0]) * indices.size(),
+      .offset = 0,
+  });
+
   // pipeline data contains pipeline, layout handles, and other infos
   auto pipelineData = backend.createGraphicsPipeline(pipelineDesc);
   // render loop
@@ -75,7 +132,16 @@ TEST_CASE("core_cmds", "backend_vulkan") {
     recorder.addCmd(SetViewportArgs{});
     recorder.addCmd(SetScissorArgs{});
     recorder.addCmd(BindPipelineArgs{
+        .vertexBuffer = vertexBuffer,
+        .indexBuffer = indexBuffer,
         .pipeline = pipelineData.pipeline,
+    });
+    recorder.addCmd(DrawIndexedArgs{
+        .indexCount = static_cast<u32>(indices.size()),
+        .instanceCount = 1,
+        .firstIndex = 0,
+        .vertexOffset = 0,
+        .firstInstance = 0,
     });
     recorder.addCmd(EndRenderingArgs{});
     // end frame

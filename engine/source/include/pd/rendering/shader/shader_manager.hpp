@@ -11,7 +11,7 @@ class ShaderManager {
   ~ShaderManager();
   DELETE_COPY_MOVE(ShaderManager);
 
-  Result<ShaderData> compile(ShaderSpec spec) noexcept;
+  Result<ShaderData> compile(ShaderDesc spec) noexcept;
 
  private:
   ShaderCompiler mCompiler;

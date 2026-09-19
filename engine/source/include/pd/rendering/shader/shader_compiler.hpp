@@ -9,7 +9,7 @@ class ShaderCompiler {
   ~ShaderCompiler();
   DELETE_COPY_MOVE(ShaderCompiler);
 
-  Result<ShaderData> compile(const ShaderSpec& spec) noexcept;
+  Result<ShaderData> compile(const ShaderDesc& spec) noexcept;
 
  private:
   class Impl;

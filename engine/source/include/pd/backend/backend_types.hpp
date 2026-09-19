@@ -73,7 +73,19 @@ struct SetScissorArgs {
 
 struct BindPipelineArgs {
   static constexpr CmdType type = CmdType::BindPipeline;
+  HwBufferHandle vertexBuffer;
+  HwBufferHandle indexBuffer;
   HwGraphicsPipelineHandle pipeline;
+  u32 vertexOffset = 0;
+};
+
+struct DrawIndexedArgs {
+  static constexpr CmdType type = CmdType::DrawIndexed;
+  u32 indexCount = 0;
+  u32 instanceCount = 1;
+  u32 firstIndex = 0;
+  u32 vertexOffset = 0;
+  u32 firstInstance = 0;
 };
 
 struct ClearColorImageArgs {
@@ -122,12 +134,28 @@ struct ShaderData {
   // todo: reflection info
 };
 
-struct ShaderSpec {
+struct ShaderDesc {
   std::string moduleName;
   std::string modulePath;
   std::vector<u8> code;
   ShaderLang lang = ShaderLang::Slang;
 };
+
+struct BufferCreateDesc {
+  std::string_view debugName;
+  BufferUsage usage = BufferUsage::VertexBuffer;
+  SharingMode sharingMode = SharingMode::Exclusive;
+  MemoryUsage memoryUsage = MemoryUsage::GpuOnly;
+  uint64_t deviceSize = 0;
+};
+
+struct BufferWriteDesc {
+  HwBufferHandle buffer;
+  const void* pData = nullptr;
+  u64 deviceSize = 0;
+  u32 offset = 0;
+};
+
 struct GraphicsPipelineDesc {
   std::string_view debugName;
   HwPipelineLayoutHandle layout;

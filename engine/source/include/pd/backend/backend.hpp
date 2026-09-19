@@ -22,6 +22,11 @@ class Backend {
 
   // resources
   PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept;
+  void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept;
+
+  HwBufferHandle createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept;
+  void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept;
+  void destroyBuffer(HwBufferHandle handle) noexcept;
 
  private:
   class Impl;

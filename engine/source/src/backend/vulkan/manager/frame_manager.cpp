@@ -20,24 +20,19 @@ void FrameManager::Frame::init(Vk1Device& device, size_t index) {
 
   // create depth image
   auto [width, height] = pDevice->getSwapchainInfo().extent;
-  depthImage = pDevice->createImage(VK_FORMAT_D32_SFLOAT, width, height,
-                                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+  depthImage = pDevice->createImage(VK_FORMAT_D32_SFLOAT, width, height, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
   auto subResourceRange = helper::createImageSubresourceRange(0, VK_IMAGE_ASPECT_DEPTH_BIT);
   depthImageView = pDevice->createImageView(depthImage, VK_FORMAT_D32_SFLOAT, subResourceRange);
   // transition?
 
   // set debug names
   {
-    pDevice->setDebugName(frameFence, VK_OBJECT_TYPE_FENCE,
-                          std::format("frameFence[{}]", frameIndex));
+    pDevice->setDebugName(frameFence, VK_OBJECT_TYPE_FENCE, std::format("frameFence[{}]", frameIndex));
     pDevice->setDebugName(acquireImageSemaphore, VK_OBJECT_TYPE_SEMAPHORE,
                           std::format("acquireImageSemaphore[{}]", frameIndex));
-    pDevice->setDebugName(cmdPool, VK_OBJECT_TYPE_COMMAND_POOL,
-                          std::format("frameCmdPool[{}]", frameIndex));
-    pDevice->setDebugName(mainCmdBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER,
-                          std::format("frameCmdBuffer[{}]", frameIndex));
-    pDevice->setDebugName(depthImage.image, VK_OBJECT_TYPE_IMAGE,
-                          std::format("depthImage[{}]", frameIndex));
+    pDevice->setDebugName(cmdPool, VK_OBJECT_TYPE_COMMAND_POOL, std::format("frameCmdPool[{}]", frameIndex));
+    pDevice->setDebugName(mainCmdBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER, std::format("frameCmdBuffer[{}]", frameIndex));
+    pDevice->setDebugName(depthImage.image, VK_OBJECT_TYPE_IMAGE, std::format("depthImage[{}]", frameIndex));
     pDevice->setDebugName(depthImageView.imageView, VK_OBJECT_TYPE_IMAGE_VIEW,
                           std::format("depthImageView[{}]", frameIndex));
   }
@@ -137,8 +132,7 @@ void FrameManager::replayCommands(const pd::CommandRecorder& recorder) noexcept 
   }
 }
 
-void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIndex,
-                             uint32_t imageIndex) noexcept {
+void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIndex, uint32_t imageIndex) noexcept {
   auto& swapchainInfo = mDevice->getSwapchainInfo();
   switch (payload.type) {
     using enum pd::CmdType;
@@ -206,10 +200,26 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
     case BindPipeline: {
       const auto* args = reinterpret_cast<const pd::BindPipelineArgs*>(&payload.args[0]);
       const auto& pipelineHandle = args->pipeline;
+      const auto& vertexBufferHandle = args->vertexBuffer;
+      const auto& indexBufferHandle = args->indexBuffer;
       const Vk1Pipeline* pip = mRegistry->getResource(pipelineHandle);
       PD_ASSERT_MSG(pip, "pip not exist!");
+      const Vk1Buffer* vertexBuffer = mRegistry->getResource(vertexBufferHandle);
+      PD_ASSERT_MSG(vertexBuffer, "vertex buffer not exist!");
+      const Vk1Buffer* indexBuffer = mRegistry->getResource(indexBufferHandle);
+      PD_ASSERT_MSG(indexBuffer, "index buffer not exist!");
       auto& frame = mFrames[frameIndex];
       vkCmdBindPipeline(frame.mainCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pip->handle);
+      VkDeviceSize deviceSize{};
+      vkCmdBindVertexBuffers(frame.mainCmdBuffer, 0, 1, &vertexBuffer->handle, &deviceSize);
+      vkCmdBindIndexBuffer(frame.mainCmdBuffer, indexBuffer->handle, 0, VK_INDEX_TYPE_UINT32);
+      break;
+    }
+    case DrawIndexed: {
+      const auto* args = reinterpret_cast<const pd::DrawIndexedArgs*>(&payload.args[0]);
+      auto& frame = mFrames[frameIndex];
+      vkCmdDrawIndexed(frame.mainCmdBuffer, args->indexCount, args->instanceCount, args->firstIndex, args->vertexOffset,
+                       args->firstInstance);
       break;
     }
     case EndRendering: {
@@ -229,8 +239,8 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
           .levelCount = 1,
           .layerCount = 1,
       };
-      vkCmdClearColorImage(frame.mainCmdBuffer, swapchainInfo.images[frameIndex],
-                           VK_IMAGE_LAYOUT_GENERAL, &color, 1, &subResourceRange);
+      vkCmdClearColorImage(frame.mainCmdBuffer, swapchainInfo.images[frameIndex], VK_IMAGE_LAYOUT_GENERAL, &color, 1,
+                           &subResourceRange);
       break;
     }
     default:

@@ -386,13 +386,13 @@ Vk1Buffer Vk1Device::createBuffer(uint64_t dataSize, VkBufferUsageFlags usage, V
       .usage = memUsage,
   };
   Vk1Buffer vk1Buffer;
-  vmaCreateBuffer(mAllocator, &bufferCreateInfo, &allocInfo, &vk1Buffer.buffer, &vk1Buffer.allocation,
+  vmaCreateBuffer(mAllocator, &bufferCreateInfo, &allocInfo, &vk1Buffer.handle, &vk1Buffer.allocation,
                   &vk1Buffer.allocationInfo);
-  assert(vk1Buffer.buffer);
+  assert(vk1Buffer.handle);
 
   VkBufferDeviceAddressInfo bufferBdaInfo{
       .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-      .buffer = vk1Buffer.buffer,
+      .buffer = vk1Buffer.handle,
   };
   // able to access the buffer in shader
   vk1Buffer.deviceAddress = vkGetBufferDeviceAddress(mDevice, &bufferBdaInfo);
@@ -400,8 +400,8 @@ Vk1Buffer Vk1Device::createBuffer(uint64_t dataSize, VkBufferUsageFlags usage, V
 }
 
 void Vk1Device::destroyBuffer(Vk1Buffer& buffer) {
-  if (buffer.buffer) {
-    vmaDestroyBuffer(mAllocator, buffer.buffer, buffer.allocation);
+  if (buffer.handle) {
+    vmaDestroyBuffer(mAllocator, buffer.handle, buffer.allocation);
   }
   buffer = {};
 }

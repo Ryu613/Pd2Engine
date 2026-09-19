@@ -14,7 +14,7 @@ void diagnoseIfNeeded(slang::IBlob* diagnosticsBlob) {
 }  // namespace
 class ShaderCompiler::Impl {
  public:
-  Result<ShaderData> compile(const ShaderSpec& spec) noexcept {
+  Result<ShaderData> compile(const ShaderDesc& spec) noexcept {
     // slang compilation
     Slang::ComPtr<slang::IGlobalSession> globalSession;
     slang::createGlobalSession(globalSession.writeRef());
@@ -103,5 +103,5 @@ ShaderCompiler::ShaderCompiler()
 
 ShaderCompiler::~ShaderCompiler() {}
 
-Result<ShaderData> ShaderCompiler::compile(const ShaderSpec& spec) noexcept { return mImpl->compile(spec); }
+Result<ShaderData> ShaderCompiler::compile(const ShaderDesc& spec) noexcept { return mImpl->compile(spec); }
 }  // namespace pd
