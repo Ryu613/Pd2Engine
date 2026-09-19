@@ -64,11 +64,6 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   });
 
   // buffers
-  struct Vertex {
-    math::vec3 pos;
-    math::vec3 normal;
-    math::vec2 uv;
-  };
   std::array<Vertex, 4> vertices;
   vertices[0] = {
       math::vec3{-0.5f, 0.5f, 0.0f},
@@ -103,6 +98,7 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   backend.writeBuffer({
       .buffer = vertexBuffer,
       .pData = vertices.data(),
+      .deviceSize = sizeof(vertices),
       .offset = 0,
   });
   auto indexBuffer = backend.createBuffer({
@@ -121,21 +117,23 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   // pipeline data contains pipeline, layout handles, and other infos
   auto pipelineData = backend.createGraphicsPipeline(pipelineDesc);
   // render loop
-  CommandRecorder recorder;
   while (!platform.windowSystem().shouldClose()) {
+    platform.processEvents();
     // begin frame
-    recorder.clear();
+    CommandRecorder recorder;
     auto frameData = backend.beginFrame();
     recorder.setInfo(frameData.frameIndex, frameData.swapchainImageIndex);
     // record rendering commands
+    // recorder.addCmd(ClearColorImageArgs{});
     recorder.addCmd(BeginRenderingArgs{});
     recorder.addCmd(SetViewportArgs{});
-    recorder.addCmd(SetScissorArgs{});
     recorder.addCmd(BindPipelineArgs{
         .vertexBuffer = vertexBuffer,
         .indexBuffer = indexBuffer,
         .pipeline = pipelineData.pipeline,
     });
+    recorder.addCmd(SetScissorArgs{});
+
     recorder.addCmd(DrawIndexedArgs{
         .indexCount = static_cast<u32>(indices.size()),
         .instanceCount = 1,

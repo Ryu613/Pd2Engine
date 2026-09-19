@@ -31,7 +31,7 @@ class FrameManager {
   void destroy() noexcept;
 
   FrameData beginFrame() noexcept;
-  void endFrame(const pd::CommandRecorder recorder) noexcept;
+  void endFrame(const pd::CommandRecorder& recorder) noexcept;
 
  private:
   struct Frame {

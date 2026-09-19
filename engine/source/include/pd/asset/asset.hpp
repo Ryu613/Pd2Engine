@@ -33,7 +33,7 @@ class TextureData {
   std::vector<uint8_t> mPixels;
 };
 
-struct Vertex {
+struct VertexData {
   math::vec3 position{};
   math::vec2 uv{};
   math::vec3 normal{};
@@ -43,7 +43,7 @@ struct Vertex {
 struct MeshData {
   struct SubMesh {
     std::string name;
-    std::vector<Vertex> vertices;
+    std::vector<VertexData> vertices;
     std::vector<u32> indices;
   };
 

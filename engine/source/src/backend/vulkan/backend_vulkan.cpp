@@ -55,10 +55,6 @@ class Backend::Impl {
   }
 
   void endFrame(const CommandRecorder& recorder) noexcept {
-    vk1::FrameData vk1FrameData{
-        .frameIndex = recorder.getInfo().frameIndex,
-        .swapchainImageIndex = recorder.getInfo().swapchainImageIndex,
-    };
     mFrameManager.endFrame(recorder);
   }
 
@@ -101,7 +97,7 @@ Result<void> Backend::destroy() noexcept { return mImpl->destroy(); }
 
 pd::FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
 
-void Backend::endFrame(const CommandRecorder& recorder) noexcept { mImpl->endFrame(recorder); }
+void Backend::endFrame(CommandRecorder recorder) noexcept { mImpl->endFrame(recorder); }
 
 PipelineData Backend::createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
   return mImpl->createGraphicsPipeline(desc);

@@ -66,38 +66,38 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipe
     stages[i].pName = shaderProgram.entryPoint.data();
   };
 
-  // std::array<VkVertexInputAttributeDescription, 3> vertexAttrs;
-  // vertexAttrs[0] = {
-  //     .location = 0,
-  //     .binding = 0,
-  //     .format = VK_FORMAT_R32G32B32_SFLOAT,
-  //     .offset = offsetof(Vertex, position),
-  // };
-  // vertexAttrs[1] = {
-  //     .location = 1,
-  //     .binding = 0,
-  //     .format = VK_FORMAT_R32G32B32_SFLOAT,
-  //     .offset = offsetof(Vertex, color),
-  // };
-  // vertexAttrs[2] = {
-  //     .location = 2,
-  //     .binding = 0,
-  //     .format = VK_FORMAT_R32G32_SFLOAT,
-  //     .offset = offsetof(Vertex, texCoord),
-  // };
+  std::array<VkVertexInputAttributeDescription, 3> vertexAttrs;
+  vertexAttrs[0] = {
+      .location = 0,
+      .binding = 0,
+      .format = VK_FORMAT_R32G32B32_SFLOAT,
+      .offset = offsetof(pd::Vertex, pos),
+  };
+  vertexAttrs[1] = {
+      .location = 1,
+      .binding = 0,
+      .format = VK_FORMAT_R32G32B32_SFLOAT,
+      .offset = offsetof(pd::Vertex, normal),
+  };
+  vertexAttrs[2] = {
+      .location = 2,
+      .binding = 0,
+      .format = VK_FORMAT_R32G32_SFLOAT,
+      .offset = offsetof(pd::Vertex, uv),
+  };
 
-  // VkVertexInputBindingDescription vertexBinding{
-  //     .binding = 0,
-  //     .stride = sizeof(Vertex),
-  //     .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-  // };
+  VkVertexInputBindingDescription vertexBinding{
+      .binding = 0,
+      .stride = sizeof(pd::Vertex),
+      .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+  };
 
   VkPipelineVertexInputStateCreateInfo vertexInput{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-      // .vertexBindingDescriptionCount = 1,
-      // .pVertexBindingDescriptions = &vertexBinding,
-      // .vertexAttributeDescriptionCount = vertexAttrs.size(),
-      // .pVertexAttributeDescriptions = vertexAttrs.data(),
+      .vertexBindingDescriptionCount = 1,
+      .pVertexBindingDescriptions = &vertexBinding,
+      .vertexAttributeDescriptionCount = vertexAttrs.size(),
+      .pVertexAttributeDescriptions = vertexAttrs.data(),
   };
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
@@ -157,7 +157,7 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipe
   VkGraphicsPipelineCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
       .pNext = &renderingInfo,
-      .stageCount = 2,
+      .stageCount = static_cast<uint32_t>(stages.size()),
       .pStages = stages.data(),
       .pVertexInputState = &vertexInput,
       .pInputAssemblyState = &inputAssembly,

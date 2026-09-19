@@ -1,6 +1,7 @@
 #pragma once
 
 #include "backend_enums.hpp"
+#include "pd/core/math/math.hpp"
 
 namespace pd {
 
@@ -166,5 +167,11 @@ struct GraphicsPipelineDesc {
 struct PipelineData {
   HwPipelineLayoutHandle layout;
   HwGraphicsPipelineHandle pipeline;
+};
+
+struct Vertex {
+  math::vec3 pos;
+  math::vec3 normal;
+  math::vec2 uv;
 };
 }  // namespace pd

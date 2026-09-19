@@ -79,19 +79,19 @@ FrameData FrameManager::beginFrame() noexcept {
   };
 }
 
-void FrameManager::endFrame(const pd::CommandRecorder recorder) noexcept {
+void FrameManager::endFrame(const pd::CommandRecorder& recorder) noexcept {
   auto [frameIndex, imageIndex] = recorder.getInfo();
   auto& frame = mFrames[frameIndex];
 
   replayCommands(recorder);
 
-  vkEndCommandBuffer(frame.mainCmdBuffer);
+  checkResult(vkEndCommandBuffer(frame.mainCmdBuffer));
 
   // submit commands
+  auto& swapchainInfo = mDevice->getSwapchainInfo();
   {
     auto vkQueue = mDevice->getQueue();
-    auto& swapchainInfo = mDevice->getSwapchainInfo();
-    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
     const std::array commandBufferInfos = {VkCommandBufferSubmitInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
         .commandBuffer = frame.mainCmdBuffer,
@@ -104,7 +104,7 @@ void FrameManager::endFrame(const pd::CommandRecorder recorder) noexcept {
     const std::array signalInfos = {VkSemaphoreSubmitInfo{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
         .semaphore = swapchainInfo.presentSemaphores[imageIndex],
-        .stageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
     }};
     const VkSubmitInfo2 submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
@@ -116,12 +116,13 @@ void FrameManager::endFrame(const pd::CommandRecorder recorder) noexcept {
         .pSignalSemaphoreInfos = signalInfos.data(),
     };
     mDevice->resetFences(frame.frameFence);
+    advanceFrameIndex(frameIndex);
     vkQueueSubmit2(vkQueue, 1, &submitInfo, frame.frameFence);
   }
 
-  mDevice->present(imageIndex, frame.acquireImageSemaphore);
+  mDevice->present(imageIndex, swapchainInfo.presentSemaphores[imageIndex]);
 
-  advanceFrameIndex(frameIndex);
+  // vkDeviceWaitIdle(mDevice->getDevice());
 }
 
 void FrameManager::replayCommands(const pd::CommandRecorder& recorder) noexcept {
@@ -139,22 +140,67 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
     case BeginRendering: {
       const auto* args = reinterpret_cast<const pd::BeginRenderingArgs*>(&payload.args[0]);
       auto& frame = mFrames[frameIndex];
+
+      // memory barriers
+      std::array<VkImageMemoryBarrier2, 2> outputBarriers{
+          VkImageMemoryBarrier2{
+              .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+              .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+              .srcAccessMask = 0,
+              .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+              .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+              .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+              .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+              .image = swapchainInfo.images[imageIndex],
+              .subresourceRange{
+                  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                  .levelCount = 1,
+                  .layerCount = 1,
+              },
+          },
+          VkImageMemoryBarrier2{
+              .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+              .srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+              .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+              .dstStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
+              .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+              .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+              .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+              .image = frame.depthImage.image,
+              .subresourceRange{
+                  .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                  .levelCount = 1,
+                  .layerCount = 1,
+              },
+          }};
+      VkDependencyInfo barrierDependencyInfo{
+          .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+          .imageMemoryBarrierCount = outputBarriers.size(),
+          .pImageMemoryBarriers = outputBarriers.data(),
+      };
+      vkCmdPipelineBarrier2(frame.mainCmdBuffer, &barrierDependencyInfo);
+
+      // rendering info
       VkClearValue clearValue{};
       clearValue.color = {36.0f / 255.0f, 10.0f / 255.0f, 48.0f / 255.0f};
-      VkClearValue depthClearValue{};
-      depthClearValue.depthStencil.depth = 1.0F;
+      VkClearValue depthClearValue{
+          .depthStencil =
+              {
+                  .depth = 1.0f,
+              },
+      };
       std::array colorAtts = {VkRenderingAttachmentInfo{
           .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
           .imageView = swapchainInfo.imageViews[imageIndex],
-          .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+          .imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
           .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-          .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+          .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
           .clearValue = clearValue,
       }};
       VkRenderingAttachmentInfo depthAtt{
           .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
           .imageView = frame.depthImageView.imageView,
-          .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+          .imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
           .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
           .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
           .clearValue = depthClearValue,
@@ -167,7 +213,7 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
                   .extent = {swapchainInfo.extent.width, swapchainInfo.extent.height},
               },
           .layerCount = 1,
-          .colorAttachmentCount = 1,
+          .colorAttachmentCount = colorAtts.size(),
           .pColorAttachments = colorAtts.data(),
           .pDepthAttachment = &depthAtt,
       };
@@ -226,6 +272,27 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
       const auto* args = reinterpret_cast<const pd::EndRenderingArgs*>(&payload.args[0]);
       auto& frame = mFrames[frameIndex];
       vkCmdEndRendering(frame.mainCmdBuffer);
+      VkImageMemoryBarrier2 barrierPresent{
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+          .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+          .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+          .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+          .dstAccessMask = 0,
+          .oldLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+          .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+          .image = swapchainInfo.images[imageIndex],
+          .subresourceRange{
+              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+              .levelCount = 1,
+              .layerCount = 1,
+          },
+      };
+      VkDependencyInfo barrierPresentDependencyInfo{
+          .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+          .imageMemoryBarrierCount = 1,
+          .pImageMemoryBarriers = &barrierPresent,
+      };
+      vkCmdPipelineBarrier2(frame.mainCmdBuffer, &barrierPresentDependencyInfo);
       break;
     }
     case ClearColorImage: {

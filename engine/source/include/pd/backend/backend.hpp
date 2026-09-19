@@ -18,7 +18,7 @@ class Backend {
 
   FrameData beginFrame() noexcept;
 
-  void endFrame(const CommandRecorder& cmdRecorder) noexcept;
+  void endFrame(CommandRecorder cmdRecorder) noexcept;
 
   // resources
   PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept;
