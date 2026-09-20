@@ -64,10 +64,11 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   });
 
   // buffers
+  // front face color is red!
   std::array<Vertex, 5> vertices;
   vertices[0] = {
       math::vec3{0.0f, 0.5f, 0.0f},
-      math::vec3{1.0f, 0.0f, 1.0f},
+      math::vec3{1.0f, 0.0f, 0.0f},
       math::vec2{0.0f, 0.0f},
   };
   vertices[1] = {
@@ -82,12 +83,12 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   };
   vertices[3] = {
       math::vec3{0.5f, -0.5f, 0.5f},
-      math::vec3{0.0f, 1.0f, 0.0f},
+      math::vec3{1.0f, 0.0f, 0.0f},
       math::vec2{1.0f, 1.0},
   };
   vertices[4] = {
       math::vec3{-0.5f, -0.5f, 0.5f},
-      math::vec3{1.0f, 1.0f, 0.0f},
+      math::vec3{1.0f, 0.0f, 0.0f},
       math::vec2{1.0f, 0.0f},
   };
 

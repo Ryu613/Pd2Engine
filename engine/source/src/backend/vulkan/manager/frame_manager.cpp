@@ -48,9 +48,9 @@ void FrameManager::Frame::init(Vk1Device& device, size_t index) {
 void FrameManager::Frame::update() {
   // shortcut: need camera and delta time
   float aspectRatio = static_cast<float>(1024) / static_cast<float>(768);
-  // ubo.model = glm::rotate(ubo.model, 0.003f, glm::vec3{0.0f, 1.0f, 0.0f});
+  ubo.model = glm::rotate(ubo.model, 0.003f, glm::vec3{0.0f, 1.0f, 0.0f});
   ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-  // ubo.proj = glm::perspective(glm::radians(45.f), aspectRatio, 0.1f, 100.0f);
+  ubo.proj = glm::perspective(glm::radians(45.f), aspectRatio, 0.1f, 100.0f);
   // ubo.proj[1][1] *= -1.0F;
   // ubo.proj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
 

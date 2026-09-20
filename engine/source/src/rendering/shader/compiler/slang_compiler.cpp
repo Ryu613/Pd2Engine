@@ -25,6 +25,7 @@ class ShaderCompiler::Impl {
     };
     sessionDesc.targets = &targetDesc;
     sessionDesc.targetCount = 1;
+    sessionDesc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
     std::array<slang::CompilerOptionEntry, 1> options = {{slang::CompilerOptionName::EmitSpirvDirectly,
                                                           {
