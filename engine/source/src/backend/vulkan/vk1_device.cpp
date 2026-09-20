@@ -386,16 +386,19 @@ Vk1Buffer Vk1Device::createBuffer(uint64_t dataSize, VkBufferUsageFlags usage, V
       .usage = memUsage,
   };
   Vk1Buffer vk1Buffer;
-  vmaCreateBuffer(mAllocator, &bufferCreateInfo, &allocInfo, &vk1Buffer.handle, &vk1Buffer.allocation,
-                  &vk1Buffer.allocationInfo);
+  checkResult(vmaCreateBuffer(mAllocator, &bufferCreateInfo, &allocInfo, &vk1Buffer.handle, &vk1Buffer.allocation,
+                              &vk1Buffer.allocationInfo));
   assert(vk1Buffer.handle);
 
-  VkBufferDeviceAddressInfo bufferBdaInfo{
-      .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-      .buffer = vk1Buffer.handle,
-  };
-  // able to access the buffer in shader
-  vk1Buffer.deviceAddress = vkGetBufferDeviceAddress(mDevice, &bufferBdaInfo);
+  if (usage == VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
+    VkBufferDeviceAddressInfo bufferBdaInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+        .buffer = vk1Buffer.handle,
+    };
+    // able to access the buffer in shader
+    vk1Buffer.deviceAddress = vkGetBufferDeviceAddress(mDevice, &bufferBdaInfo);
+  }
+
   return vk1Buffer;
 }
 

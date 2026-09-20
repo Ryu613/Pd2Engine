@@ -174,4 +174,10 @@ struct Vertex {
   math::vec3 normal;
   math::vec2 uv;
 };
+
+struct UniformBufferObject {
+  math::mat4 model{1.0f};
+  math::mat4 view{1.0f};
+  math::mat4 proj{1.0f};
+};
 }  // namespace pd

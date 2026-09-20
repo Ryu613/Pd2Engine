@@ -64,26 +64,31 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   });
 
   // buffers
-  std::array<Vertex, 4> vertices;
+  std::array<Vertex, 5> vertices;
   vertices[0] = {
-      math::vec3{-0.5f, 0.5f, 0.0f},
+      math::vec3{0.0f, 0.5f, 0.0f},
       math::vec3{1.0f, 0.0f, 1.0f},
       math::vec2{0.0f, 0.0f},
   };
   vertices[1] = {
-      math::vec3{-0.5f, -0.5f, 0.0f},
+      math::vec3{-0.5f, -0.5f, -0.5f},
       math::vec3{0.0f, 1.0f, 1.0f},
       math::vec2{0.0f, 1.0f},
   };
   vertices[2] = {
-      math::vec3{0.5f, -0.5f, 0.0f},
+      math::vec3{0.5f, -0.5f, -0.5f},
       math::vec3{0.0f, 0.0f, 1.0f},
       math::vec2{1.0f, 1.0f},
   };
   vertices[3] = {
-      math::vec3{0.5f, 0.5f, 0.0f},
+      math::vec3{0.5f, -0.5f, 0.5f},
       math::vec3{0.0f, 1.0f, 0.0f},
-      math::vec2{1.0f, 0.0},
+      math::vec2{1.0f, 1.0},
+  };
+  vertices[4] = {
+      math::vec3{-0.5f, -0.5f, 0.5f},
+      math::vec3{1.0f, 1.0f, 0.0f},
+      math::vec2{1.0f, 0.0f},
   };
 
   std::array<u32, 12> indices{
@@ -117,10 +122,11 @@ TEST_CASE("core_cmds", "backend_vulkan") {
   // pipeline data contains pipeline, layout handles, and other infos
   auto pipelineData = backend.createGraphicsPipeline(pipelineDesc);
   // render loop
+  CommandRecorder recorder;
   while (!platform.windowSystem().shouldClose()) {
     platform.processEvents();
     // begin frame
-    CommandRecorder recorder;
+    recorder.clear();
     auto frameData = backend.beginFrame();
     recorder.setInfo(frameData.frameIndex, frameData.swapchainImageIndex);
     // record rendering commands

@@ -2,8 +2,8 @@
 #include "pd/asset/asset_manager.hpp"
 #include "pd/platform/fs/std_file_system.hpp"
 
-#ifndef ASSET_BASE_DIR
-#define ASSET_BASE_DIR ./
+#ifndef ASSET_DIR
+#define ASSET_DIR ./
 #endif
 
 TEST_CASE("test_asset_loading", "engine") {
@@ -13,7 +13,7 @@ TEST_CASE("test_asset_loading", "engine") {
 
   pd::Asset::CreateInfo assetInfo{
       .name = "box",
-      .path = ASSET_BASE_DIR "BoxTextured/BoxTextured.glb",
+      .path = ASSET_DIR "BoxTextured/BoxTextured.glb",
       .parseType = AssetType::Gltf,
   };
   auto result = assetMgr.createAsset(assetInfo);

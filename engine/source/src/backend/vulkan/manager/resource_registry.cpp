@@ -12,10 +12,16 @@ void ResourceRegistry::init() noexcept {}
 void ResourceRegistry::destroy() noexcept {}
 
 pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::PipelineLayoutDesc& desc) noexcept {
+  VkPushConstantRange pushConstantRange{
+      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+      .size = sizeof(VkDeviceAddress),
+  };
   VkPipelineLayoutCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 0,
       .pSetLayouts = 0,
+      .pushConstantRangeCount = 1,
+      .pPushConstantRanges = &pushConstantRange,
   };
   VkPipelineLayout layout = 0;
   checkResult(vkCreatePipelineLayout(mDevice->getDevice(), &createInfo, 0, &layout));
@@ -111,8 +117,8 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipe
   VkPipelineRasterizationStateCreateInfo rasterization{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
       .polygonMode = VK_POLYGON_MODE_FILL,
-      .cullMode = VK_CULL_MODE_NONE,
-      .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+      .cullMode = VK_CULL_MODE_BACK_BIT,
+      .frontFace = VK_FRONT_FACE_CLOCKWISE,
       .lineWidth = 1.0f,
   };
   VkPipelineColorBlendAttachmentState colorAttachment{
@@ -178,6 +184,7 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipe
       .gen = 0,
       .resource =
           {
+              .layout = vk1PipelineLayout->handle,
               .handle = pipeline,
           },
   };

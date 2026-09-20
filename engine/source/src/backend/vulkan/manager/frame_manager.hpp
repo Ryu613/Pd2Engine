@@ -36,6 +36,7 @@ class FrameManager {
  private:
   struct Frame {
     void init(Vk1Device& device, size_t index);
+    void update();
     void destroy();
 
     void setUsing(bool flag) noexcept { isUsing = flag; }
@@ -49,6 +50,8 @@ class FrameManager {
     VkCommandBuffer mainCmdBuffer = VK_NULL_HANDLE;
     Vk1Image depthImage{};
     Vk1ImageView depthImageView{};
+    pd::UniformBufferObject ubo{};
+    Vk1Buffer uniformBuffer{};
   };
 
   Vk1Device* mDevice = nullptr;

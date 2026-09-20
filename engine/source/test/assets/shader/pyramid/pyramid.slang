@@ -4,7 +4,7 @@ struct VSInput {
   float2 uv;
 };
 
-struct UBO {
+struct UniformBufferObject {
   float4x4 model;
   float4x4 view;
   float4x4 proj;
@@ -30,11 +30,13 @@ struct VSOutput {
 // Sampler2D texture;
 
 [shader("vertex")]
-VSOutput vertMain(VSInput input, uint vid: SV_VertexID) {
+VSOutput vertMain(VSInput input, uniform UniformBufferObject* ubo, uint vid: SV_VertexID) {
   VSOutput out;
-  // out.sv_position = mul(mvp.proj, mul(mvp.view, mul(mvp.model, float4(input.position, 1.0f))));
-  out.sv_position = float4(input.pos, 1.0f);
+  out.sv_position = mul(ubo->proj, mul(ubo->view, mul(ubo->model, float4(input.pos, 1.0f))));
+  // out.sv_position = mul(ubo->view, mul(ubo->model, float4(input.pos, 1.0f)));
+      // out.sv_position = float4(input.pos, 1.0f);
   out.color = float4(input.normal, 1.0f);
+  // out.color = float4(abs(ubo->proj[2][3]), abs(ubo->proj[3][2]) * 5.0f, 0, 1.0f);
   out.texCoord = input.uv;
   return out;
 }

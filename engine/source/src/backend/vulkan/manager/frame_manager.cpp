@@ -23,7 +23,13 @@ void FrameManager::Frame::init(Vk1Device& device, size_t index) {
   depthImage = pDevice->createImage(VK_FORMAT_D32_SFLOAT, width, height, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
   auto subResourceRange = helper::createImageSubresourceRange(0, VK_IMAGE_ASPECT_DEPTH_BIT);
   depthImageView = pDevice->createImageView(depthImage, VK_FORMAT_D32_SFLOAT, subResourceRange);
-  // transition?
+
+  // create uniform buffer
+  uniformBuffer = pDevice->createBuffer(sizeof(pd::UniformBufferObject), VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+                                        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+                                            VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
+                                            VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                                        VMA_MEMORY_USAGE_AUTO);
 
   // set debug names
   {
@@ -35,10 +41,24 @@ void FrameManager::Frame::init(Vk1Device& device, size_t index) {
     pDevice->setDebugName(depthImage.image, VK_OBJECT_TYPE_IMAGE, std::format("depthImage[{}]", frameIndex));
     pDevice->setDebugName(depthImageView.imageView, VK_OBJECT_TYPE_IMAGE_VIEW,
                           std::format("depthImageView[{}]", frameIndex));
+    pDevice->setDebugName(uniformBuffer.handle, VK_OBJECT_TYPE_BUFFER, std::format("uniformBuffer[{}]", frameIndex));
   }
 }
 
+void FrameManager::Frame::update() {
+  // shortcut: need camera and delta time
+  float aspectRatio = static_cast<float>(1024) / static_cast<float>(768);
+  // ubo.model = glm::rotate(ubo.model, 0.003f, glm::vec3{0.0f, 1.0f, 0.0f});
+  ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+  // ubo.proj = glm::perspective(glm::radians(45.f), aspectRatio, 0.1f, 100.0f);
+  // ubo.proj[1][1] *= -1.0F;
+  // ubo.proj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+
+  memcpy(uniformBuffer.allocationInfo.pMappedData, &ubo, sizeof(pd::UniformBufferObject));
+}
+
 void FrameManager::Frame::destroy() {
+  pDevice->destroyBuffer(uniformBuffer);
   pDevice->destroyImageView(depthImageView);
   pDevice->destroyImage(depthImage);
   pDevice->destroyCommandPool(cmdPool);
@@ -65,6 +85,11 @@ FrameData FrameManager::beginFrame() noexcept {
 
   mDevice->waitFences(currentFrame.frameFence);
   uint32_t imageIndex = mDevice->acquireNextImage(currentFrame.acquireImageSemaphore);
+
+  // update uniform buffer
+  currentFrame.update();
+
+  // prepare command buffers
   vkResetCommandPool(vkDevice, currentFrame.cmdPool, 0);
 
   VkCommandBufferBeginInfo cmdBufferBeginInfo{
@@ -187,6 +212,7 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
           .depthStencil =
               {
                   .depth = 1.0f,
+                  .stencil = 0,
               },
       };
       std::array colorAtts = {VkRenderingAttachmentInfo{
@@ -259,6 +285,8 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
       VkDeviceSize deviceSize{};
       vkCmdBindVertexBuffers(frame.mainCmdBuffer, 0, 1, &vertexBuffer->handle, &deviceSize);
       vkCmdBindIndexBuffer(frame.mainCmdBuffer, indexBuffer->handle, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdPushConstants(frame.mainCmdBuffer, pip->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress),
+                         &frame.uniformBuffer.deviceAddress);
       break;
     }
     case DrawIndexed: {
