@@ -3,6 +3,7 @@
 namespace pd {
 enum class AssetType : u8 {
   Gltf,
+  Shader,
 };
 
 inline u32 invalidAssetId = u32_max;

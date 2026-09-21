@@ -41,6 +41,7 @@ GltfParser::GltfParser(IFileSystem* fs)
 GltfParser::~GltfParser() {}
 
 Result<void> GltfParser::parse(Asset& asset) noexcept {
+  auto& assetGltf = static_cast<GltfAsset&>(asset);
   const auto& assetPath = asset.info().path;
   // 读取gltf文件
   std::filesystem::path gltfFilePath{assetPath};
@@ -65,7 +66,7 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
   // 2.1 创建gltf Asset
   auto& gltfAsset = gltfAssetRes.get();
   size_t scene0 = gltfAsset.defaultScene.value_or(0);
-  if (auto res = parseScene(asset, gltfAsset, scene0); !res) {
+  if (auto res = parseScene(assetGltf, gltfAsset, scene0); !res) {
     return res;
   }
   // 2.2 解析网格数据
@@ -94,7 +95,7 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
 //   }
 // }
 
-Result<void> GltfParser::parseScene(Asset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
+Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
   std::function<void(u32, const math::mat4&)> traverseNode = [&](u32 nodeIndex, const math::mat4& parentTransform) {
     const fastgltf::Node& gltfNode = gltfAsset.nodes[nodeIndex];
     const math::mat4 worldTransform = parentTransform * getGltfNodeLocalTransform(gltfNode);

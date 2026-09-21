@@ -5,7 +5,7 @@
 namespace pd {
 class MaterialDefinition {
  public:
-  using IdType = u64;
+  using IdType = MaterialIdType;
 
   ~MaterialDefinition() = default;
   DELETE_COPY(MaterialDefinition);
@@ -60,7 +60,7 @@ class MaterialDefinition {
   };
 
  private:
-  IdType mId{};
+  IdType mId{invalidMaterialId};
   std::string mName;
   ShadingModel mShadingModel;
   std::vector<ParamDef> mParamDefs;

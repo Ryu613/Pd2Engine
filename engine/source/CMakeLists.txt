@@ -44,6 +44,7 @@ target_sources(engine_lib
         include/pd/asset/asset_manager.hpp
         include/pd/asset/parser/asset_parser.hpp
         include/pd/asset/parser/gltf_parser.hpp
+        include/pd/asset/parser/shader_parser.hpp
         # scene
         include/pd/scene/scene_manager.hpp
         include/pd/scene/scene_descriptor.hpp
@@ -69,6 +70,7 @@ target_sources(engine_lib
         src/rendering/shader/shader_manager.cpp
         src/asset/asset_manager.cpp
         src/asset/gltf_parser.cpp
+        src/asset/shader_parser.cpp
 )
 
 # platform

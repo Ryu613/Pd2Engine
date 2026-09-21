@@ -5,7 +5,7 @@
 namespace pd {
 class MaterialInstance {
  public:
-  using IdType = MaterialDefinition::IdType;
+  using IdType = MaterialIdType;
 
   ~MaterialInstance() = default;
   DELETE_COPY(MaterialInstance);
@@ -23,10 +23,10 @@ class MaterialInstance {
     };
     Value value;
   };
-  IdType mId;
-  IdType mDefinitionId;
+  IdType mId{invalidMaterialId};
+  IdType mDefinitionId{invalidMaterialId};
   std::vector<ParamValue> mParamValues;  // 与definition的顺序一致
 
-  MaterialInstance(MaterialDefinition* def);
+  explicit MaterialInstance(MaterialDefinition* def);
 };
 }  // namespace pd

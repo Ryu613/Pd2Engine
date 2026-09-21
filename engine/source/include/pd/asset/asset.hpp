@@ -76,22 +76,56 @@ class Asset {
   DELETE_COPY(Asset);
 
   AssetIdType id() const noexcept { return mId; }
+  const CreateInfo& info() const noexcept { return mInfo; }
+
+ protected:
+  explicit Asset(AssetIdType id, CreateInfo info)
+      : mId(std::move(id)),
+        mInfo(std::move(info)) {}
+
+ private:
+  friend class AssetManager;
+
+  AssetIdType mId;
+  CreateInfo mInfo;
+};
+
+class GltfAsset : public Asset {
+ public:
+  ~GltfAsset() = default;
+  DEFAULT_MOVABLE(GltfAsset);
+  DELETE_COPY(GltfAsset);
   std::span<const TextureData> textures() const noexcept { return mTextures; }
   std::span<const MeshData> meshes() const noexcept { return mMeshes; }
-  const CreateInfo& info() const noexcept { return mInfo; }
+  std::span<const SceneNode> nodes() const noexcept { return mNodes; }
 
  private:
   friend class AssetManager;
   friend class GltfParser;
 
-  AssetIdType mId;
-  CreateInfo mInfo;
   std::vector<TextureData> mTextures;
   std::vector<MeshData> mMeshes;
   std::vector<SceneNode> mNodes;
 
-  explicit Asset(AssetIdType id, CreateInfo info)
-      : mId(std::move(id)),
-        mInfo(std::move(info)) {}
+  explicit GltfAsset(AssetIdType id, CreateInfo info)
+      : Asset(id, info) {}
+};
+
+class ShaderAsset : public Asset {
+ public:
+  ~ShaderAsset() = default;
+  DEFAULT_MOVABLE(ShaderAsset);
+  DELETE_COPY(ShaderAsset);
+
+  std::span<const u8> sources() const noexcept { return mCode; }
+
+ private:
+  friend class AssetManager;
+  friend class ShaderParser;
+
+  std::vector<u8> mCode;
+
+  explicit ShaderAsset(AssetIdType id, CreateInfo info)
+      : Asset(id, info) {}
 };
 }  // namespace pd

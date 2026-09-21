@@ -20,7 +20,7 @@ Result<void> SceneManager::loadScene() noexcept {
   return {};
 }
 
-void SceneManager::updateScene(float delta) noexcept {}
+void SceneManager::updateScene(float deltaTime) noexcept {}
 
 Result<void> SceneManager::unloadScene() noexcept {
   if (auto res = mSceneDescriptor->unloadScene(*this); !res) {

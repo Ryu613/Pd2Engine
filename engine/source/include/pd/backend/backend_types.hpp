@@ -75,9 +75,10 @@ struct SetScissorArgs {
 struct BindPipelineArgs {
   static constexpr CmdType type = CmdType::BindPipeline;
   HwBufferHandle vertexBuffer;
+  u32 vertexBufferOffset = 0;
   HwBufferHandle indexBuffer;
+  u32 indexBufferOffset = 0;
   HwGraphicsPipelineHandle pipeline;
-  u32 vertexOffset = 0;
 };
 
 struct DrawIndexedArgs {

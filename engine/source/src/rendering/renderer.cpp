@@ -1,5 +1,7 @@
 #include "pd/rendering/renderer.hpp"
 
+#include "pd/scene/scene.hpp"
+
 namespace pd {
 Renderer::Renderer(SceneManager* sceneMgr, Backend* backend)
     : mSceneManager(sceneMgr),
@@ -41,13 +43,31 @@ Renderer::FrameContext Renderer::beginFrame() noexcept {
 
 void Renderer::doFrame(Renderer::FrameContext& ctx) noexcept {
   auto& recorder = ctx.cmdRecorder;
-  recorder.addCmd(BeginRenderingArgs{});
-  recorder.addCmd(SetViewportArgs{});
-  recorder.addCmd(SetScissorArgs{});
-  recorder.addCmd(BindPipelineArgs{
-      .pipeline = {},
-  });
-  recorder.addCmd(EndRenderingArgs{});
+  // todo: update camera
+  // for each scene entity renderables
+  const auto& sceneData = mSceneManager->getSceneData();
+  for (size_t i = 0; i < sceneData.size(); ++i) {
+    const auto& renderable = sceneData[i];
+    const auto pipeline = mMaterialManager.getPipeline(renderable.materialInstance);
+    recorder.addCmd(BeginRenderingArgs{});
+    recorder.addCmd(SetViewportArgs{});
+    recorder.addCmd(SetScissorArgs{});
+    recorder.addCmd(BindPipelineArgs{
+        .vertexBuffer = renderable.vertexBuffer,
+        .vertexBufferOffset = renderable.vertexBufferOffset,
+        .indexBuffer = renderable.indexBuffer,
+        .indexBufferOffset = renderable.indexBufferOffset,
+        .pipeline = pipeline,
+    });
+    recorder.addCmd(DrawIndexedArgs{
+        .indexCount = renderable.indexCount,
+        .instanceCount = 1,
+        .firstIndex = 0,
+        .vertexOffset = 0,
+        .firstInstance = 0,
+    });
+    recorder.addCmd(EndRenderingArgs{});
+  }
 }
 
 void Renderer::endFrame(Renderer::FrameContext& ctx) noexcept {

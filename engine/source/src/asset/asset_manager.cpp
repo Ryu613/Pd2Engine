@@ -1,6 +1,7 @@
 #include "pd/asset/asset_manager.hpp"
 
 #include "pd/asset/parser/gltf_parser.hpp"
+#include "pd/asset/parser/shader_parser.hpp"
 
 namespace pd {
 AssetManager::AssetManager(IFileSystem* fs)
@@ -29,7 +30,18 @@ Result<AssetHandle> AssetManager::createAsset(const Asset::CreateInfo& assetInfo
   }
   const auto newId = nextId();
   // 1 创建资产实例
-  auto newAsset = std::unique_ptr<Asset>(new Asset(newId, assetInfo));
+  std::unique_ptr<Asset> newAsset;
+  switch (assetInfo.parseType) {
+    using enum AssetType;
+    case Gltf:
+      newAsset = std::unique_ptr<Asset>(new GltfAsset(newId, assetInfo));
+      break;
+    case Shader:
+      newAsset = std::unique_ptr<Asset>(new ShaderAsset(newId, assetInfo));
+      break;
+    default:
+      PD_ASSERT_MSG(false, "asset type not supported!");
+  }
   // 2. 生成资产实例
   auto parseResult = mParsers[static_cast<size_t>(assetInfo.parseType)]->parse(*newAsset);
   if (!parseResult) {
@@ -49,6 +61,8 @@ void AssetManager::initParsers() noexcept {
   mParsers.reserve(4);
   auto gltfParser = std::make_unique<GltfParser>(mFs);
   mParsers.push_back(std::move(gltfParser));
+  auto shaderParser = std::make_unique<ShaderParser>(mFs);
+  mParsers.push_back(std::move(shaderParser));
 }
 
 u32 AssetManager::nextId() noexcept { return ++mNextId; }

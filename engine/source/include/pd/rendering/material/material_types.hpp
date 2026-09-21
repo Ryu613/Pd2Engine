@@ -18,4 +18,9 @@ enum class ShadingModel : u8 {
   Lit,
   Unlit,
 };
+
+using MaterialIdType = u32;
+using MaterialDefinitionHandle = MaterialIdType;
+using MaterialInstanceHandle = MaterialIdType;
+inline constexpr MaterialIdType invalidMaterialId = std::numeric_limits<MaterialIdType>::max();
 }  // namespace pd

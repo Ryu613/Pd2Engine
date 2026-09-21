@@ -11,7 +11,7 @@ namespace pd {
 class Backend;
 class MaterialManager {
  public:
-  using IdType = MaterialDefinition::IdType;
+  using IdType = MaterialIdType;
 
   explicit MaterialManager(Backend* backend);
   ~MaterialManager() = default;
@@ -20,9 +20,11 @@ class MaterialManager {
   Result<void> init() noexcept;
   Result<void> destroy() noexcept;
 
-  IdType registerMaterial(MaterialDefinition&& def);
+  MaterialDefinitionHandle registerMaterial(MaterialDefinition&& def);
 
-  IdType createInstance(IdType definitionId);
+  MaterialInstanceHandle createInstance(MaterialDefinitionHandle defHandle);
+
+  HwGraphicsPipelineHandle getPipeline(MaterialInstanceHandle insHandle);
 
  private:
   struct PipelineKey {

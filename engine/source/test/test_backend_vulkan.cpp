@@ -12,7 +12,7 @@
 #define ASSET_DIR ./
 #endif
 
-TEST_CASE("core_cmds", "backend_vulkan") {
+TEST_CASE("core_render_cmds", "backend_vulkan") {
   using namespace pd;
   PlatformConfig platformCfg{
       .window =

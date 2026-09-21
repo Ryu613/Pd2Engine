@@ -6,7 +6,7 @@
 
 namespace pd {
 class IFileSystem;
-class ResourceManager;
+class GltfAsset;
 class GltfParser : public IAssetParser {
  public:
   explicit GltfParser(IFileSystem* fs);
@@ -21,9 +21,9 @@ class GltfParser : public IAssetParser {
   std::filesystem::path mBasePath;
   //   std::vector<TextureFormat> mTextureFormatCache;
 
-  void parseMeshes(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
-  void parseTextures(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
-  void parseMaterials(Asset& asset, const fastgltf::Asset& gltfAsset) noexcept;
-  Result<void> parseScene(Asset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept;
+  void parseMeshes(GltfAsset& asset, const fastgltf::Asset& gltfAsset) noexcept;
+  void parseTextures(GltfAsset& asset, const fastgltf::Asset& gltfAsset) noexcept;
+  void parseMaterials(GltfAsset& asset, const fastgltf::Asset& gltfAsset) noexcept;
+  Result<void> parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept;
 };
 }  // namespace pd
