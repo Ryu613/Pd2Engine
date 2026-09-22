@@ -3,6 +3,7 @@
 #include <span>
 
 #include "pd/resource/resource.hpp"
+#include "pd/backend/backend.hpp"
 
 namespace pd {
 class TextureResource : public Resource {
@@ -14,8 +15,8 @@ class TextureResource : public Resource {
   DEFAULT_MOVABLE(TextureResource);
 
  protected:
-  Result<void> doLoad(Backend& backend) noexcept override;
-  Result<void> doUnload(Backend& backend) noexcept override;
+  Result<void> doLoad() noexcept override;
+  Result<void> doUnload() noexcept override;
 
  private:
   friend class ResourceManager;
@@ -23,6 +24,6 @@ class TextureResource : public Resource {
   std::span<uint8_t> mRawData;
   HwTextureHandle mTexture;
 
-  explicit TextureResource(IdType id, const std::string& name, const Desc info, std::span<uint8_t> rawData);
+  explicit TextureResource(ResourceIdType id, const std::string& name, const Desc info, std::span<uint8_t> rawData);
 };
 }  // namespace pd

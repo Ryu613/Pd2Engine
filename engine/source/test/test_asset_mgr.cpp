@@ -38,4 +38,10 @@ TEST_CASE("test_shader_asset", "engine") {
   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);
+
+  auto handle = result.value();
+  auto assetRes = assetMgr.getAsset(handle);
+  REQUIRE(assetRes);
+  auto* asset = assetRes.value();
+  REQUIRE(asset);
 }

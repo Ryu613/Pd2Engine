@@ -6,7 +6,7 @@ enum class AssetType : u8 {
   Shader,
 };
 
-inline u32 invalidAssetId = u32_max;
+inline constexpr u32 invalidAssetId = u32_max;
 
 using AssetIdType = u32;
 using AssetPathType = std::string;

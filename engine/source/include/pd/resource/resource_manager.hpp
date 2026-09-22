@@ -1,15 +1,19 @@
 #pragma once
 
 #include "pd/core/utils/map.hpp"
+#include "pd/asset/asset_types.hpp"
 #include "pd/resource/mesh_resource.hpp"
 #include "pd/resource/texture_resource.hpp"
+#include "pd/resource/shader_resource.hpp"
 
 namespace pd {
 class Backend;
 class Asset;
+class GltfAsset;
+class ShaderAsset;
+class ShaderManager;
 class ResourceManager {
  public:
-  using IdType = Resource::IdType;
   template <typename Tag>
   using Handle = ResourceHandle<Tag>;
 
@@ -35,26 +39,36 @@ class ResourceManager {
   };
   Backend* mBackend = nullptr;
 
-  util::RobinMap<std::string, ResourceEntry, util::StringHasher> mRegistry;
+  // 用asset id判重
+  util::RobinMap<AssetIdType, ResourceEntry> mRegistry;
 
-  template <typename T>
-  using Data = util::RobinMap<IdType, std::unique_ptr<T>>;
-  Data<MeshResource> mMeshes;
-  Data<TextureResource> mTextures;
+  template <typename T, typename Tag>
+  using Storage = util::RobinMap<ResourceIdType, std::unique_ptr<T>>;
+  Storage<MeshResource, MeshResource_t> mMeshes;
+  Storage<TextureResource, TextureResource_t> mTextures;
+  Storage<ShaderResource, ShaderResource_t> mShaders;
 
   template <typename Tag>
-  auto& findData() noexcept;
+  auto& findStorage() noexcept;
 
   template <typename Tag>
   auto* getResource(Handle<Tag> handle) noexcept;
+
+  template <typename Tag>
+  uint32_t nextId() noexcept;
+
+  Result<void> registerGltfAsset(GltfAsset* gltfAsset) noexcept;
+  Result<void> registerShaderAsset(ShaderAsset* shaderAsset) noexcept;
 };
 
 template <typename Tag>
-inline auto& ResourceManager::findData() noexcept {
+inline auto& ResourceManager::findStorage() noexcept {
   if constexpr (std::is_same_v<Tag, TextureResource_t>) {
     return mTextures;
   } else if constexpr (std::is_same_v<Tag, MeshResource_t>) {
     return mMeshes;
+  } else if constexpr (std::is_same_v<Tag, ShaderResource_t>) {
+    return mShaders;
   } else {
     static_assert(false, "resource type not supported!");
   }
@@ -62,7 +76,7 @@ inline auto& ResourceManager::findData() noexcept {
 
 template <typename Tag>
 inline auto* ResourceManager::getResource(Handle<Tag> handle) noexcept {
-  auto& dataPool = findData<Tag>();
+  auto& dataPool = findStorage<Tag>();
   auto it = dataPool.find(handle.data.id);
   if (it != dataPool.end()) {
     // todo: gen equality
@@ -70,5 +84,11 @@ inline auto* ResourceManager::getResource(Handle<Tag> handle) noexcept {
   }
   using ResourcePtr = decltype(&(it->second.resource));
   return static_cast<ResourcePtr>(nullptr);
+}
+
+template <typename Tag>
+inline ResourceIdType ResourceManager::nextId() noexcept {
+  static ResourceIdType tagId;
+  return tagId++;
 }
 }  // namespace pd

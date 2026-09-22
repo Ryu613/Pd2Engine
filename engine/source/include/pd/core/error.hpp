@@ -29,6 +29,8 @@ enum class ErrorCode : u16 {
   AssetParseFailed,
   AssetLoadFailed,
   ResourceError = 600,
+  ResourceRegisterFailed,
+  ResourceTypeNotSupported,
   ResourceLoadFailed,
   WindowError = 700,
   WindowInitFailed,
@@ -97,6 +99,10 @@ constexpr std::string_view default_msg(ErrorCode code) noexcept {
       return "Asset load failed";
     case ResourceError:
       return "resource error";
+    case ResourceTypeNotSupported:
+      return "resource type not supported!";
+    case ResourceRegisterFailed:
+      return "resource register failed";
     case ResourceLoadFailed:
       return "resource load failed";
     case WindowError:

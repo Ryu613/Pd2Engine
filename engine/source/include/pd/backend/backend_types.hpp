@@ -2,36 +2,12 @@
 
 #include "backend_enums.hpp"
 #include "pd/core/math/math.hpp"
+#include "pd/core/utils/handle.hpp"
 
 namespace pd {
 
-/**
- * @brief RHI句柄
- *
- * 设计思路：纯数据，保持简单，内部使用，不过度封装访问性
- */
-using HandleIdType = u32;
-struct HandleData {
-  static constexpr u32 invalidId = u32_max;
-  HandleIdType id = invalidId;
-  u32 gen = 0;
-};
 template <typename T>
-struct HwHandle {
-  HandleData data;
-
-  friend bool operator==(HwHandle lhs, HwHandle rhs) noexcept {
-    if (lhs.data.id == HandleData::invalidId && rhs.data.id == HandleData::invalidId) {
-      return true;
-    }
-    return lhs.data.id == rhs.data.id && lhs.data.gen == rhs.data.gen;
-  }
-
-  friend bool operator!=(HwHandle a, HwHandle b) noexcept { return !(a == b); }
-
-  // 只表示存在，不表示有效
-  explicit operator bool() const noexcept { return data.id != HandleData::invalidId; }
-};
+using HwHandle = TypedHandle<T>;
 
 // handle types
 // 类型别名，方便外部引用，与实际类型解耦
@@ -39,11 +15,13 @@ struct Buffer_t;
 struct Texture_t;
 struct PipelineLayout_t;
 struct GraphicsPipeline_t;
+struct ShaderModule_t;
 
 using HwBufferHandle = HwHandle<Buffer_t>;
 using HwTextureHandle = HwHandle<Texture_t>;
 using HwPipelineLayoutHandle = HwHandle<PipelineLayout_t>;
 using HwGraphicsPipelineHandle = HwHandle<GraphicsPipeline_t>;
+using HwShaderModuleHandle = HwHandle<ShaderModule_t>;
 
 // commands
 struct BeginRenderingArgs {

@@ -37,7 +37,12 @@ target_sources(engine_lib
         # backend
         include/pd/backend/backend.hpp
         # resource
+        include/pd/resource/resource_types.hpp
         include/pd/resource/resource_manager.hpp
+        include/pd/resource/resource.hpp
+        include/pd/resource/mesh_resource.hpp
+        include/pd/resource/texture_resource.hpp
+        include/pd/resource/shader_resource.hpp
         # asset
         include/pd/asset/asset_types.hpp
         include/pd/asset/asset.hpp
@@ -62,6 +67,8 @@ target_sources(engine_lib
         src/platform/fs/std_file_system.cpp
         src/platform/platform.cpp
         src/resource/resource_manager.cpp
+        src/resource/resource.cpp
+        src/resource/shader_resource.cpp
         src/asset/asset_manager.cpp
         src/scene/scene_manager.cpp
         src/scene/scene_descriptor.cpp

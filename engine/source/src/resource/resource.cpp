@@ -1,36 +1,36 @@
 #include "pd/resource/resource.hpp"
 
-#include "pd/backend/backend.hpp"
-
 namespace pd {
 
 Resource::~Resource() {}
 
-Resource::Resource(IdType id, const std::string& name)
+Resource::Resource(ResourceIdType id, const std::string& name)
     : mId(id),
       mName(name) {}
 
-Result<void> Resource::load(Backend& backend) noexcept {
+Result<void> Resource::load() noexcept {
   if (mStatus != ResourceStatus::Unload) {
     return {};
   }
   LOG_DEBUG("loading resource: {}", mId);
   mStatus = ResourceStatus::Loading;
-  if (auto res = doLoad(backend); !res) {
+  if (auto res = doLoad(); !res) {
     return res;
   }
   mStatus = ResourceStatus::Loaded;
   return {};
 }
 
-Result<void> Resource::unload(Backend& backend) noexcept {
+Result<void> Resource::unload() noexcept {
   LOG_DEBUG("unloading resource: {}", mId);
   if (mStatus != ResourceStatus::Loaded) {
     return {};
   }
-  if (auto res = doUnload(backend); !res) {
+  if (auto res = doUnload(); !res) {
     return res;
   }
   mStatus = ResourceStatus::Unload;
+
+  return {};
 }
 }  // namespace pd
