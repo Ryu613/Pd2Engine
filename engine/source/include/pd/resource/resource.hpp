@@ -22,7 +22,7 @@ class Resource {
  private:
   friend class ResourceManager;
   IdType mId;
-  std::string name;
+  std::string mName;
   ResourceStatus mStatus = ResourceStatus::Unload;
 
   explicit Resource(IdType id, const std::string& name);

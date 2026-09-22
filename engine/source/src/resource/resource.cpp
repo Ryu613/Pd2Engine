@@ -3,6 +3,13 @@
 #include "pd/backend/backend.hpp"
 
 namespace pd {
+
+Resource::~Resource() {}
+
+Resource::Resource(IdType id, const std::string& name)
+    : mId(id),
+      mName(name) {}
+
 Result<void> Resource::load(Backend& backend) noexcept {
   if (mStatus != ResourceStatus::Unload) {
     return {};

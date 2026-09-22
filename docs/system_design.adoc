@@ -33,8 +33,8 @@
 引擎模块皆在engine/source下,其中include是公开的头文件, src是私有的头文件及cpp文件，test是单元测试代码。引擎代码皆在"pd"命名空间内，引擎内的模块划分如下:
 
 * **platform**: 对应平台层: 包含操作系统相关操作，窗口系统封装等
-** window system: 窗口系统：对各个平台及跨平台窗口系统进行封装，可在构建时选择
-** file system: 文件系统: 对各个平台和设备提供文件系统抽象
+** ws: 窗口系统：对各个平台及跨平台窗口系统进行封装，可在构建时选择
+** fs: 文件系统: 对各个平台和设备提供文件系统抽象
 * **core**: 对应核心层: 包含系统级基类，基础工具模块，全局配置等
 ** utils: 引擎无关的工具库
 ** math: 数学库
@@ -43,8 +43,10 @@
 * **rendering**: 对应渲染(前端)：包含渲染器，render graph, 材质系统，特效等具体的渲染功能
 ** render graph: 渲染图实现
 ** material: 材质系统实现
+** shader: 着色器管理系统
 * **asset**: 对应资产层: 包括资产文件读取，解析，转换相关功能，主要是运行前的资产(prefab)转换为统一的引擎内部数据的处理工作
 ** parser: 资产文件解析器
+** compiler: 资产编译器
 * **resource**: 对应资源层: 包含运行时的资源定义，句柄管理，资源管理等资源功能，并且控制backend底层资源的实际加载过程
 * **scene**: 对应场景层：包含场景定义，视图, 场景数据管理等功能
 
@@ -69,6 +71,7 @@
 
 * 不使用{cpp}异常，改用std::excepted, 并封装错误码
 * 高频调用热路径不使用异常或excepted
+* 底层模块不使用异常或excepted, 应尽量在内部处理
 
 资源管理:
 
@@ -118,11 +121,11 @@ class SceneManager {
     - vector<View> mViews
 }
 Interface Platform {
-    平台隔离接口, 编译期确定
+    平台隔离接口, 构建时确定
     ==
 }
 Interface IFileSystem{
-    文件系统接口,运行期多态
+    文件系统接口,运行时多态
     ==
 }
 class StdFileSystem implements IFileSystem {
@@ -136,7 +139,7 @@ class PlatformWin32 implements Platform {
     - WindowSystem mWindow
 }
 Interface WindowSystem {
-    窗口系统接口，编译期确定
+    窗口系统接口，构建时确定
     ==
 }
 class WindowSystemSDL3 implements WindowSystem {
@@ -144,7 +147,7 @@ class WindowSystemSDL3 implements WindowSystem {
     ==
 }
 Interface Backend {
-    渲染后端(图形API)接口, 编译期确定
+    渲染后端(图形API)接口, 构建时确定
     ==
 }
 class BackendVulkan implements Backend {

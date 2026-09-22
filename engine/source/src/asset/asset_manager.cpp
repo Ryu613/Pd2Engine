@@ -34,10 +34,10 @@ Result<AssetHandle> AssetManager::createAsset(const Asset::CreateInfo& assetInfo
   switch (assetInfo.parseType) {
     using enum AssetType;
     case Gltf:
-      newAsset = std::unique_ptr<Asset>(new GltfAsset(newId, assetInfo));
+      newAsset = std::unique_ptr<GltfAsset>(new GltfAsset(newId, assetInfo));
       break;
     case Shader:
-      newAsset = std::unique_ptr<Asset>(new ShaderAsset(newId, assetInfo));
+      newAsset = std::unique_ptr<ShaderAsset>(new ShaderAsset(newId, assetInfo));
       break;
     default:
       PD_ASSERT_MSG(false, "asset type not supported!");

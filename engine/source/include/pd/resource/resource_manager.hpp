@@ -45,8 +45,8 @@ class ResourceManager {
   template <typename Tag>
   auto& findData() noexcept;
 
-  template <typename T, typename Tag>
-  T* getResource(Handle<Tag> handle) noexcept;
+  template <typename Tag>
+  auto* getResource(Handle<Tag> handle) noexcept;
 };
 
 template <typename Tag>
@@ -60,8 +60,15 @@ inline auto& ResourceManager::findData() noexcept {
   }
 }
 
-template <typename T, typename Tag>
-inline T* ResourceManager::getResource(Handle<Tag> handle) noexcept {
-  return nullptr;
+template <typename Tag>
+inline auto* ResourceManager::getResource(Handle<Tag> handle) noexcept {
+  auto& dataPool = findData<Tag>();
+  auto it = dataPool.find(handle.data.id);
+  if (it != dataPool.end()) {
+    // todo: gen equality
+    return &(it->second.resource);
+  }
+  using ResourcePtr = decltype(&(it->second.resource));
+  return static_cast<ResourcePtr>(nullptr);
 }
 }  // namespace pd
