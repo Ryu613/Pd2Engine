@@ -21,10 +21,6 @@ Engine::Engine(EngineConfig config) noexcept
   // init global services
   initContext(mArena);
 
-  // platform must be initialized before other sub systems
-  auto platformInitRes = mPlatform.init();
-  PD_ASSERT_MSG(platformInitRes, platformInitRes.error().msg.data());
-
   log::logo();
   LOG_INFO("Engine created!");
 }
@@ -67,7 +63,12 @@ Result<void> Engine::shutdown() noexcept {
 }
 
 Result<void> Engine::initialize() noexcept {
+  if (auto res = mPlatform.init(); !res) {
+    LOG_ERROR(res.error().msg);
+    return res;
+  }
   if (auto res = mPlatform.windowSystem().createWindow(); !res) {
+    LOG_ERROR(res.error().msg);
     return res;
   }
   BackendConfig backendCfg{
@@ -122,6 +123,7 @@ void Engine::loop() noexcept {
 }
 
 Result<void> Engine::stop() noexcept {
+  // todo: destroy resources
   return {};
 }
 

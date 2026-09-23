@@ -4,7 +4,6 @@
 #include "pd/resource/resource_manager.hpp"
 #include "pd/platform/platform.hpp"
 #include "pd/backend/backend.hpp"
-#include "pd/rendering/shader/shader_manager.hpp"
 
 TEST_CASE("test_shader_resource_register", "engine") {
   using namespace pd;
@@ -27,6 +26,10 @@ TEST_CASE("test_shader_resource_register", "engine") {
       .name = "pyramid shader",
       .path = ASSET_DIR "shader/pyramid/pyramid.slang",
       .parseType = AssetType::Shader,
+      .shaderInfo = {
+        .moduleName = "pyramid",
+        .modulePath = "pyramid/pyramid.slang",
+      },
   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);
@@ -48,14 +51,18 @@ TEST_CASE("test_shader_resource_register", "engine") {
   Backend backend;
   REQUIRE(backend.init(backendCfg));
 
-  ShaderManager shaderMgr;
   ResourceManager rscMgr(&backend);
 
-  auto shaderAssetRes = rscMgr.createResourcesFromAsset(asset);
-  REQUIRE(shaderAssetRes);
+  auto shaderAssetRes = rscMgr.registerAsset<ShaderResource_t>(asset);
+  REQUIRE(shaderAssetRes); 
 
-  backend.destroy();
-  platform.destroy();
+  auto shaderHandle = shaderAssetRes.value();
+
+  auto loadResult = rscMgr.loadResource(shaderHandle);
+  REQUIRE(loadResult);
+
+  REQUIRE(backend.destroy());
+  REQUIRE(platform.destroy());
 }
 
 TEST_CASE("test_gltf_resource_register", "engine") {}

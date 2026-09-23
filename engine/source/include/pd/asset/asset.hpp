@@ -63,12 +63,18 @@ struct SceneNode {
   // u32 nextSibling = invalidAssetId;
 };
 
+struct ShaderInfo {
+  std::string moduleName;
+  std::string modulePath;
+};
+
 class Asset {
  public:
   struct CreateInfo {
     std::string name;
     std::string path;
     AssetType parseType = AssetType::Gltf;
+    ShaderInfo shaderInfo;
   };
 
   ~Asset() = default;
@@ -117,15 +123,26 @@ class ShaderAsset : public Asset {
   DEFAULT_MOVABLE(ShaderAsset);
   DELETE_COPY(ShaderAsset);
 
-  std::span<const u8> sources() const noexcept { return mCode; }
+  std::span<const std::byte> sources() const noexcept { return mParsedCode; }
 
  private:
   friend class AssetManager;
   friend class ShaderParser;
 
-  std::vector<u8> mCode;
+  struct ReflectionInfo {
+    // todo
+  };
+  std::vector<std::byte> mParsedCode;
+  ReflectionInfo mReflectionInfo;
 
   explicit ShaderAsset(AssetIdType id, CreateInfo info)
       : Asset(id, info) {}
+
+  void setParsedCode(std::span<u8> code) noexcept {
+    mParsedCode.clear();
+    mParsedCode.reserve(code.size());
+    std::transform(code.begin(), code.end(), std::back_inserter(mParsedCode),
+                   [](uint8_t b) { return static_cast<std::byte>(b); });
+  }
 };
 }  // namespace pd

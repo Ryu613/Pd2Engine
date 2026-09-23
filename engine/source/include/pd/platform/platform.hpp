@@ -5,7 +5,7 @@
 
 namespace pd {
 /**
- * @brief 平台层, 编译期确定，非虚
+ * @brief 平台层接口, 构建时确定，非虚
  *
  */
 class Platform {

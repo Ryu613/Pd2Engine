@@ -3,8 +3,10 @@
 #include <cassert>
 #include <mutex>
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <malloc.h>
+#else
+#error "platform not supported!"
 #endif
 
 #include "tlsf/tlsf.h"

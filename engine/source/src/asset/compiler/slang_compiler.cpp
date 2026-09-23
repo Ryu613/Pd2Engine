@@ -1,4 +1,4 @@
-#include "pd/rendering/shader/shader_compiler.hpp"
+#include "pd/asset/compiler/shader_compiler.hpp"
 
 #include "slang.h"
 #include "slang-com-ptr.h"
@@ -44,7 +44,8 @@ class ShaderCompiler::Impl {
     Slang::ComPtr<slang::IModule> slangModule;
     {
       Slang::ComPtr<slang::IBlob> diagnosticsBlob;
-      const std::string codeStr{spec.code.begin(), spec.code.end()};
+      const char* codeData = reinterpret_cast<const char*>(spec.code.data());
+      const std::string codeStr{codeData, spec.code.size()};
       slangModule = session->loadModuleFromSourceString(spec.moduleName.c_str(), spec.modulePath.c_str(),
                                                         codeStr.c_str(), diagnosticsBlob.writeRef());
       diagnoseIfNeeded(diagnosticsBlob);

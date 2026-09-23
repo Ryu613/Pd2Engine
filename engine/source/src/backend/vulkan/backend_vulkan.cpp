@@ -54,9 +54,7 @@ class Backend::Impl {
     };
   }
 
-  void endFrame(const CommandRecorder& recorder) noexcept {
-    mFrameManager.endFrame(recorder);
-  }
+  void endFrame(const CommandRecorder& recorder) noexcept { mFrameManager.endFrame(recorder); }
 
   PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
     auto layoutHandle = mResourceRegistry.createPipelineLayout({});
@@ -71,12 +69,16 @@ class Backend::Impl {
     return handle;
   }
 
-  void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept {
-    mResourceRegistry.writeBuffer(bufferWriteDesc);
-  }
+  void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept { mResourceRegistry.writeBuffer(bufferWriteDesc); }
 
-  void destroyBuffer(HwBufferHandle handle) noexcept {
-    mResourceRegistry.destroyBuffer(handle);
+  void destroyBuffer(HwBufferHandle handle) noexcept { mResourceRegistry.destroyBuffer(handle); }
+
+  HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept {
+    auto handle = mResourceRegistry.createShaderModule(shaderModuleCreateDesc);
+    return handle;
+  }
+  void destroyShaderModule(HwShaderModuleHandle handle) noexcept {
+    mResourceRegistry.destroyShaderModule(handle);
   }
 
  private:
@@ -112,4 +114,9 @@ HwBufferHandle Backend::createBuffer(const BufferCreateDesc& bufferCreateDesc) n
 }
 void Backend::writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept { mImpl->writeBuffer(bufferWriteDesc); }
 void Backend::destroyBuffer(HwBufferHandle handle) noexcept { mImpl->destroyBuffer(handle); }
+
+HwShaderModuleHandle Backend::createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept {
+  return mImpl->createShaderModule(shaderModuleCreateDesc);
+}
+void Backend::destroyShaderModule(HwShaderModuleHandle handle) noexcept { mImpl->destroyShaderModule(handle); }
 }  // namespace pd

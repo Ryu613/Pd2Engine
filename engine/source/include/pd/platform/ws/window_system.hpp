@@ -2,7 +2,7 @@
 
 namespace pd {
 /**
- * @brief 窗口系统，编译期确定，非虚
+ * @brief 窗口系统，构建时确定，非虚
  *
  */
 class WindowSystem {

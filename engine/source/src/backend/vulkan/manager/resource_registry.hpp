@@ -7,6 +7,7 @@
 #include "../vk1_pipeline_layout.hpp"
 #include "../vk1_pipeline.hpp"
 #include "../vk1_buffer.hpp"
+#include "../vk1_shader_module.hpp"
 
 namespace vk1 {
 class ResourceRegistry {
@@ -33,6 +34,9 @@ class ResourceRegistry {
   pd::HwBufferHandle createBuffer(const pd::BufferCreateDesc& desc) noexcept;
   void writeBuffer(const pd::BufferWriteDesc& desc) noexcept;
   void destroyBuffer(pd::HwBufferHandle buffer) noexcept;
+
+  pd::HwShaderModuleHandle createShaderModule(const pd::ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
+  void destroyShaderModule(pd::HwShaderModuleHandle handle) noexcept;
 
   template <typename Tag>
   auto* getResource(Handle<Tag> handle) noexcept;
@@ -64,6 +68,7 @@ class ResourceRegistry {
   DataPool<pd::PipelineLayout_t, Vk1PipelineLayout> mPipelineLayouts;
   DataPool<pd::GraphicsPipeline_t, Vk1Pipeline> mGraphicsPipelines;
   DataPool<pd::Buffer_t, Vk1Buffer> mBuffers;
+  DataPool<pd::ShaderModule_t, Vk1ShaderModule> mShaderModules;
 };
 
 template <typename Tag>
@@ -97,6 +102,8 @@ inline auto& ResourceRegistry::findPool() noexcept {
     return mGraphicsPipelines;
   } else if constexpr (std::is_same_v<Tag, pd::Buffer_t>) {
     return mBuffers;
+  } else if constexpr (std::is_same_v<Tag, pd::ShaderModule_t>) {
+    return mShaderModules;
   }
   PD_ASSERT_MSG(false, "vulkan resource pool error: not supported tag");
 }
@@ -114,5 +121,11 @@ inline auto* ResourceRegistry::getResource(Handle<Tag> handle) noexcept {
 }
 
 template <typename Tag>
-inline void ResourceRegistry::destroyResource(Handle<Tag> handle) noexcept {}
+inline void ResourceRegistry::destroyResource(Handle<Tag> handle) noexcept {
+  auto& dataPool = findPool<Tag>();
+  auto delIt = dataPool.find(handle.data.id);
+  if (delIt != dataPool.end()) {
+    dataPool.erase(delIt);
+  }
+}
 }  // namespace vk1

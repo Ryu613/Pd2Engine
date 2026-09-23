@@ -1,0 +1,242 @@
+= 引擎架构
+
+== 对引擎的理解
+
+.什么是引擎
+. 引擎是整个系统的壳，壳内包裹着各个子系统，这个壳不负责子系统负责的具体工作,只用来保护内部子系统，确立内外边界
+. 提供对外部的接口，外部不应该直接访问子系统，而是通过引擎的接口访问
+. 只有跨子系统需要协调时，才利用引擎进行跨系统协调
+. 引擎负责各个子系统的生命周期，保证子系统之间的依赖顺序，生命周期随引擎同生共死
+
+.引擎包含什么
+. 各个子系统
+. 全局配置项
+. 全局基础数据和设施
+. 对外部的接口
+
+.我设想的引擎是什么样的
+. 应当尽量薄，不应该参与具体的事物，而是一个统筹协调者
+. 提供简单易懂易用的对外接口，不允许外部直接访问子系统
+. 不允许异常传播出引擎，应该使用错误码，并在内部多使用断言，应该捕获可预想的意外，如果不能应当让引擎直接停止而不是抛出异常
+. 引擎应当成为一个整体，不能被拆分，不需要动态加载，应该为静态链接
+
+.想有哪些功能
+. 渲染功能:
+.. 支持3D实时渲染
+.. 集成gui框架
+.. 集成窗口系统
+.. PBR渲染
+.. render graph
+. 跨平台ready
+.. 平台层抽象
+. RHI ready
+.. RHI层抽象
+.. vulkan rhi
+.. vulkan dynamic rendering
+.. vulkan bindless
+.. vulkan封装，及资源管理
+.. 支持着色器运行时编译，热加载
+... 支持slang着色器
+... 可扩展为支持多种shader language
+.. 材质管理
+. 资源管理
+.. 支持资产预处理，转换，烘焙，编译等
+... 支持gltf
+.. 运行时资源动态加载，热加载，状态追踪，异步加载
+. 场景数据管理
+.. DOD, ECS架构
+. 基础功能/工具
+.. 统一的内存管理机制和分配器
+.. 统一的配置项
+.. 统一的异常处理机制
+.. 支持自定义内存分配的容器和基础类
+.. 线程池，job system
+.. 调试及剖析器
+
+.暂缓的功能
+. 可视化编辑器，及相关支持功能
+. 场景流式加载，热加载
+. 具体的渲染效果堆砌
+
+== 引擎模块
+
+* 引擎整体逻辑上为分层架构，每个层级相当于一个子系统，子系统内部有自己的子架构，每个层级(子系统)拥有多个模块
+* 平台层放在引擎内部统一处理，平台在构建时按不同平台架构按需引入，平台层也提供了窗口系统封装，引擎为跨平台运行提供扩展性，外部基本不需要处理平台差异，实现开箱即用
+* 渲染底层(后端)和平台层在构建时确定，不支持(也没必要)运行时多态
+* 模块在构建时静态连接作为一个整体引擎核心库，核心库部分不支持动态链接
+
+.子系统
+. 平台子系统： 负责隔离平台不同造成的基础功能不同，封装这些基础功能为统一的接口，供外部使用
+. 资源(运行时)管理子系统: 负责管理运行时资源的生命周期，和资源缓存
+. 资产管理子系统： 负责资产文件的加载，转换，预处理
+. 渲染前端子系统: 负责图像渲染流水线，渲染流程定义，具体的渲染功能，特效，gui等
+. 渲染后端子系统: 负责为具体的渲染效果提供底层支持，不同的图形API可使用同一套接口完成
+. 场景子系统: 负责场景相关数据处理
+.全局设施及数据
+. 引擎配置
+. 内存分配器
+. job system
+
+== 确定依赖和包含关系
+
+[NOTE]
+====
+* 此处借用类图画法说明模块关系，不直接对应具体类的设计
+====
+
+[plantuml]
+....
+class 引擎 {
+    薄的壳，全局入口,子系统协调者，API提供者
+    ==
+    -- 成员 -- 
+    == 全局设施 ==
+    全局配置
+    内存分配器
+    作业系统
+    ...
+    == 各个子系统 ==
+    平台层
+    资源层
+    资产层
+    场景层
+    渲染后端层
+    渲染前端层
+}
+class 平台层
+class 资源层
+class 资产层
+class 场景层
+
+引擎 o-- 平台层
+引擎 o-- 资源层
+引擎 o-- 资产层
+引擎 o-- 场景层
+引擎 o-- 渲染后端层
+引擎 o-- 渲染前端层
+
+资产层 --> 平台层: 文件系统
+渲染后端层 --> 平台层: 窗口系统句柄
+渲染前端层 --> 渲染后端层: 需要后端接口
+场景层 --> 资源层: 需要控制资源加载
+....
+
+== 核心调用链
+
+本引擎的架构是以工业级引擎的架构作为参考，并且结合实际情况做了精简和提炼，根据个人理解和重新整合，最终形成了本架构设计
+
+此处说明引擎核心架构和流程，实际调用链基于此流程但不一定完全一致，以系统设计文档和代码为准
+
+[NOTE]
+====
+* 为了简化表述，此图未说明多线程和异步过程
+* 只有架构高层级模块和核心步骤，子系统具体调用步骤参考系统设计和模块设计文档
+* Engine区别于其他模块，其不是一个平级概念，而是一个顶层协调者，具体执行逻辑由各个子系统负责
+* Application是独立模块，只依赖整个引擎库
+* 资源，资产，场景数据处理会委托job system的独立线程完成任务
+* 主线程与后端线程独立,主线程只管理全局统筹相关事务，执行main loop,录制渲染命令，后端线程只处理渲染底层逻辑
+* 具体技术细节此处不赘述，详见系统设计及模块设计文档
+====
+
+=== 引擎生命周期
+
+[plantuml]
+....
+actor developer as User
+group 构造
+    User -> Application++: new App()
+    Application -> Engine++: new Engine()
+    Engine -> Engine: init common services(logger, arena, job system, etc)
+    Engine -> Platform++: platform.init()
+    Platform -> Platform: init FileSystem
+    Platform -> Platform: init WindowSystem
+    Engine <-- Platform: platform init finished
+    Engine -> Backend++: new
+    Engine -> ResourceManager++: new
+    Engine -> AssetManager++: new
+    Engine -> SceneManager++: new
+    Engine -> Renderer++: new
+    Application <-- Engine: engine construction finished
+    User <-- Application: App construction finished
+end
+group 初始化
+    User -> Application: init()
+    Application -> Engine: init()
+    Engine -> Platform: new window
+    Engine -> Backend: init()
+    Engine -> ResourceManager: init()
+    Engine -> AssetManager: init()
+    Engine -> SceneManager: init()
+    Engine -> Renderer: init()
+    Application <-- Engine: engine init finished
+    User <-- Application: app init finished
+end
+group 运行
+    User -> Application: run()
+    Application -> Engine: run()
+    Engine -> SceneManager: load scene
+    SceneManager -> AssetManager: load asset
+    AssetManager -> AssetManager: load file, convert file to Asset data
+    SceneManager <-- AssetManager: finished asset file loading & parsing
+    SceneManager -> ResourceManager: register assets
+    SceneManager -> SceneManager: build scene data 
+    SceneManager -> ResourceManager: load resources
+    ResourceManager -> Backend: load registered backend resources
+    Engine <-- SceneManager: finished scene loading
+    loop
+        Engine -> Platform: poll events and execute callbacks
+        Engine -> SceneManager: update scene data
+        Engine -> Renderer: begin rendering
+        Renderer -> Renderer: prepare rendering context data
+        Renderer -> Backend: new render frame
+        Backend -> Backend: acquire next swapchain image, prepare frame data
+        Renderer <-- Backend: new frame ready
+        Renderer -> Renderer: render graph setup, compile, execute
+        Renderer -> Backend: submit recorded rendering commands
+        Backend -> Backend: execute commands
+        Renderer -> Backend: end frame
+        Backend -> Backend: end commands, end rendering, present etc.
+        Renderer <-- Backend: ended frame
+        Renderer -> ResourceManager: update deletion queue
+    end
+end
+group 用户停止或停止事件触发
+    User -> Application: stop() or engine stop event triggered
+    Application -> Engine: stop()
+    Engine -> Engine: wait job system idle
+    Engine -> Platform: stop event
+    Engine -> Renderer: stop rendering
+    Renderer -> Backend: wait idle
+    Engine <-- Renderer: finished renderer stop
+    Engine -> SceneManager: unload scene
+    SceneManager -> SceneManager: clear scene data, reset status
+    SceneManager -> ResourceManager: unload resources
+    ResourceManager -> ResourceManager: unload scene resources
+    ResourceManager -> Backend: unload backend resources
+    Engine <-- SceneManager: finished stop scene
+    Application <-- Engine: finished engine stop
+    User <-- Application: finished app stop
+end
+group 销毁
+    User -> Application: delete App
+    Application -> Engine: destroy()
+    Engine -> Renderer: destroy()
+    deactivate Renderer
+    Engine -> SceneManager: destroy()
+    deactivate SceneManager
+    Engine -> AssetManager: destroy()
+    deactivate AssetManager
+    Engine -> ResourceManager: destroy()
+    deactivate ResourceManager
+    Engine -> Backend: destroy()
+    deactivate Backend
+    Engine -> Platform: destroy()
+    deactivate Platform
+    Engine -> Engine: destroy common services
+    Application <-- Engine: finished engine destroy
+    Application -> Engine: delete engine
+    deactivate Engine
+    User <-- Application: finished app delete
+    deactivate Application
+end
+....

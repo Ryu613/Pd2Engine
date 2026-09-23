@@ -7,7 +7,7 @@ namespace pd {
 
 namespace util {
 /**
- * 此string buffer需要在销毁时用arena总体回收
+ * @note 此string buffer需要在销毁时用arena总体回收，不能隐式销毁
  */
 template <size_t Capacity, typename Arena>
 class StringBuffer {

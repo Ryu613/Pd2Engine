@@ -3,7 +3,7 @@
 #include "rapidhash/rapidhash.h"
 
 namespace pd::util {
-static u64 hashString(std::string_view path) noexcept {
-  return rapidhash(path.data(), path.size());
+inline static u64 hashString(std::string_view str) noexcept {
+  return rapidhash(str.data(), str.size());
 }
 }  // namespace pd::util

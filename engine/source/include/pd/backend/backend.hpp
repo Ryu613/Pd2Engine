@@ -28,6 +28,9 @@ class Backend {
   void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept;
   void destroyBuffer(HwBufferHandle handle) noexcept;
 
+  HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
+  void destroyShaderModule(HwShaderModuleHandle handle) noexcept;
+
  private:
   class Impl;
   std::unique_ptr<Impl> mImpl;

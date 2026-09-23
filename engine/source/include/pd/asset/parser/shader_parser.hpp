@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pd/asset/parser/asset_parser.hpp"
+#include "pd/asset/compiler/shader_compiler.hpp"
 
 #include <filesystem>
 
@@ -18,5 +19,6 @@ class ShaderParser : public IAssetParser {
  private:
   IFileSystem* mFs = nullptr;
   std::filesystem::path mBasePath;
+  ShaderCompiler mCompiler;
 };
 }  // namespace pd

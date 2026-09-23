@@ -19,8 +19,10 @@ enum class ResourceStatus : u8 {
 struct MeshResource_t;
 struct TextureResource_t;
 struct ShaderResource_t;
+struct PrefabResource_t;
 
 using MeshHandle = ResourceHandle<MeshResource_t>;
 using TextureHandle = ResourceHandle<TextureResource_t>;
 using ShaderHandle = ResourceHandle<ShaderResource_t>;
+using PrefabHandle = ResourceHandle<PrefabResource_t>;
 }  // namespace pd

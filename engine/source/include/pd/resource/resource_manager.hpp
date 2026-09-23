@@ -2,16 +2,14 @@
 
 #include "pd/core/utils/map.hpp"
 #include "pd/asset/asset_types.hpp"
+#include "pd/asset/asset.hpp"
 #include "pd/resource/mesh_resource.hpp"
 #include "pd/resource/texture_resource.hpp"
 #include "pd/resource/shader_resource.hpp"
+#include "pd/resource/prefab_resource.hpp"
 
 namespace pd {
 class Backend;
-class Asset;
-class GltfAsset;
-class ShaderAsset;
-class ShaderManager;
 class ResourceManager {
  public:
   template <typename Tag>
@@ -24,18 +22,23 @@ class ResourceManager {
   Result<void> init() noexcept;
   Result<void> destroy() noexcept;
 
-  Result<void> createResourcesFromAsset(Asset* asset) noexcept;
+  template <typename Tag>
+  Result<Handle<Tag>> registerAsset(Asset* asset) noexcept;
 
-  Result<void> clearAll() noexcept;
+  template <typename Tag>
+  Result<void> loadResource(Handle<Tag> handle) noexcept;
 
-  Result<void> loadAll() noexcept;
+  // Result<void> clearAll() noexcept;
 
-  Result<void> gc() noexcept;
+  // Result<void> loadAll() noexcept;
+
+  // Result<void> gc() noexcept;
 
  private:
   struct ResourceEntry {
     BaseHandle handle;
     u32 refCount = 0;
+    bool isAlive = false;
   };
   Backend* mBackend = nullptr;
 
@@ -55,11 +58,64 @@ class ResourceManager {
   auto* getResource(Handle<Tag> handle) noexcept;
 
   template <typename Tag>
+  void saveResource(ResourceIdType id, std::unique_ptr<Resource> pResource) noexcept;
+
+  template <typename Tag>
   uint32_t nextId() noexcept;
 
-  Result<void> registerGltfAsset(GltfAsset* gltfAsset) noexcept;
-  Result<void> registerShaderAsset(ShaderAsset* shaderAsset) noexcept;
+  Result<std::unique_ptr<PrefabResource>> createGltfResource(ResourceIdType newId, GltfAsset* gltfAsset) noexcept;
+  Result<std::unique_ptr<ShaderResource>> createShaderResource(ResourceIdType newId, ShaderAsset* shaderAsset) noexcept;
 };
+
+template <typename Tag>
+inline Result<ResourceHandle<Tag>> ResourceManager::registerAsset(Asset* asset) noexcept {
+  PD_ASSERT_MSG(asset, "asset pointer is null!");
+  // 1. 判重
+  auto regIt = mRegistry.find(asset->id());
+  if (regIt != mRegistry.end()) {
+    LOG_INFO("asset duplicate! asset id:{}", asset->id());
+    return {};
+  }
+  // 2. 分类型处理
+  auto newId = nextId<Tag>();
+  switch (asset->info().parseType) {
+    using enum AssetType;
+    case Gltf: {
+      auto res = createGltfResource(newId, static_cast<GltfAsset*>(asset));
+      if (!res) {
+        return make_error<ResourceHandle<Tag>>(res.error().code);
+      }
+      saveResource<Tag>(newId, std::move(res.value()));
+      break;
+    }
+    case Shader: {
+      auto res = createShaderResource(newId, static_cast<ShaderAsset*>(asset));
+      if (!res) {
+        return make_error<ResourceHandle<Tag>>(res.error().code);
+      }
+      saveResource<Tag>(newId, std::move(res.value()));
+      break;
+    }
+    default:
+      return make_error<ResourceHandle<Tag>>(ErrorCode::ResourceTypeNotSupported);
+  }
+  // 3. 更新注册表
+  auto [regInsIt, regSuccess] = mRegistry.emplace(asset->id(), ResourceEntry{
+                                                                   .handle =
+                                                                       {
+                                                                           .id = newId,
+                                                                           .gen = 0,
+                                                                       },
+                                                                   .refCount = 0,
+                                                               });
+  PD_ASSERT_MSG(regSuccess, "shader resource register failed!");
+
+  Handle<Tag> newHandle{.data = {
+                            .id = newId,
+                        }};
+
+  return newHandle;
+}
 
 template <typename Tag>
 inline auto& ResourceManager::findStorage() noexcept {
@@ -80,10 +136,31 @@ inline auto* ResourceManager::getResource(Handle<Tag> handle) noexcept {
   auto it = dataPool.find(handle.data.id);
   if (it != dataPool.end()) {
     // todo: gen equality
-    return &(it->second.resource);
+    return it->second.get();
   }
-  using ResourcePtr = decltype(&(it->second.resource));
+  using ResourcePtr = decltype(it->second.get());
   return static_cast<ResourcePtr>(nullptr);
+}
+
+template <typename Tag>
+inline Result<void> ResourceManager::loadResource(Handle<Tag> handle) noexcept {
+  auto* resource = getResource(handle);
+  if (resource == nullptr) {
+    LOG_ERROR("resource id: {} not exist, cannot load!", handle.data.id);
+    return make_error<void>(ErrorCode::ResourceLoadFailed);
+  }
+  if (auto res = resource->load(); !res) {
+    return res;
+  }
+  return {};
+}
+
+template <typename Tag>
+inline void ResourceManager::saveResource(ResourceIdType id, std::unique_ptr<Resource> resource) noexcept {
+  auto& storage = findStorage<Tag>();
+  // FIXME
+  // auto [insIt, insSuccess] = storage.emplace(id, std::move(resource));
+  // PD_ASSERT_MSG(insSuccess, "resource insert failed!");
 }
 
 template <typename Tag>

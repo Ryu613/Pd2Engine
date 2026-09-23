@@ -10,9 +10,9 @@ Resource::Resource(ResourceIdType id, const std::string& name)
 
 Result<void> Resource::load() noexcept {
   if (mStatus != ResourceStatus::Unload) {
+    LOG_DEBUG("resource status is not [unload]: id={}, name={}", mId, mName);
     return {};
   }
-  LOG_DEBUG("loading resource: {}", mId);
   mStatus = ResourceStatus::Loading;
   if (auto res = doLoad(); !res) {
     return res;

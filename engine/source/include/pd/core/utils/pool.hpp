@@ -10,11 +10,13 @@ namespace pd {
  * @tparam T 类型
  * @tparam H 句柄标签
  */
-template <typename T, typename THandleTag>
+template <typename T, typename TTag>
 class Pool {
  public:
   template <typename TPool>
   using PoolType = std::vector<TPool>;
+  
+  using Handle = TypedHandle<TTag>;
 
   explicit Pool(uint32_t capacity) noexcept
       : mCapacity(capacity) {
@@ -43,7 +45,7 @@ class Pool {
   [[nodiscard]] uint32_t capacity() const noexcept { return mCapacity; };
   [[nodiscard]] uint32_t size() const noexcept { return mData.size() - mFreeIndices.size(); };
 
-  T* get(const TypedHandle<THandleTag>& handle) const noexcept {
+  T* get(const Handle& handle) const noexcept {
     if (!isValidHandle(handle)) {
       return nullptr;
     }
@@ -51,11 +53,11 @@ class Pool {
   }
 
   template <typename... Args>
-  TypedHandle<THandleTag> emplace(Args&&... args) {
+  Handle emplace(Args&&... args) {
     if (size() >= mCapacity) {
       growCapacity();
     }
-    TypedHandle<THandleTag> handle;
+    Handle handle;
     // 有空位用空位，没有就加
     if (mFreeIndices.size() > 0) {
       auto newId = mFreeIndices.back();
@@ -81,7 +83,7 @@ class Pool {
    *
    * @param handle
    */
-  void remove(const TypedHandle<THandleTag>& handle) noexcept {
+  void remove(const Handle& handle) noexcept {
     if (!isValidHandle(handle)) {
       return;
     }
@@ -103,11 +105,11 @@ class Pool {
     }
   }
 
-  TypedHandle<THandleTag> getNotAliveHandle(uint32_t index) const noexcept {
+  Handle getNotAliveHandle(uint32_t index) const noexcept {
     if (index >= mGens.size() || !mGens[index].isAlive) {
       return {};
     }
-    return TypedHandle<THandleTag>{index, mGens[index].gen};
+    return Handle{index, mGens[index].gen};
   }
 
  private:
@@ -120,7 +122,7 @@ class Pool {
   PoolType<uint32_t> mFreeIndices;
   uint32_t mCapacity = 0;
 
-  bool isValidHandle(const TypedHandle<THandleTag>& handle) const noexcept {
+  bool isValidHandle(const Handle& handle) const noexcept {
     auto handleId = handle.id();
     auto handleGen = handle.gen();
     return handle.isValid() && handleId < mData.size() && handleGen == mGens[handleId].gen &&

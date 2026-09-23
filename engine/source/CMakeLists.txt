@@ -43,6 +43,7 @@ target_sources(engine_lib
         include/pd/resource/mesh_resource.hpp
         include/pd/resource/texture_resource.hpp
         include/pd/resource/shader_resource.hpp
+        include/pd/resource/prefab_resource.hpp
         # asset
         include/pd/asset/asset_types.hpp
         include/pd/asset/asset.hpp
@@ -50,6 +51,7 @@ target_sources(engine_lib
         include/pd/asset/parser/asset_parser.hpp
         include/pd/asset/parser/gltf_parser.hpp
         include/pd/asset/parser/shader_parser.hpp
+        include/pd/asset/compiler/shader_compiler.hpp
         # scene
         include/pd/scene/scene_manager.hpp
         include/pd/scene/scene_descriptor.hpp
@@ -59,8 +61,6 @@ target_sources(engine_lib
         include/pd/rendering/material/material_definition.hpp
         include/pd/rendering/material/material_instance.hpp
         include/pd/rendering/material/material_manager.hpp
-        include/pd/rendering/shader/shader_manager.hpp
-        include/pd/rendering/shader/shader_compiler.hpp
     PRIVATE
         src/engine.cpp
         src/platform/fs/file_system.cpp
@@ -74,7 +74,6 @@ target_sources(engine_lib
         src/scene/scene_descriptor.cpp
         src/rendering/renderer.cpp
         src/rendering/material/material_manager.cpp
-        src/rendering/shader/shader_manager.cpp
         src/asset/asset_manager.cpp
         src/asset/gltf_parser.cpp
         src/asset/shader_parser.cpp
@@ -129,7 +128,7 @@ endif()
 if(${PD2_SHADER_LANG} STREQUAL "SLANG")
 target_sources(engine_lib
     PRIVATE
-        src/rendering/shader/compiler/slang_compiler.cpp
+        src/asset/compiler/slang_compiler.cpp
 )
 target_compile_definitions(engine_lib PRIVATE SHADER_SLANG)
 endif()

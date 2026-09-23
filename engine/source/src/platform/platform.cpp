@@ -11,19 +11,18 @@ Platform::Platform(const PlatformConfig& config)
     : mConfig(config),
       mFileSystem(createFileSystem()) {}
 
-Platform::~Platform() = default;
+Platform::~Platform() {}
 
 Result<void> Platform::init() noexcept {
-  auto windowInitRes = mWindowSystem.init(mConfig.window);
-  if (!windowInitRes) {
-    return windowInitRes;
+  if (auto res = mWindowSystem.init(mConfig.window); !res) {
+    return res;
   }
 
   return {};
 }
 
 Result<void> Platform::destroy() noexcept {
-  if(auto res = mWindowSystem.destroy(); !res) {
+  if (auto res = mWindowSystem.destroy(); !res) {
     return res;
   }
 

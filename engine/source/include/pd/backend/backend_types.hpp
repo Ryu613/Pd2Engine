@@ -4,6 +4,8 @@
 #include "pd/core/math/math.hpp"
 #include "pd/core/utils/handle.hpp"
 
+#include <span>
+
 namespace pd {
 
 template <typename T>
@@ -79,16 +81,9 @@ struct FrameData {
 };
 
 struct ShaderProgram {
-  size_t shaderCodeIndex;
+  size_t shaderModuleIndex;
   ShaderStage stage;
   std::string entryPoint = "main";
-};
-
-struct ShaderCode {
-  ShaderLang lang = ShaderLang::Slang;
-  std::vector<u8> code;
-  // todo: support shader import
-  //   std::vector<size_t> dependencies;  // other shader code index
 };
 
 struct VertexDesc {
@@ -109,16 +104,10 @@ struct VertexDesc {
 struct PipelineLayoutDesc {
   std::string_view debugName;
 };
-struct ShaderData {
-  std::vector<u8> spirvCode;
-  // todo: reflection info
-};
 
-struct ShaderDesc {
-  std::string moduleName;
-  std::string modulePath;
-  std::vector<u8> code;
-  ShaderLang lang = ShaderLang::Slang;
+struct ShaderModuleCreateDesc {
+  std::string_view debugName;
+  std::span<const std::byte> spirCode;
 };
 
 struct BufferCreateDesc {
@@ -139,7 +128,7 @@ struct BufferWriteDesc {
 struct GraphicsPipelineDesc {
   std::string_view debugName;
   HwPipelineLayoutHandle layout;
-  std::vector<ShaderData> shaderDatas;
+  std::vector<HwShaderModuleHandle> shaderModules;
   std::vector<ShaderProgram> shaderPrograms;
 };
 

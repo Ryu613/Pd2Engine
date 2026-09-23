@@ -4,7 +4,7 @@
 #include "pd/platform/platform.hpp"
 #include "pd/backend/backend.hpp"
 #include "pd/backend/command_recorder.hpp"
-#include "pd/rendering/shader/shader_manager.hpp"
+#include "pd/asset/compiler/shader_compiler.hpp"
 
 #include "pd/core/math/math.hpp"
 
@@ -40,25 +40,31 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
   std::string filePath = ASSET_DIR "shader/pyramid/pyramid.slang";
   auto shaderCode = fs.readFileBinary(filePath);
   // return spir-v code, and reflect info
-  ShaderManager shaderManager;
-  auto shaderDataRes = shaderManager.compile({
+  ShaderCompiler shaderCompiler;
+  auto shaderDataRes = shaderCompiler.compile({
       .moduleName = "pyramid",
       .modulePath = filePath,
-      .code = shaderCode,
+      .code = std::as_bytes(std::span{shaderCode}),
   });
   REQUIRE(shaderDataRes);
   auto& shaderData = shaderDataRes.value();
+
+  // create shader module
+  auto vertFragShader = backend.createShaderModule({
+      .spirCode = std::as_bytes(std::span{shaderData.spirvCode}),
+  });
+
   GraphicsPipelineDesc pipelineDesc{
       .debugName = "triangle",
   };
-  pipelineDesc.shaderDatas.push_back(shaderData);
+  pipelineDesc.shaderModules.push_back(vertFragShader);
   pipelineDesc.shaderPrograms.push_back({
-      .shaderCodeIndex = pipelineDesc.shaderDatas.size() - 1,
+      .shaderModuleIndex = pipelineDesc.shaderModules.size() - 1,
       .stage = ShaderStage::Vertex,
       .entryPoint = "vertMain",
   });
   pipelineDesc.shaderPrograms.push_back({
-      .shaderCodeIndex = pipelineDesc.shaderDatas.size() - 1,
+      .shaderModuleIndex = pipelineDesc.shaderModules.size() - 1,
       .stage = ShaderStage::Fragment,
       .entryPoint = "fragMain",
   });

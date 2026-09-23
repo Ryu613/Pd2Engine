@@ -9,7 +9,46 @@ ResourceRegistry::ResourceRegistry(Vk1Device& device)
 ResourceRegistry::~ResourceRegistry() {}
 
 void ResourceRegistry::init() noexcept {}
-void ResourceRegistry::destroy() noexcept {}
+void ResourceRegistry::destroy() noexcept {
+  // todo: destroy all dataPool handles
+}
+
+pd::HwShaderModuleHandle ResourceRegistry::createShaderModule(
+    const pd::ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept {
+  // create shader module
+  VkShaderModuleCreateInfo moduleInfo{
+      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+      .codeSize = shaderModuleCreateDesc.spirCode.size(),
+      .pCode = reinterpret_cast<const uint32_t*>(shaderModuleCreateDesc.spirCode.data()),
+  };
+  VkShaderModule shaderModule = 0;
+  checkResult(vkCreateShaderModule(mDevice->getDevice(), &moduleInfo, 0, &shaderModule));
+  assert(shaderModule);
+
+  Slot<pd::ShaderModule_t, Vk1ShaderModule> slot{
+      .gen = 0,
+      .resource =
+          {
+              .handle = shaderModule,
+          },
+  };
+  auto newId = nextId<pd::ShaderModule_t>();
+  mShaderModules.emplace(newId, slot);
+
+  setObjectName(mDevice->getDevice(), VK_OBJECT_TYPE_SHADER_MODULE, shaderModule, shaderModuleCreateDesc.debugName);
+
+  return {.data = {
+              .id = newId,
+              .gen = 0,
+          }};
+}
+void ResourceRegistry::destroyShaderModule(pd::HwShaderModuleHandle handle) noexcept {
+  const auto* shaderModule = getResource(handle);
+  if (shaderModule->handle != VK_NULL_HANDLE) {
+    vkDestroyShaderModule(mDevice->getDevice(), shaderModule->handle, 0);
+  }
+  destroyResource(handle);
+}
 
 pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::PipelineLayoutDesc& desc) noexcept {
   VkPushConstantRange pushConstantRange{
@@ -56,19 +95,12 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipe
   stages.resize(desc.shaderPrograms.size());
   for (size_t i = 0; i < desc.shaderPrograms.size(); ++i) {
     const auto& shaderProgram = desc.shaderPrograms[i];
-    const auto& shaderCode = desc.shaderDatas[shaderProgram.shaderCodeIndex].spirvCode;
-    // create shader module
-    VkShaderModuleCreateInfo moduleInfo{
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = shaderCode.size(),
-        .pCode = reinterpret_cast<const uint32_t*>(shaderCode.data()),
-    };
-    VkShaderModule shaderModule = 0;
-    checkResult(vkCreateShaderModule(vkDevice, &moduleInfo, 0, &shaderModule));
-    assert(shaderModule);
+    const auto& shaderModuleHandle = desc.shaderModules[shaderProgram.shaderModuleIndex];
+    const auto* shaderModule = this->getResource(shaderModuleHandle);
+    assert(shaderModule->handle);
     stages[i].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     stages[i].stage = util::toVkShaderStageFlagBits(shaderProgram.stage);
-    stages[i].module = shaderModule;
+    stages[i].module = shaderModule->handle;
     stages[i].pName = shaderProgram.entryPoint.data();
   };
 
