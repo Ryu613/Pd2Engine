@@ -26,10 +26,11 @@ TEST_CASE("test_shader_resource_register", "engine") {
       .name = "pyramid shader",
       .path = ASSET_DIR "shader/pyramid/pyramid.slang",
       .parseType = AssetType::Shader,
-      .shaderInfo = {
-        .moduleName = "pyramid",
-        .modulePath = "pyramid/pyramid.slang",
-      },
+      .shaderInfo =
+          {
+              .moduleName = "pyramid",
+              .modulePath = "pyramid/pyramid.slang",
+          },
   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);
@@ -54,7 +55,7 @@ TEST_CASE("test_shader_resource_register", "engine") {
   ResourceManager rscMgr(&backend);
 
   auto shaderAssetRes = rscMgr.registerAsset<ShaderResource_t>(asset);
-  REQUIRE(shaderAssetRes); 
+  REQUIRE(shaderAssetRes);
 
   auto shaderHandle = shaderAssetRes.value();
 

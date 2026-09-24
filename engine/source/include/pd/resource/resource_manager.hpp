@@ -9,11 +9,44 @@
 #include "pd/resource/prefab_resource.hpp"
 
 namespace pd {
+// traits
+template <typename Tag>
+struct TagInfo;
+
+// 用来支持tag与resource 多对一关系
+template <>
+struct TagInfo<ShaderResource_t> {
+  using Resource = ShaderResource;
+  using Tag = ShaderResource_t;
+};
+template <>
+struct TagInfo<TextureResource_t> {
+  using Resource = TextureResource;
+  using Tag = TextureResource_t;
+};
+
+template <>
+struct TagInfo<MeshResource_t> {
+  using Resource = MeshResource;
+  using Tag = MeshResource_t;
+};
+
+template <>
+struct TagInfo<GltfResource_t> {
+  using Resource = PrefabResource;
+  using Tag = PrefabResource_t;
+};
+
 class Backend;
 class ResourceManager {
  public:
   template <typename Tag>
   using Handle = ResourceHandle<Tag>;
+
+  template <typename Tag>
+  using StoredResource = typename TagInfo<Tag>::Resource;
+  template <typename Tag>
+  using StoredTag = typename TagInfo<Tag>::Tag;
 
   explicit ResourceManager(Backend* backend);
   ~ResourceManager();
@@ -23,7 +56,7 @@ class ResourceManager {
   Result<void> destroy() noexcept;
 
   template <typename Tag>
-  Result<Handle<Tag>> registerAsset(Asset* asset) noexcept;
+  Result<Handle<StoredTag<Tag>>> registerAsset(Asset* asset) noexcept;
 
   template <typename Tag>
   Result<void> loadResource(Handle<Tag> handle) noexcept;
@@ -50,15 +83,16 @@ class ResourceManager {
   Storage<MeshResource, MeshResource_t> mMeshes;
   Storage<TextureResource, TextureResource_t> mTextures;
   Storage<ShaderResource, ShaderResource_t> mShaders;
+  Storage<PrefabResource, PrefabResource_t> mPrefabs;
 
-  template <typename Tag>
+  template <typename StoredTagT>
   auto& findStorage() noexcept;
 
   template <typename Tag>
   auto* getResource(Handle<Tag> handle) noexcept;
 
   template <typename Tag>
-  void saveResource(ResourceIdType id, std::unique_ptr<Resource> pResource) noexcept;
+  void saveResource(ResourceIdType id, std::unique_ptr<StoredResource<Tag>> pResource) noexcept;
 
   template <typename Tag>
   uint32_t nextId() noexcept;
@@ -68,7 +102,7 @@ class ResourceManager {
 };
 
 template <typename Tag>
-inline Result<ResourceHandle<Tag>> ResourceManager::registerAsset(Asset* asset) noexcept {
+inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::registerAsset(Asset* asset) noexcept {
   PD_ASSERT_MSG(asset, "asset pointer is null!");
   // 1. 判重
   auto regIt = mRegistry.find(asset->id());
@@ -85,7 +119,8 @@ inline Result<ResourceHandle<Tag>> ResourceManager::registerAsset(Asset* asset) 
       if (!res) {
         return make_error<ResourceHandle<Tag>>(res.error().code);
       }
-      saveResource<Tag>(newId, std::move(res.value()));
+      // gltf resource 对应prefab resource
+      saveResource<GltfResource_t>(newId, std::move(res.value()));
       break;
     }
     case Shader: {
@@ -93,7 +128,7 @@ inline Result<ResourceHandle<Tag>> ResourceManager::registerAsset(Asset* asset) 
       if (!res) {
         return make_error<ResourceHandle<Tag>>(res.error().code);
       }
-      saveResource<Tag>(newId, std::move(res.value()));
+      saveResource<ShaderResource_t>(newId, std::move(res.value()));
       break;
     }
     default:
@@ -117,14 +152,16 @@ inline Result<ResourceHandle<Tag>> ResourceManager::registerAsset(Asset* asset) 
   return newHandle;
 }
 
-template <typename Tag>
+template <typename StoredTagT>
 inline auto& ResourceManager::findStorage() noexcept {
-  if constexpr (std::is_same_v<Tag, TextureResource_t>) {
+  if constexpr (std::is_same_v<StoredTagT, TextureResource_t>) {
     return mTextures;
-  } else if constexpr (std::is_same_v<Tag, MeshResource_t>) {
+  } else if constexpr (std::is_same_v<StoredTagT, MeshResource_t>) {
     return mMeshes;
-  } else if constexpr (std::is_same_v<Tag, ShaderResource_t>) {
+  } else if constexpr (std::is_same_v<StoredTagT, ShaderResource_t>) {
     return mShaders;
+  } else if constexpr (std::is_same_v<StoredTagT, PrefabResource_t>) {
+    return mPrefabs;
   } else {
     static_assert(false, "resource type not supported!");
   }
@@ -156,11 +193,10 @@ inline Result<void> ResourceManager::loadResource(Handle<Tag> handle) noexcept {
 }
 
 template <typename Tag>
-inline void ResourceManager::saveResource(ResourceIdType id, std::unique_ptr<Resource> resource) noexcept {
-  auto& storage = findStorage<Tag>();
-  // FIXME
-  // auto [insIt, insSuccess] = storage.emplace(id, std::move(resource));
-  // PD_ASSERT_MSG(insSuccess, "resource insert failed!");
+inline void ResourceManager::saveResource(ResourceIdType id, std::unique_ptr<StoredResource<Tag>> pResource) noexcept {
+  auto& storage = findStorage<StoredTag<Tag>>();
+  auto [insIt, insSuccess] = storage.emplace(id, std::move(pResource));
+  PD_ASSERT_MSG(insSuccess, "resource insert failed!");
 }
 
 template <typename Tag>

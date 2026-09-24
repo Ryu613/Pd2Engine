@@ -19,6 +19,7 @@ enum class ResourceStatus : u8 {
 struct MeshResource_t;
 struct TextureResource_t;
 struct ShaderResource_t;
+struct GltfResource_t;
 struct PrefabResource_t;
 
 using MeshHandle = ResourceHandle<MeshResource_t>;

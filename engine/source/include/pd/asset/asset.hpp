@@ -85,9 +85,9 @@ class Asset {
   const CreateInfo& info() const noexcept { return mInfo; }
 
  protected:
-  explicit Asset(AssetIdType id, CreateInfo info)
+  explicit Asset(AssetIdType id, const CreateInfo& info)
       : mId(std::move(id)),
-        mInfo(std::move(info)) {}
+        mInfo(info) {}
 
  private:
   friend class AssetManager;
@@ -135,7 +135,7 @@ class ShaderAsset : public Asset {
   std::vector<std::byte> mParsedCode;
   ReflectionInfo mReflectionInfo;
 
-  explicit ShaderAsset(AssetIdType id, CreateInfo info)
+  explicit ShaderAsset(AssetIdType id, const CreateInfo& info)
       : Asset(id, info) {}
 
   void setParsedCode(std::span<u8> code) noexcept {
