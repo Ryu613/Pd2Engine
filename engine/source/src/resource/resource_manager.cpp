@@ -15,14 +15,16 @@ Result<void> ResourceManager::destroy() noexcept { return {}; }
 Result<std::unique_ptr<PrefabResource>> ResourceManager::createGltfResource(ResourceIdType newId,
                                                                             GltfAsset* gltfAsset) noexcept {
   LOG_INFO("create gltf resource {}", gltfAsset->info().name);
-  auto prefabRsc = std::unique_ptr<PrefabResource>(new PrefabResource(newId, gltfAsset->info().name, *mBackend));
+  auto prefabRsc =
+      std::unique_ptr<PrefabResource>(new PrefabResource(newId, gltfAsset->id(), gltfAsset->info().name, *mBackend));
   return prefabRsc;
 }
 
 Result<std::unique_ptr<ShaderResource>> ResourceManager::createShaderResource(ResourceIdType newId,
                                                                               ShaderAsset* shaderAsset) noexcept {
   LOG_INFO("create shader resource {}", shaderAsset->info().name);
-  auto shaderRsc = std::unique_ptr<ShaderResource>(new ShaderResource(newId, shaderAsset->info().name, *mBackend));
+  auto shaderRsc = std::unique_ptr<ShaderResource>(
+      new ShaderResource(newId, shaderAsset->id(), shaderAsset->info().name, *mBackend));
 
   // 由asset mgr保证原始数据生命周期
   shaderRsc->setSource(shaderAsset->sources());

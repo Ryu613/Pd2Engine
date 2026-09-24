@@ -23,7 +23,7 @@ class ShaderResource : public Resource {
   Backend* mBackend = nullptr;
   HwShaderModuleHandle mShaderModule;
 
-  explicit ShaderResource(ResourceIdType id, const std::string& name, Backend& backend);
+  explicit ShaderResource(ResourceIdType id, AssetIdType assetId, const std::string& name, Backend& backend);
 
   void setSource(std::span<const std::byte> shaderCode) noexcept { mSource = shaderCode; }
   void clearSource() noexcept { mSource = {}; }

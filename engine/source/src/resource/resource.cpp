@@ -4,8 +4,9 @@ namespace pd {
 
 Resource::~Resource() {}
 
-Resource::Resource(ResourceIdType id, const std::string& name)
+Resource::Resource(ResourceIdType id, AssetIdType assetId, const std::string& name)
     : mId(id),
+      mAssetId(assetId),
       mName(name) {}
 
 Result<void> Resource::load() noexcept {

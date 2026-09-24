@@ -32,6 +32,7 @@ enum class ErrorCode : u16 {
   ResourceRegisterFailed,
   ResourceTypeNotSupported,
   ResourceLoadFailed,
+  ResourceNotFound,
   WindowError = 700,
   WindowInitFailed,
   WindowCreateFailed,
@@ -105,6 +106,8 @@ constexpr std::string_view default_msg(ErrorCode code) noexcept {
       return "resource register failed";
     case ResourceLoadFailed:
       return "resource load failed";
+    case ResourceNotFound:
+      return "resource not found";
     case WindowError:
       return "window error";
     case WindowInitFailed:

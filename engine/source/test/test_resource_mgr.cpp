@@ -62,6 +62,8 @@ TEST_CASE("test_shader_resource_register", "engine") {
   auto loadResult = rscMgr.loadResource(shaderHandle);
   REQUIRE(loadResult);
 
+  auto unloadResult = rscMgr.unloadResource(shaderHandle);
+
   REQUIRE(backend.destroy());
   REQUIRE(platform.destroy());
 }

@@ -1,8 +1,8 @@
 #include "pd/resource/prefab_resource.hpp"
 
 namespace pd {
-PrefabResource::PrefabResource(ResourceIdType id, const std::string& name, Backend& backend)
-    : Resource(id, name),
+PrefabResource::PrefabResource(ResourceIdType id, AssetIdType assetId, const std::string& name, Backend& backend)
+    : Resource(id, assetId, name),
       mBackend(&backend) {}
 
 PrefabResource::~PrefabResource() {}

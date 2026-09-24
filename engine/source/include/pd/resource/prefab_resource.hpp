@@ -17,6 +17,6 @@ class PrefabResource : public Resource {
 
   Backend* mBackend = nullptr;
 
-  explicit PrefabResource(ResourceIdType id, const std::string& name, Backend& backend);
+  explicit PrefabResource(ResourceIdType id, AssetIdType assetId, const std::string& name, Backend& backend);
 };
 }  // namespace pd

@@ -61,6 +61,9 @@ class ResourceManager {
   template <typename Tag>
   Result<void> loadResource(Handle<Tag> handle) noexcept;
 
+  template <typename Tag>
+  Result<void> unloadResource(Handle<Tag> handle) noexcept;
+
   // Result<void> clearAll() noexcept;
 
   // Result<void> loadAll() noexcept;
@@ -111,6 +114,7 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
     return {};
   }
   // 2. 分类型处理
+  // FIXME: not good implementation
   auto newId = nextId<Tag>();
   switch (asset->info().parseType) {
     using enum AssetType;
@@ -189,6 +193,30 @@ inline Result<void> ResourceManager::loadResource(Handle<Tag> handle) noexcept {
   if (auto res = resource->load(); !res) {
     return res;
   }
+  // 更新注册表引用计数
+  auto it = mRegistry.find(resource->assetId());
+  PD_ASSERT(it != mRegistry.end());
+
+  it.value().refCount++;
+  return {};
+}
+
+template <typename Tag>
+inline Result<void> ResourceManager::unloadResource(Handle<Tag> handle) noexcept {
+  auto* resource = getResource(handle);
+  if (resource == nullptr) {
+    LOG_ERROR("resource id: {} not exist, cannot unload!", handle.data.id);
+    return make_error<void>(ErrorCode::ResourceLoadFailed);
+  }
+  if (auto res = resource->unload(); !res) {
+    return res;
+  }
+
+  // 更新注册表引用计数
+  auto it = mRegistry.find(resource->assetId());
+  PD_ASSERT(it != mRegistry.end());
+
+  it.value().refCount++;
   return {};
 }
 
