@@ -12,6 +12,8 @@ class ShaderResource : public Resource {
   DELETE_COPY(ShaderResource);
   DEFAULT_MOVABLE(ShaderResource);
 
+  HwShaderModuleHandle shaderHandle() const noexcept { return mShaderModule; }
+
  protected:
   Result<void> doLoad() noexcept override;
   Result<void> doUnload() noexcept override;

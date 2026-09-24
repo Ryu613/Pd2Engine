@@ -130,7 +130,61 @@ TEST_CASE("gltf_box", "engine") {
   auto gltfLoadRes = rscMgr.loadResource(gltfResourceHandle);
   REQUIRE(gltfLoadRes);
 
-  // create pipeline
+  // todo: create material
+  //   MaterialDefinition matDef = MaterialDefinition::Builder()  //
+  //                                   .addShaderModule(shaderResourceHandle)
+  //                                   .build();
+  //   MaterialManager matMgr(&backend);
+  //   auto matDefHandle = matMgr.registerMaterial(std::move(matDef));
+  //   auto matInstanceHandle = matMgr.createInstance(matDefHandle);
 
+  // create pipeline
+  ShaderResource* pShaderResource = rscMgr.getResource(shaderResourceHandle);
+  PrefabResource* pGltfResource = rscMgr.getResource(gltfResourceHandle);
+  GraphicsPipelineCreateDesc pipelineDesc{
+      .debugName = "pyramid",
+  };
+  pipelineDesc.shaderModules.push_back(pShaderResource->shaderHandle());
+  pipelineDesc.shaderPrograms.push_back({
+      .shaderModuleIndex = pipelineDesc.shaderModules.size() - 1,
+      .stage = ShaderStage::Vertex,
+      .entryPoint = "vertMain",
+  });
+  pipelineDesc.shaderPrograms.push_back({
+      .shaderModuleIndex = pipelineDesc.shaderModules.size() - 1,
+      .stage = ShaderStage::Fragment,
+      .entryPoint = "fragMain",
+  });
   // render loop
+  CommandRecorder recorder;
+  while (!platform.windowSystem().shouldClose()) {
+    platform.processEvents();
+    // begin frame
+    recorder.clear();
+    auto frameData = backend.beginFrame();
+    recorder.setInfo(frameData.frameIndex, frameData.swapchainImageIndex);
+    recorder.addCmd(BeginRenderingArgs{});
+    recorder.addCmd(SetViewportArgs{});
+    recorder.addCmd(SetScissorArgs{});
+    for (const auto meshHandle : pGltfResource->meshes()) {
+    }
+    // recorder.addCmd(BindPipelineArgs{
+    //     .vertexBuffer = vertexBuffer,
+    //     .indexBuffer = indexBuffer,
+    //     .pipeline = pipelineData.pipeline,
+    // });
+
+    // recorder.addCmd(DrawIndexedArgs{
+    //     .indexCount = static_cast<u32>(indices.size()),
+    //     .instanceCount = 1,
+    //     .firstIndex = 0,
+    //     .vertexOffset = 0,
+    //     .firstInstance = 0,
+    // });
+    recorder.addCmd(EndRenderingArgs{});
+    // end frame
+    backend.endFrame(recorder);
+  }
+
+  backend.waitIdle();
 }

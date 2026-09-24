@@ -2,6 +2,8 @@
 
 #include "pd/rendering/material/material_types.hpp"
 
+#include "pd/resource/resource_types.hpp"
+
 namespace pd {
 class MaterialDefinition {
  public:
@@ -19,9 +21,7 @@ class MaterialDefinition {
     u32 offset;
   };
   struct ShaderDef {
-    std::string name;
-    std::string path;
-    ShaderType type;
+    ShaderHandle shaderHandle;
   };
   struct TextureDef {
     std::string name;
@@ -44,8 +44,8 @@ class MaterialDefinition {
       mParamDefs.emplace_back(name, paramType, offset);
       return *this;
     }
-    Builder& addShader(const std::string& name, const std::string& path, ShaderType shaderType) {
-      mShaderDefs.emplace_back(name, path, shaderType);
+    Builder& addShaderModule(ShaderHandle shaderHandle) {
+      mShaderDefs.emplace_back(shaderHandle);
       return *this;
     }
     MaterialDefinition build() { return MaterialDefinition(*this); }

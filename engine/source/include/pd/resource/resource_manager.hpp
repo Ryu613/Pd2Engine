@@ -64,6 +64,9 @@ class ResourceManager {
   template <typename Tag>
   Result<void> unloadResource(Handle<Tag> handle) noexcept;
 
+  template <typename Tag>
+  auto* getResource(Handle<Tag> handle) noexcept;
+
   // Result<void> clearAll() noexcept;
 
   // Result<void> loadAll() noexcept;
@@ -90,9 +93,6 @@ class ResourceManager {
 
   template <typename StoredTagT>
   auto& findStorage() noexcept;
-
-  template <typename Tag>
-  auto* getResource(Handle<Tag> handle) noexcept;
 
   template <typename Tag>
   void saveResource(ResourceIdType id, std::unique_ptr<StoredResource<Tag>> pResource) noexcept;
