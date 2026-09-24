@@ -125,11 +125,16 @@ struct BufferWriteDesc {
   u32 offset = 0;
 };
 
-struct GraphicsPipelineDesc {
+struct GraphicsPipelineCreateDesc {
   std::string_view debugName;
   HwPipelineLayoutHandle layout;
   std::vector<HwShaderModuleHandle> shaderModules;
   std::vector<ShaderProgram> shaderPrograms;
+};
+
+struct GraphicsPipelineDestroyDesc {
+  HwPipelineLayoutHandle layout{};
+  HwGraphicsPipelineHandle pipeline;
 };
 
 struct PipelineData {

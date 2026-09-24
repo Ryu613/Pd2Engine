@@ -31,5 +31,7 @@ struct TypedHandle {
 
   // 只表示存在，不表示有效
   explicit operator bool() const noexcept { return data.id != BaseHandle::invalidId; }
+
+  bool isValid() const noexcept { return data.id != BaseHandle::invalidId; }
 };
 }  // namespace pd

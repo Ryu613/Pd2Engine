@@ -54,7 +54,7 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
       .spirCode = std::as_bytes(std::span{shaderData.spirvCode}),
   });
 
-  GraphicsPipelineDesc pipelineDesc{
+  GraphicsPipelineCreateDesc pipelineDesc{
       .debugName = "triangle",
   };
   pipelineDesc.shaderModules.push_back(vertFragShader);
@@ -158,4 +158,15 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
     // end frame
     backend.endFrame(recorder);
   }
+
+  backend.waitIdle();
+
+  backend.destroyShaderModule(vertFragShader);
+  // destroy resources
+  backend.destroyGraphicsPipeline({pipelineData.layout, pipelineData.pipeline});
+  backend.destroyBuffer(indexBuffer);
+  backend.destroyBuffer(vertexBuffer);
+
+  REQUIRE(backend.destroy());
+  REQUIRE(platform.destroy());
 }

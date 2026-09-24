@@ -20,9 +20,11 @@ class Backend {
 
   void endFrame(CommandRecorder cmdRecorder) noexcept;
 
+  void waitIdle() noexcept;
+
   // resources
-  PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept;
-  void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept;
+  PipelineData createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept;
+  void destroyGraphicsPipeline(const GraphicsPipelineDestroyDesc& desc) noexcept;
 
   HwBufferHandle createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept;
   void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept;

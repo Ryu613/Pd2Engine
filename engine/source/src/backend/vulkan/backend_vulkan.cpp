@@ -56,13 +56,19 @@ class Backend::Impl {
 
   void endFrame(const CommandRecorder& recorder) noexcept { mFrameManager.endFrame(recorder); }
 
-  PipelineData createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
+  void waitIdle() noexcept { mVulkanDevice.waitIdle(); }
+
+  PipelineData createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept {
     auto layoutHandle = mResourceRegistry.createPipelineLayout({});
-    auto pipelineHandle = mResourceRegistry.createGraphicsPipeline(layoutHandle, desc);
+    auto newDesc = desc;
+    newDesc.layout = layoutHandle;
+    auto pipelineHandle = mResourceRegistry.createGraphicsPipeline(newDesc);
     return {layoutHandle, pipelineHandle};
   }
 
-  void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept {}
+  void destroyGraphicsPipeline(const GraphicsPipelineDestroyDesc& desc) noexcept {
+    mResourceRegistry.destroyGraphicsPipeline(desc);
+  }
 
   HwBufferHandle createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept {
     auto handle = mResourceRegistry.createBuffer(bufferCreateDesc);
@@ -77,9 +83,7 @@ class Backend::Impl {
     auto handle = mResourceRegistry.createShaderModule(shaderModuleCreateDesc);
     return handle;
   }
-  void destroyShaderModule(HwShaderModuleHandle handle) noexcept {
-    mResourceRegistry.destroyShaderModule(handle);
-  }
+  void destroyShaderModule(HwShaderModuleHandle handle) noexcept { mResourceRegistry.destroyShaderModule(handle); }
 
  private:
   BackendConfig mConfig{};
@@ -101,12 +105,14 @@ pd::FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
 
 void Backend::endFrame(CommandRecorder recorder) noexcept { mImpl->endFrame(recorder); }
 
-PipelineData Backend::createGraphicsPipeline(const GraphicsPipelineDesc& desc) noexcept {
+void Backend::waitIdle() noexcept { mImpl->waitIdle(); }
+
+PipelineData Backend::createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept {
   return mImpl->createGraphicsPipeline(desc);
 }
 
-void Backend::destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept {
-  mImpl->destroyGraphicsPipeline(handle);
+void Backend::destroyGraphicsPipeline(const GraphicsPipelineDestroyDesc& desc) noexcept {
+  mImpl->destroyGraphicsPipeline(desc);
 }
 
 HwBufferHandle Backend::createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept {

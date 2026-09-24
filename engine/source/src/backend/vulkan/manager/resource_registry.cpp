@@ -82,11 +82,11 @@ pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::Pipe
               .gen = 0,
           }};
 }
-pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipelineLayoutHandle layoutHandle,
-                                                                      const pd::GraphicsPipelineDesc& desc) noexcept {
+pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
+    const pd::GraphicsPipelineCreateDesc& desc) noexcept {
   const auto& vkDevice = mDevice->getDevice();
   // get pipeline layout
-  const auto* vk1PipelineLayout = getResource(layoutHandle);
+  const auto* vk1PipelineLayout = getResource(desc.layout);
   if (vk1PipelineLayout == nullptr) {
     return {};
   }
@@ -231,7 +231,23 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(pd::HwPipe
           }};
 }
 
-void ResourceRegistry::destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle handle) noexcept {}
+void ResourceRegistry::destroyGraphicsPipeline(const pd::GraphicsPipelineDestroyDesc& desc) noexcept {
+  auto vkDevice = mDevice->getDevice();
+  auto pipeline = getResource(desc.pipeline);
+  assert(pipeline->handle);
+  vkDestroyPipeline(vkDevice, pipeline->handle, 0);
+
+  destroyResource(desc.pipeline);
+
+  if (desc.layout) {
+    auto layout = getResource(desc.layout);
+    assert(layout->handle);
+
+    vkDestroyPipelineLayout(vkDevice, layout->handle, 0);
+
+    destroyResource(desc.layout);
+  }
+}
 
 pd::HwBufferHandle ResourceRegistry::createBuffer(const pd::BufferCreateDesc& desc) noexcept {
   const auto vkDevice = mDevice->getDevice();
@@ -284,6 +300,8 @@ void ResourceRegistry::writeBuffer(const pd::BufferWriteDesc& desc) noexcept {
 void ResourceRegistry::destroyBuffer(pd::HwBufferHandle buffer) noexcept {
   auto* vk1Buffer = getResource(buffer);
   assert(vk1Buffer->handle);
-  // todo
+  vmaDestroyBuffer(mDevice->getAllocator(), vk1Buffer->handle, vk1Buffer->allocation);
+
+  destroyResource(buffer);
 }
 }  // namespace vk1
