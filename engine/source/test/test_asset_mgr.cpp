@@ -21,6 +21,13 @@ TEST_CASE("test_gltf_asset", "engine") {
   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);
+
+  auto& gltfAssetHandle = result.value();
+
+  auto getAssetRes = assetMgr.getAsset(gltfAssetHandle);
+  REQUIRE(getAssetRes);
+  auto* pAsset = getAssetRes.value();
+  REQUIRE(pAsset);
 }
 
 TEST_CASE("test_shader_asset", "engine") {

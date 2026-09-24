@@ -107,6 +107,7 @@ class ResourceManager {
 template <typename Tag>
 inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::registerAsset(Asset* asset) noexcept {
   PD_ASSERT_MSG(asset, "asset pointer is null!");
+  using ReturnTag = ResourceManager::StoredTag<Tag>;
   // 1. 判重
   auto regIt = mRegistry.find(asset->id());
   if (regIt != mRegistry.end()) {
@@ -121,7 +122,7 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
     case Gltf: {
       auto res = createGltfResource(newId, static_cast<GltfAsset*>(asset));
       if (!res) {
-        return make_error<ResourceHandle<Tag>>(res.error().code);
+        return make_error<ResourceHandle<ReturnTag>>(res.error().code);
       }
       // gltf resource 对应prefab resource
       saveResource<GltfResource_t>(newId, std::move(res.value()));
@@ -130,13 +131,13 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
     case Shader: {
       auto res = createShaderResource(newId, static_cast<ShaderAsset*>(asset));
       if (!res) {
-        return make_error<ResourceHandle<Tag>>(res.error().code);
+        return make_error<ResourceHandle<ReturnTag>>(res.error().code);
       }
       saveResource<ShaderResource_t>(newId, std::move(res.value()));
       break;
     }
     default:
-      return make_error<ResourceHandle<Tag>>(ErrorCode::ResourceTypeNotSupported);
+      return make_error<ResourceHandle<ReturnTag>>(ErrorCode::ResourceTypeNotSupported);
   }
   // 3. 更新注册表
   auto [regInsIt, regSuccess] = mRegistry.emplace(asset->id(), ResourceEntry{
@@ -149,9 +150,9 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
                                                                });
   PD_ASSERT_MSG(regSuccess, "shader resource register failed!");
 
-  Handle<Tag> newHandle{.data = {
-                            .id = newId,
-                        }};
+  Handle<ReturnTag> newHandle{.data = {
+                                  .id = newId,
+                              }};
 
   return newHandle;
 }
