@@ -7,11 +7,13 @@ namespace pd {
 class MeshResource : public Resource {
  public:
   struct MeshDesc {
+    std::string_view debugName;
     const void* pData = nullptr;
     u64 dataSize = 0;
     u32 dataOffset = 0;
   };
   struct IndexDesc {
+    std::string_view debugName;
     const void* pData = nullptr;
     u64 dataSize = 0;
     u32 dataOffset = 0;

@@ -252,7 +252,11 @@ template <typename Tag>
 inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::registerResource(
     std::unique_ptr<StoredResource<Tag>> resource) noexcept {
   using ReturnTag = StoredTag<Tag>;
-  return insertRegistry<ReturnTag>(resource->name(), resource->id());
+  auto resourceId = resource->id();
+  auto handle = insertRegistry<ReturnTag>(resource->name(), resource->id());
+  assert(handle);
+  saveResource<Tag>(resourceId, std::move(resource));
+  return handle;
 }
 
 template <typename StoreTagT>

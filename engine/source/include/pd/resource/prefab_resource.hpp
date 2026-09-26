@@ -22,8 +22,10 @@ class PrefabResource : public Resource {
   std::vector<MeshHandle> mMeshHandles;
 
   Backend* mBackend = nullptr;
+  ResourceManager* mResourceMgr = nullptr;
 
-  explicit PrefabResource(ResourceIdType id, AssetIdType assetId, const std::string& name, Backend& backend);
+  explicit PrefabResource(ResourceIdType id, AssetIdType assetId, const std::string& name, Backend& backend,
+                          ResourceManager& rscMgr);
 
   auto& getMeshes() noexcept { return mMeshHandles; }
 };

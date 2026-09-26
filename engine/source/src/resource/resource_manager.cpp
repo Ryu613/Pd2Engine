@@ -16,7 +16,8 @@ Result<std::unique_ptr<PrefabResource>> ResourceManager::createGltfResource(Reso
                                                                             const std::string& resourceName,
                                                                             GltfAsset* gltfAsset) noexcept {
   LOG_INFO("create gltf resource {}", resourceName);
-  auto prefabRsc = std::unique_ptr<PrefabResource>(new PrefabResource(newId, gltfAsset->id(), resourceName, *mBackend));
+  auto prefabRsc =
+      std::unique_ptr<PrefabResource>(new PrefabResource(newId, gltfAsset->id(), resourceName, *mBackend, *this));
   const auto& meshData = gltfAsset->meshes();
   auto& prefabMeshes = prefabRsc->getMeshes();
   prefabMeshes.reserve(meshData.size());
@@ -31,11 +32,13 @@ Result<std::unique_ptr<PrefabResource>> ResourceManager::createGltfResource(Reso
           new MeshResource(newMeshId, meshDataInfo.dataId, std::move(subResourceName), *mBackend));
       // 由asset mgr保证指针生命周期
       meshRsc->setMeshDesc({
+          .debugName = std::format("vertex buffer for mesh: {}", subMesh.name),
           .pData = static_cast<const void*>(subMesh.vertices.data()),
           .dataSize = sizeof(subMesh.vertices[0]) * subMesh.vertices.size(),
           .dataOffset = 0,
       });
       meshRsc->setIndexData({
+          .debugName = std::format("index buffer for mesh: {}", subMesh.name),
           .pData = static_cast<const void*>(subMesh.indices.data()),
           .dataSize = sizeof(subMesh.indices[0]) * subMesh.indices.size(),
           .dataOffset = 0,
