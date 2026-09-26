@@ -81,8 +81,20 @@ class ResourceManager {
   };
   Backend* mBackend = nullptr;
 
-  // 用asset id判重
-  util::RobinMap<AssetIdType, ResourceEntry> mRegistry;
+  /**
+   * 用asset信息判重，规则:
+   * 1. 若为单个资产，用路径区分(asset里的path)
+   * 2. 若为复合资产: prefab resource用asset的path,
+   * 包含的各种resource用asset的path加这个asset里面的子数据里的name进行拼接，用冒号隔开,如assets/gltf/a.gltf:mesh_0_0表示a.gltf里的mesh0里的submesh0
+   *
+   * 例如: asset path: assets/test/1.gltf包含1个mesh, 这个mesh有2个submesh
+   * 会分解为1个prefab resource, 注册表的key即为path， 对应的2个mesh resource,会拼接path + ":" +
+   * submesh的name(为mesh_0_0,和mesh_0_1),
+   *
+   * 例如: asset path: assets/shader/a.slang
+   * 会生成一个shader resource, key为path
+   */
+  util::RobinMap<std::string, ResourceEntry, util::StringHasher> mRegistry;
 
   template <typename T, typename Tag>
   using Storage = util::RobinMap<ResourceIdType, std::unique_ptr<T>>;
@@ -100,27 +112,41 @@ class ResourceManager {
   template <typename Tag>
   uint32_t nextId() noexcept;
 
-  Result<std::unique_ptr<PrefabResource>> createGltfResource(ResourceIdType newId, GltfAsset* gltfAsset) noexcept;
-  Result<std::unique_ptr<ShaderResource>> createShaderResource(ResourceIdType newId, ShaderAsset* shaderAsset) noexcept;
+  Result<std::unique_ptr<PrefabResource>> createGltfResource(ResourceIdType newId, const std::string& resourceName,
+                                                             GltfAsset* gltfAsset) noexcept;
+  Result<std::unique_ptr<ShaderResource>> createShaderResource(ResourceIdType newId, const std::string& resourceName,
+                                                               ShaderAsset* shaderAsset) noexcept;
+
+  template <typename Tag>
+  Result<Handle<StoredTag<Tag>>> registerResource(std::unique_ptr<StoredResource<Tag>> resource) noexcept;
+
+  template <typename StoreTagT>
+  Handle<StoreTagT> insertRegistry(const std::string& regKey, ResourceIdType resourceId) noexcept;
 };
 
 template <typename Tag>
 inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::registerAsset(Asset* asset) noexcept {
   PD_ASSERT_MSG(asset, "asset pointer is null!");
   using ReturnTag = ResourceManager::StoredTag<Tag>;
-  // 1. 判重
-  auto regIt = mRegistry.find(asset->id());
+  // 1. 判重, 若有，返回handle
+  // 复合资产和单个资产都用path保证唯一
+  const auto resourceName = asset->info().path;
+  auto regIt = mRegistry.find(resourceName);
   if (regIt != mRegistry.end()) {
     LOG_INFO("asset duplicate! asset id:{}", asset->id());
-    return {};
+    Handle<ReturnTag> duplicateHandle{.data = {
+                                          .id = regIt->second.handle.id,
+                                          .gen = regIt->second.handle.gen,
+                                      }};
+    return duplicateHandle;
   }
   // 2. 分类型处理
   // FIXME: not good implementation
-  auto newId = nextId<Tag>();
+  auto newId = nextId<StoredTag<Tag>>();
   switch (asset->info().parseType) {
     using enum AssetType;
     case Gltf: {
-      auto res = createGltfResource(newId, static_cast<GltfAsset*>(asset));
+      auto res = createGltfResource(newId, resourceName, static_cast<GltfAsset*>(asset));
       if (!res) {
         return make_error<ResourceHandle<ReturnTag>>(res.error().code);
       }
@@ -129,7 +155,7 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
       break;
     }
     case Shader: {
-      auto res = createShaderResource(newId, static_cast<ShaderAsset*>(asset));
+      auto res = createShaderResource(newId, resourceName, static_cast<ShaderAsset*>(asset));
       if (!res) {
         return make_error<ResourceHandle<ReturnTag>>(res.error().code);
       }
@@ -140,19 +166,7 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
       return make_error<ResourceHandle<ReturnTag>>(ErrorCode::ResourceTypeNotSupported);
   }
   // 3. 更新注册表
-  auto [regInsIt, regSuccess] = mRegistry.emplace(asset->id(), ResourceEntry{
-                                                                   .handle =
-                                                                       {
-                                                                           .id = newId,
-                                                                           .gen = 0,
-                                                                       },
-                                                                   .refCount = 0,
-                                                               });
-  PD_ASSERT_MSG(regSuccess, "shader resource register failed!");
-
-  Handle<ReturnTag> newHandle{.data = {
-                                  .id = newId,
-                              }};
+  auto newHandle = insertRegistry<StoredTag<Tag>>(resourceName, newId);
 
   return newHandle;
 }
@@ -195,7 +209,7 @@ inline Result<void> ResourceManager::loadResource(Handle<Tag> handle) noexcept {
     return res;
   }
   // 更新注册表引用计数
-  auto it = mRegistry.find(resource->assetId());
+  auto it = mRegistry.find(resource->name());
   PD_ASSERT(it != mRegistry.end());
 
   it.value().refCount++;
@@ -214,7 +228,7 @@ inline Result<void> ResourceManager::unloadResource(Handle<Tag> handle) noexcept
   }
 
   // 更新注册表引用计数
-  auto it = mRegistry.find(resource->assetId());
+  auto it = mRegistry.find(resource->name());
   PD_ASSERT(it != mRegistry.end());
 
   it.value().refCount++;
@@ -232,5 +246,34 @@ template <typename Tag>
 inline ResourceIdType ResourceManager::nextId() noexcept {
   static ResourceIdType tagId;
   return tagId++;
+}
+
+template <typename Tag>
+inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::registerResource(
+    std::unique_ptr<StoredResource<Tag>> resource) noexcept {
+  using ReturnTag = StoredTag<Tag>;
+  return insertRegistry<ReturnTag>(resource->name(), resource->id());
+}
+
+template <typename StoreTagT>
+inline ResourceManager::Handle<StoreTagT> ResourceManager::insertRegistry(const std::string& regKey,
+                                                                          ResourceIdType resourceId) noexcept {
+  LOG_INFO("registering resource: regKey={}, resourceId={}", regKey, resourceId);
+  LOG_DEBUG("current registry info:\n size={}", mRegistry.size());
+  auto [regInsIt, regSuccess] = mRegistry.emplace(regKey, ResourceEntry{
+                                                              .handle =
+                                                                  {
+                                                                      .id = resourceId,
+                                                                      .gen = 0,
+                                                                  },
+                                                              .refCount = 0,
+                                                          });
+  PD_ASSERT_MSG(regSuccess, "resource register failed!");
+
+  Handle<StoreTagT> newHandle{.data = {
+                                  .id = resourceId,
+                                  .gen = 0,
+                              }};
+  return newHandle;
 }
 }  // namespace pd

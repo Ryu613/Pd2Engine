@@ -7,6 +7,8 @@ namespace pd {
 class PrefabResource : public Resource {
  public:
   ~PrefabResource() override;
+  DELETE_COPY(PrefabResource);
+  DEFAULT_MOVABLE(PrefabResource);
 
   std::span<const MeshHandle> meshes() const noexcept { return mMeshHandles; }
 
@@ -22,5 +24,7 @@ class PrefabResource : public Resource {
   Backend* mBackend = nullptr;
 
   explicit PrefabResource(ResourceIdType id, AssetIdType assetId, const std::string& name, Backend& backend);
+
+  auto& getMeshes() noexcept { return mMeshHandles; }
 };
 }  // namespace pd

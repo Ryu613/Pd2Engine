@@ -69,6 +69,7 @@ target_sources(engine_lib
         src/resource/resource_manager.cpp
         src/resource/resource.cpp
         src/resource/shader_resource.cpp
+        src/resource/mesh_resource.cpp
         src/resource/prefab_resource.cpp
         src/asset/asset_manager.cpp
         src/scene/scene_manager.cpp

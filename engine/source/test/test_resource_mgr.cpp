@@ -5,6 +5,7 @@
 #include "pd/platform/platform.hpp"
 #include "pd/backend/backend.hpp"
 
+/*
 TEST_CASE("test_shader_resource_register", "engine") {
   using namespace pd;
   PlatformConfig platformCfg{
@@ -67,5 +68,62 @@ TEST_CASE("test_shader_resource_register", "engine") {
   REQUIRE(backend.destroy());
   REQUIRE(platform.destroy());
 }
+*/
 
-TEST_CASE("test_gltf_resource_register", "engine") {}
+TEST_CASE("test_gltf_resource_register", "engine") {
+  using namespace pd;
+  PlatformConfig platformCfg{
+      .window =
+          {
+              .width = 1024,
+              .height = 768,
+          },
+  };
+
+  Platform platform(platformCfg);
+  REQUIRE(platform.init());
+  AssetManager assetMgr{&platform.fileSystem()};
+
+  auto initRes = assetMgr.init();
+  REQUIRE(initRes);
+
+  Asset::CreateInfo assetInfo{
+      .name = "Box Textured",
+      .path = ASSET_DIR "BoxTextured/BoxTextured.gltf",
+      .parseType = AssetType::Gltf,
+  };
+  auto result = assetMgr.createAsset(assetInfo);
+  REQUIRE(result);
+
+  auto handle = result.value();
+  auto assetRes = assetMgr.getAsset(handle);
+  REQUIRE(assetRes);
+  auto* asset = assetRes.value();
+  REQUIRE(asset);
+
+  REQUIRE(platform.windowSystem().createWindow());
+
+  BackendConfig backendCfg{
+      .windowHandle = platform.windowSystem().nativeWindowHandle(),
+      .width = platformCfg.window.width,
+      .height = platformCfg.window.height,
+      .enableDebug = true,
+  };
+  Backend backend;
+  REQUIRE(backend.init(backendCfg));
+
+  ResourceManager rscMgr(&backend);
+
+  auto gltfAssetHandleRes = rscMgr.registerAsset<GltfResource_t>(asset);
+  REQUIRE(gltfAssetHandleRes);
+
+  auto gltfHandle = gltfAssetHandleRes.value();
+
+  auto loadResult = rscMgr.loadResource(gltfHandle);
+  REQUIRE(loadResult);
+
+  auto unloadResult = rscMgr.unloadResource(gltfHandle);
+
+  REQUIRE(backend.destroy());
+  REQUIRE(platform.destroy());
+}

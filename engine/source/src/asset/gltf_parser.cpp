@@ -96,7 +96,8 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
 // }
 
 Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
-  std::function<void(u32, const math::mat4&)> traverseNode = [&](u32 nodeIndex, const math::mat4& parentTransform) {
+  std::function<void(u32, u32, const math::mat4&)> traverseNode = [&](u32 nodeIndex, u32 meshIndex,
+                                                                      const math::mat4& parentTransform) {
     const fastgltf::Node& gltfNode = gltfAsset.nodes[nodeIndex];
     const math::mat4 worldTransform = parentTransform * getGltfNodeLocalTransform(gltfNode);
 
@@ -106,19 +107,21 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
     if (gltfNode.meshIndex.has_value()) {
       const fastgltf::Mesh& mesh = gltfAsset.meshes[gltfNode.meshIndex.value()];
       const u32 primitiveCount = mesh.primitives.size();
+
+      // todo: reuse mesh data
+
       MeshData meshData{
           .dataInfo =
               {
-                  .dataId = nodeIndex,
-                  .name = std::format("mesh_{}", nodeIndex),
+                  .dataId = meshIndex,
+                  .name = std::format("mesh_{}", meshIndex),
               },
       };
+      meshIndex++;
       meshData.subMeshes.resize(primitiveCount);
       for (u32 primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex) {
         const auto& primitive = mesh.primitives[primitiveIndex];
-        if (primitive.type != fastgltf::PrimitiveType::Triangles) {
-          return make_error<void>(ErrorCode::AssetParseFailed, "primitive type not supported!");
-        }
+        PD_ASSERT_MSG(primitive.type == fastgltf::PrimitiveType::Triangles, "asset mesh primitive type not supported!");
         auto& submesh = meshData.subMeshes[primitiveIndex];
         submesh.name = std::format("{}_{}", meshData.dataInfo.name, primitiveIndex);
         // positions
@@ -172,13 +175,14 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
         node.meshId = primitiveIndex;
         asset.mNodes.push_back(node);
       }
+      asset.mMeshes.push_back(std::move(meshData));
     }
     for (const int childIndex : gltfNode.children) {
-      traverseNode(childIndex, worldTransform);
+      traverseNode(childIndex, meshIndex, worldTransform);
     }
   };
   for (const int nodeIndex : gltfAsset.scenes[sceneIndex].nodeIndices) {
-    traverseNode(nodeIndex, math::mat4{1.0f});
+    traverseNode(nodeIndex, 0, math::mat4{1.0f});
   }
 
   return {};

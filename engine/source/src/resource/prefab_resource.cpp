@@ -7,6 +7,12 @@ PrefabResource::PrefabResource(ResourceIdType id, AssetIdType assetId, const std
 
 PrefabResource::~PrefabResource() {}
 
-Result<void> PrefabResource::doLoad() noexcept { return {}; }
-Result<void> PrefabResource::doUnload() noexcept { return {}; }
+Result<void> PrefabResource::doLoad() noexcept {
+  LOG_INFO("loading prefab resource:id={},name={}", id(), name());
+  return {};
+}
+Result<void> PrefabResource::doUnload() noexcept {
+  LOG_INFO("unloading prefab resource:id={},name={}", id(), name());
+  return {};
+}
 }  // namespace pd
