@@ -6,3 +6,4 @@ CMakeUserPresets.json
 *.drawio*
 *.spv
 .clang-format
+.vs/

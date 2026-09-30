@@ -301,9 +301,8 @@ end
 
 == 设计思路
 
-. shader模块放到rendering下，由material manager调用，但是shader相关的数据由shader模块自己管理
 . shader与rhi实现解耦，shader的创建调用rhi的对应接口，只提供一个数据结构体，返回rhi handle
-. compiler为编译时确定，没必要支持运行时确定和切换，与rhi一致
+. compiler类型为编译时确定，没必要支持运行时确定和切换，与rhi一致
 . shader模块不会负责文件读取，由asset mgr提供的材质信息决定要哪些pipeline，然后让其去读取pipeline需要的shader原始代码(也就是asset mgr内部需要有一个pipeline对应的shader的文件列表？)
 . 原始代码会编译为spirv, rhi的接口统一收的是spirv, 返回的是shader module的handle
 . 目前让用户去决定要读取的shader在哪里，是哪些，在创建definition的时候传入

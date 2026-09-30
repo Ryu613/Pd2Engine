@@ -98,6 +98,8 @@ class ResourceManager {
 
   template <typename T, typename Tag>
   using Storage = util::RobinMap<ResourceIdType, std::unique_ptr<T>>;
+
+  // 普通的存储，带t的代表原始类型的通用标签,如果后需要根据用途来区分，直接加不同的tag，将其对应到同一种资源类型就好，易于扩展
   Storage<MeshResource, MeshResource_t> mMeshes;
   Storage<TextureResource, TextureResource_t> mTextures;
   Storage<ShaderResource, ShaderResource_t> mShaders;
