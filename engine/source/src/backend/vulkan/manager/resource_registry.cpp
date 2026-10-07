@@ -150,7 +150,7 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
       .polygonMode = VK_POLYGON_MODE_FILL,
       .cullMode = VK_CULL_MODE_BACK_BIT,
-      .frontFace = VK_FRONT_FACE_CLOCKWISE,
+    //   .frontFace = VK_FRONT_FACE_CLOCKWISE,
       .lineWidth = 1.0f,
   };
   VkPipelineColorBlendAttachmentState colorAttachment{

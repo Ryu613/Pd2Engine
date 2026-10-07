@@ -51,8 +51,6 @@ void FrameManager::Frame::update() {
   ubo.model = glm::rotate(ubo.model, 0.003f, glm::vec3{0.0f, 1.0f, 0.0f});
   ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
   ubo.proj = glm::perspective(glm::radians(45.f), aspectRatio, 0.1f, 100.0f);
-  // ubo.proj[1][1] *= -1.0F;
-  // ubo.proj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
 
   memcpy(uniformBuffer.allocationInfo.pMappedData, &ubo, sizeof(pd::UniformBufferObject));
 }
