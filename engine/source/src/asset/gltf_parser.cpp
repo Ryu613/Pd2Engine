@@ -114,7 +114,7 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
           .dataInfo =
               {
                   .dataId = meshIndex,
-                  .name = std::format("mesh_{}", meshIndex),
+                  .name = std::format("node_{}:mesh_{}", nodeIndex, meshIndex),
               },
       };
       meshIndex++;
