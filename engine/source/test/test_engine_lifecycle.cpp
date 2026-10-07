@@ -155,6 +155,7 @@ TEST_CASE("gltf_box", "engine") {
       .stage = ShaderStage::Fragment,
       .entryPoint = "fragMain",
   });
+  auto pipelineData = backend.createGraphicsPipeline(pipelineDesc);
   // render loop
   CommandRecorder recorder;
   while (!platform.windowSystem().shouldClose()) {
@@ -167,24 +168,36 @@ TEST_CASE("gltf_box", "engine") {
     recorder.addCmd(SetViewportArgs{});
     recorder.addCmd(SetScissorArgs{});
     for (const auto meshHandle : pGltfResource->meshes()) {
+      // 1. 取出每个mesh draw data(对应本引擎的mesh resource)
+      auto* mesh = rscMgr.getResource(meshHandle);
+      const auto meshBinding = mesh->getBindingInfo();
+      // 2. 拿到这个mesh的材质信息(即material对应的buffer和具体材质数据)
+      // 3. 材质数据更新到buffer中
+      // 4. 绑定描述符集，图形管线
+      // 5. 绑定顶点缓冲,绑定索引缓冲
+      recorder.addCmd(BindPipelineArgs{
+          .vertexBuffer = meshBinding.vertexBuffer,
+          .vertexBufferOffset = meshBinding.vertexOffset,
+          .indexBuffer = meshBinding.indexBuffer,
+          .indexBufferOffset = meshBinding.vertexOffset,
+          .pipeline = pipelineData.pipeline,
+      });
+      // 6. 绘制
+      recorder.addCmd(DrawIndexedArgs{
+          .indexCount = meshBinding.indexCount,
+          .instanceCount = 1,
+          .firstIndex = 0,
+          .vertexOffset = 0,
+          .firstInstance = 0,
+      });
     }
-    // recorder.addCmd(BindPipelineArgs{
-    //     .vertexBuffer = vertexBuffer,
-    //     .indexBuffer = indexBuffer,
-    //     .pipeline = pipelineData.pipeline,
-    // });
 
-    // recorder.addCmd(DrawIndexedArgs{
-    //     .indexCount = static_cast<u32>(indices.size()),
-    //     .instanceCount = 1,
-    //     .firstIndex = 0,
-    //     .vertexOffset = 0,
-    //     .firstInstance = 0,
-    // });
     recorder.addCmd(EndRenderingArgs{});
     // end frame
     backend.endFrame(recorder);
   }
 
   backend.waitIdle();
+
+  // todo: unload resources
 }

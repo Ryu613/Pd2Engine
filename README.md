@@ -31,6 +31,7 @@ Pd2Engine 是一款易于理解，易于开发，易于调试的现代C++3D实�
 1. Git(clone即可，不带submodule)
 1. Vcpkg
 1. CMake 3.31
+1. Vulkan SDK(支持验证层)
 1. MSVC build tools
 1. (可选但推荐)asciidoc(vscode的asciidoctor插件并打开kroki预览功能)
 1. (可选但推荐)doxygen + doxybook2 + mkdocs

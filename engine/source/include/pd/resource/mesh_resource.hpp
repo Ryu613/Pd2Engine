@@ -19,9 +19,30 @@ class MeshResource : public Resource {
     u32 dataOffset = 0;
     u32 indexCount = 0;
   };
+
+  struct BindingInfo {
+    HwBufferHandle vertexBuffer;
+    u32 vertexOffset = 0;
+    HwBufferHandle indexBuffer;
+    u32 indexOffset = 0;
+    u32 indexCount = 0;
+  };
+
   ~MeshResource() override;
   DELETE_COPY(MeshResource);
   DEFAULT_MOVABLE(MeshResource);
+
+  BindingInfo getBindingInfo() const noexcept {
+    BindingInfo info{
+        .vertexBuffer = mVertexBuffer,
+        .vertexOffset = mMeshDesc.dataOffset,
+        .indexBuffer = mIndexBuffer,
+        .indexOffset = mIndexDesc.dataOffset,
+        .indexCount = mIndexDesc.indexCount,
+    };
+
+    return info;
+  }
 
  protected:
   Result<void> doLoad() noexcept override;
@@ -36,7 +57,6 @@ class MeshResource : public Resource {
   IndexDesc mIndexDesc;
   HwBufferHandle mVertexBuffer;
   HwBufferHandle mIndexBuffer;
-  u32 mIndexCount = 0;
 
   explicit MeshResource(ResourceIdType id, AssetIdType assetId, const std::string& name, Backend& backend);
 
