@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pd/asset/asset_types.hpp"
+#include "pd/backend/backend_types.hpp"
 #include "pd/core/math/math.hpp"
 
 #include <span>
@@ -33,12 +34,7 @@ class TextureData {
   std::vector<uint8_t> mPixels;
 };
 
-struct VertexData {
-  math::vec3 position{};
-  math::vec2 uv{};
-  math::vec3 normal{};
-  math::vec4 tangent{1.0f, 0.0f, 0.0f, 1.0f};
-};
+using VertexData = pd::Vertex;
 
 struct MeshData {
   struct SubMesh {

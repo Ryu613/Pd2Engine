@@ -1,7 +1,8 @@
 struct VSInput {
   float3 pos;
-  float3 normal;
   float2 uv;
+  float3 normal;
+  float3 tangent;
 };
 
 struct UniformBufferObject {
@@ -9,17 +10,6 @@ struct UniformBufferObject {
   float4x4 view;
   float4x4 proj;
 };
-
-// static float4 vertices[5] =
-//     float4[](float4(0.0f, 0.5f, 0.0f, 1.0f), float4(-0.5f, -0.5f, -0.5f, 1.0f), float4(0.5f, -0.5f, -0.5f, 1.0f),
-//              float4(0.5f, -0.5f, 0.5f, 1.0f), float4(-0.5f, -0.5f, 0.5f, 1.0f), );
-
-// static float4 colors[5] =
-//     float4[](float4(1.0f, 0.0f, 1.0f, 1.0f), float4(0.0f, 1.0f, 1.0f, 1.0f), float4(0.0f, 0.0f, 1.0f, 1.0f),
-//              float4(0.0f, 1.0f, 0.0f, 1.0f), float4(1.0f, 1.0f, 0.0f, 1.0f), );
-
-// [vk::binding(0, 0)]
-// ConstantBuffer<UBO> mvp;
 
 struct VSOutput {
   float4 sv_position : SV_Position;

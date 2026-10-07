@@ -104,24 +104,30 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
     stages[i].pName = shaderProgram.entryPoint.data();
   };
 
-  std::array<VkVertexInputAttributeDescription, 3> vertexAttrs;
+  std::array<VkVertexInputAttributeDescription, 4> vertexAttrs;
   vertexAttrs[0] = {
       .location = 0,
       .binding = 0,
       .format = VK_FORMAT_R32G32B32_SFLOAT,
-      .offset = offsetof(pd::Vertex, pos),
+      .offset = offsetof(pd::Vertex, position),
   };
   vertexAttrs[1] = {
       .location = 1,
       .binding = 0,
       .format = VK_FORMAT_R32G32B32_SFLOAT,
-      .offset = offsetof(pd::Vertex, normal),
+      .offset = offsetof(pd::Vertex, uv),
   };
   vertexAttrs[2] = {
       .location = 2,
       .binding = 0,
+      .format = VK_FORMAT_R32G32B32_SFLOAT,
+      .offset = offsetof(pd::Vertex, normal),
+  };
+  vertexAttrs[3] = {
+      .location = 3,
+      .binding = 0,
       .format = VK_FORMAT_R32G32_SFLOAT,
-      .offset = offsetof(pd::Vertex, uv),
+      .offset = offsetof(pd::Vertex, tangent),
   };
 
   VkVertexInputBindingDescription vertexBinding{

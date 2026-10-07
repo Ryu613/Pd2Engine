@@ -11,7 +11,7 @@ namespace {
 
 math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) {
   // todo
-  return {};
+  return {1.0f};
 }
 
 SceneNode makeParsedNode(const u32 nodeIndex, const math::mat4& transform) {

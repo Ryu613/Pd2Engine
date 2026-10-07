@@ -74,32 +74,33 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
   std::array<Vertex, 5> vertices;
   vertices[0] = {
       math::vec3{0.0f, 0.5f, 0.0f},
-      math::vec3{1.0f, 0.0f, 0.0f},
       math::vec2{0.0f, 0.0f},
+      math::vec3{1.0f, 0.0f, 0.0f},
   };
   vertices[1] = {
-      math::vec3{-0.5f, -0.5f, -0.5f},
-      math::vec3{0.0f, 1.0f, 1.0f},
-      math::vec2{0.0f, 1.0f},
+      math::vec3{0.5f, -0.5f, -0.5f},
+      math::vec2{1.0f, 1.0f},
+      math::vec3{0.0f, 0.0f, 1.0f},
   };
   vertices[2] = {
-      math::vec3{0.5f, -0.5f, -0.5f},
-      math::vec3{0.0f, 0.0f, 1.0f},
-      math::vec2{1.0f, 1.0f},
+      math::vec3{-0.5f, -0.5f, -0.5f},
+      math::vec2{0.0f, 1.0f},
+      math::vec3{0.0f, 1.0f, 1.0f},
   };
+
   vertices[3] = {
       math::vec3{0.5f, -0.5f, 0.5f},
-      math::vec3{1.0f, 0.0f, 0.0f},
       math::vec2{1.0f, 1.0},
+      math::vec3{1.0f, 0.0f, 0.0f},
   };
   vertices[4] = {
       math::vec3{-0.5f, -0.5f, 0.5f},
-      math::vec3{1.0f, 0.0f, 0.0f},
       math::vec2{1.0f, 0.0f},
+      math::vec3{1.0f, 0.0f, 0.0f},
   };
 
   std::array<u32, 12> indices{
-      0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 1,
+      0, 1, 2, 0, 3, 1, 0, 4, 3, 0, 2, 4,
   };
   auto vertexBuffer = backend.createBuffer({
       .debugName = "vertex",

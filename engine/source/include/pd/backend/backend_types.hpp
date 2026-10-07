@@ -143,9 +143,10 @@ struct PipelineData {
 };
 
 struct Vertex {
-  math::vec3 pos;
-  math::vec3 normal;
-  math::vec2 uv;
+  math::vec3 position{};
+  math::vec2 uv{};
+  math::vec3 normal{};
+  math::vec4 tangent{1.0f, 0.0f, 0.0f, 1.0f};
 };
 
 struct UniformBufferObject {
