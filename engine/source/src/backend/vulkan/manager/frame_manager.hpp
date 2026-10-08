@@ -31,12 +31,13 @@ class FrameManager {
   void destroy() noexcept;
 
   FrameData beginFrame() noexcept;
+  void updateFrame(const pd::FrameConstantsDesc& desc) noexcept;
   void endFrame(const pd::CommandRecorder& recorder) noexcept;
 
  private:
   struct Frame {
     void init(Vk1Device& device, size_t index);
-    void update();
+    void update(float deltaTime, pd::math::mat4 projMat, pd::math::mat4 viewMat);
     void destroy();
 
     void setUsing(bool flag) noexcept { isUsing = flag; }
@@ -52,6 +53,7 @@ class FrameManager {
     Vk1ImageView depthImageView{};
     pd::UniformBufferObject ubo{};
     Vk1Buffer uniformBuffer{};
+    const Vk1Pipeline* currentPipeline = nullptr;
   };
 
   Vk1Device* mDevice = nullptr;

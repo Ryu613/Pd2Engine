@@ -54,6 +54,10 @@ class Backend::Impl {
     };
   }
 
+  void updateFrameConstants(const FrameConstantsDesc& frameConstantsDesc) noexcept {
+    mFrameManager.updateFrame(frameConstantsDesc);
+  }
+
   void endFrame(const CommandRecorder& recorder) noexcept { mFrameManager.endFrame(recorder); }
 
   void waitIdle() noexcept { mVulkanDevice.waitIdle(); }
@@ -102,6 +106,10 @@ Result<void> Backend::init(const BackendConfig& config) noexcept { return mImpl-
 Result<void> Backend::destroy() noexcept { return mImpl->destroy(); }
 
 pd::FrameData Backend::beginFrame() noexcept { return mImpl->beginFrame(); }
+
+void Backend::updateFrameConstants(const FrameConstantsDesc& frameConstantsDesc) noexcept {
+  mImpl->updateFrameConstants(frameConstantsDesc);
+}
 
 void Backend::endFrame(CommandRecorder recorder) noexcept { mImpl->endFrame(recorder); }
 

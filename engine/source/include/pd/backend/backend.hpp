@@ -18,6 +18,8 @@ class Backend {
 
   FrameData beginFrame() noexcept;
 
+  void updateFrameConstants(const FrameConstantsDesc& frameConstantsDesc) noexcept;
+
   void endFrame(CommandRecorder cmdRecorder) noexcept;
 
   void waitIdle() noexcept;

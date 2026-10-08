@@ -233,7 +233,7 @@ inline Result<void> ResourceManager::unloadResource(Handle<Tag> handle) noexcept
   auto it = mRegistry.find(resource->name());
   PD_ASSERT(it != mRegistry.end());
 
-  it.value().refCount++;
+  it.value().refCount--;
   return {};
 }
 

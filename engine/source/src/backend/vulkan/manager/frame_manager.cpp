@@ -45,12 +45,11 @@ void FrameManager::Frame::init(Vk1Device& device, size_t index) {
   }
 }
 
-void FrameManager::Frame::update() {
-  // shortcut: need camera and delta time
-  float aspectRatio = static_cast<float>(1024) / static_cast<float>(768);
+void FrameManager::Frame::update(float deltaTime, pd::math::mat4 projMat, pd::math::mat4 viewMat) {
+  // shortcut: for debugging
   ubo.model = glm::rotate(ubo.model, 0.003f, glm::vec3{0.0f, 1.0f, 0.0f});
-  ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-  ubo.proj = glm::perspective(glm::radians(45.f), aspectRatio, 0.1f, 100.0f);
+  ubo.view = viewMat;
+  ubo.proj = projMat;
 
   memcpy(uniformBuffer.allocationInfo.pMappedData, &ubo, sizeof(pd::UniformBufferObject));
 }
@@ -84,9 +83,6 @@ FrameData FrameManager::beginFrame() noexcept {
   mDevice->waitFences(currentFrame.frameFence);
   uint32_t imageIndex = mDevice->acquireNextImage(currentFrame.acquireImageSemaphore);
 
-  // update uniform buffer
-  currentFrame.update();
-
   // prepare command buffers
   vkResetCommandPool(vkDevice, currentFrame.cmdPool, 0);
 
@@ -100,6 +96,12 @@ FrameData FrameManager::beginFrame() noexcept {
       .frameIndex = static_cast<uint32_t>(mCurrentFrameIndex),
       .swapchainImageIndex = imageIndex,
   };
+}
+
+void FrameManager::updateFrame(const pd::FrameConstantsDesc& desc) noexcept {
+  auto& frame = mFrames[desc.frameIndex];
+  // update uniform buffer
+  frame.update(desc.deltaTime, desc.projMat, desc.viewMat);
 }
 
 void FrameManager::endFrame(const pd::CommandRecorder& recorder) noexcept {
@@ -270,26 +272,33 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
     case BindPipeline: {
       const auto* args = reinterpret_cast<const pd::BindPipelineArgs*>(&payload.args[0]);
       const auto& pipelineHandle = args->pipeline;
-      const auto& vertexBufferHandle = args->vertexBuffer;
-      const auto& indexBufferHandle = args->indexBuffer;
       const Vk1Pipeline* pip = mRegistry->getResource(pipelineHandle);
       PD_ASSERT_MSG(pip, "pip not exist!");
+      auto& frame = mFrames[frameIndex];
+      vkCmdBindPipeline(frame.mainCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pip->handle);
+      frame.currentPipeline = pip;
+      break;
+    }
+    case BindGeometry: {
+      const auto* args = reinterpret_cast<const pd::BindGeometryArgs*>(&payload.args[0]);
+      const auto& vertexBufferHandle = args->vertexBuffer;
+      const auto& indexBufferHandle = args->indexBuffer;
       const Vk1Buffer* vertexBuffer = mRegistry->getResource(vertexBufferHandle);
       PD_ASSERT_MSG(vertexBuffer, "vertex buffer not exist!");
       const Vk1Buffer* indexBuffer = mRegistry->getResource(indexBufferHandle);
       PD_ASSERT_MSG(indexBuffer, "index buffer not exist!");
       auto& frame = mFrames[frameIndex];
-      vkCmdBindPipeline(frame.mainCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pip->handle);
       VkDeviceSize deviceSize{};
       vkCmdBindVertexBuffers(frame.mainCmdBuffer, 0, 1, &vertexBuffer->handle, &deviceSize);
-      vkCmdBindIndexBuffer(frame.mainCmdBuffer, indexBuffer->handle, 0, VK_INDEX_TYPE_UINT32);
-      vkCmdPushConstants(frame.mainCmdBuffer, pip->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress),
-                         &frame.uniformBuffer.deviceAddress);
+      vkCmdBindIndexBuffer(frame.mainCmdBuffer, indexBuffer->handle, args->indexBufferOffset, VK_INDEX_TYPE_UINT32);
       break;
     }
     case DrawIndexed: {
       const auto* args = reinterpret_cast<const pd::DrawIndexedArgs*>(&payload.args[0]);
       auto& frame = mFrames[frameIndex];
+      PD_ASSERT_MSG(frame.currentPipeline, "need call bindPipeline first!");
+      vkCmdPushConstants(frame.mainCmdBuffer, frame.currentPipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                         sizeof(VkDeviceAddress), &frame.uniformBuffer.deviceAddress);
       vkCmdDrawIndexed(frame.mainCmdBuffer, args->indexCount, args->instanceCount, args->firstIndex, args->vertexOffset,
                        args->firstInstance);
       break;
@@ -344,6 +353,7 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
 void FrameManager::advanceFrameIndex(uint32_t currentFrameIndex) noexcept {
   auto nextFrameIndex = (mCurrentFrameIndex + 1) % global::maxInflightFrames;
   auto& nextFrame = mFrames[nextFrameIndex];
+  // shortcut: for debugging
   while (nextFrame.isUsing) {
   }
   mFrames[currentFrameIndex].isUsing = false;

@@ -52,12 +52,22 @@ struct SetScissorArgs {
   float height = 0.0f;
 };
 
-struct BindPipelineArgs {
-  static constexpr CmdType type = CmdType::BindPipeline;
+struct BindGeometryArgs {
+  static constexpr CmdType type = CmdType::BindGeometry;
   HwBufferHandle vertexBuffer;
   u32 vertexBufferOffset = 0;
   HwBufferHandle indexBuffer;
   u32 indexBufferOffset = 0;
+};
+
+struct UpdateObjectDataArgs {
+  static constexpr CmdType type = CmdType::UpdateObjectData;
+  math::mat4 model{1.0f};
+};
+
+struct BindPipelineArgs {
+  static constexpr CmdType type = CmdType::BindPipeline;
+
   HwGraphicsPipelineHandle pipeline;
 };
 
@@ -123,6 +133,13 @@ struct BufferWriteDesc {
   const void* pData = nullptr;
   u64 deviceSize = 0;
   u32 offset = 0;
+};
+
+struct FrameConstantsDesc {
+  u32 frameIndex = u32_max;
+  f32 deltaTime = 0.0f;
+  math::mat4 projMat{1.0f};
+  math::mat4 viewMat{1.0f};
 };
 
 struct GraphicsPipelineCreateDesc {

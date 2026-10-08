@@ -1,6 +1,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "pd/engine.hpp"
 #include "pd/scene/scene_descriptor.hpp"
+#include "pd/scene/camera.hpp"
 
 namespace pd {
 class TestScene : public SceneDescriptor {
@@ -97,6 +98,7 @@ TEST_CASE("gltf_box", "engine") {
   // create gltf asset
   Asset::CreateInfo createInfo{
       .name = "box",
+      //   .path = ASSET_DIR "ABeautifulGame/glTF/ABeautifulGame.gltf",
       .path = ASSET_DIR "BoxTextured/BoxTextured.gltf",
       .parseType = AssetType::Gltf,
   };
@@ -156,13 +158,21 @@ TEST_CASE("gltf_box", "engine") {
       .entryPoint = "fragMain",
   });
   auto pipelineData = backend.createGraphicsPipeline(pipelineDesc);
+  Camera camera{
+      .aspectRatio = platformCfg.window.width / (float)platformCfg.window.height,
+  };
   // render loop
   CommandRecorder recorder;
   while (!platform.windowSystem().shouldClose()) {
     platform.processEvents();
     // begin frame
-    recorder.clear();
     auto frameData = backend.beginFrame();
+    backend.updateFrameConstants({
+        .frameIndex = frameData.frameIndex,
+        .projMat = camera.projection(),
+        .viewMat = camera.view(),
+    });
+    recorder.clear();
     recorder.setInfo(frameData.frameIndex, frameData.swapchainImageIndex);
     recorder.addCmd(BeginRenderingArgs{});
     recorder.addCmd(SetViewportArgs{});
@@ -176,12 +186,17 @@ TEST_CASE("gltf_box", "engine") {
       // 4. 绑定描述符集，图形管线
       // 5. 绑定顶点缓冲,绑定索引缓冲
       recorder.addCmd(BindPipelineArgs{
+          .pipeline = pipelineData.pipeline,
+      });
+      recorder.addCmd(BindGeometryArgs{
           .vertexBuffer = meshBinding.vertexBuffer,
           .vertexBufferOffset = meshBinding.vertexOffset,
           .indexBuffer = meshBinding.indexBuffer,
-          .indexBufferOffset = meshBinding.vertexOffset,
-          .pipeline = pipelineData.pipeline,
+          .indexBufferOffset = meshBinding.indexOffset,
       });
+      //   recorder.addCmd(UpdateObjectConstantsArgs{
+      //         .model = transform,
+      //   });
       // 6. 绘制
       recorder.addCmd(DrawIndexedArgs{
           .indexCount = meshBinding.indexCount,
@@ -198,6 +213,14 @@ TEST_CASE("gltf_box", "engine") {
   }
 
   backend.waitIdle();
+
+  backend.destroyGraphicsPipeline({pipelineData.layout, pipelineData.pipeline});
+
+  REQUIRE(rscMgr.unloadResource(gltfResourceHandle));
+  REQUIRE(rscMgr.unloadResource(shaderResourceHandle));
+
+  REQUIRE(backend.destroy());
+  REQUIRE(platform.destroy());
 
   // todo: unload resources
 }

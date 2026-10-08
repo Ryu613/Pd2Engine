@@ -10,7 +10,7 @@ namespace pd {
 namespace {
 
 math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) {
-  // todo
+  //   if (node.transform)
   return {1.0f};
 }
 

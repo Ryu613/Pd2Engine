@@ -142,9 +142,11 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
     recorder.addCmd(BeginRenderingArgs{});
     recorder.addCmd(SetViewportArgs{});
     recorder.addCmd(BindPipelineArgs{
+        .pipeline = pipelineData.pipeline,
+    });
+    recorder.addCmd(BindGeometryArgs{
         .vertexBuffer = vertexBuffer,
         .indexBuffer = indexBuffer,
-        .pipeline = pipelineData.pipeline,
     });
     recorder.addCmd(SetScissorArgs{});
 

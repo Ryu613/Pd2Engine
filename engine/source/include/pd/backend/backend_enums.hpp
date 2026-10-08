@@ -26,6 +26,8 @@ enum class CmdType : u8 {
   SetViewport,
   SetScissor,
   BindPipeline,
+  BindGeometry,
+  UpdateObjectData,
   DrawIndexed,
   ClearColorImage,
   Count,

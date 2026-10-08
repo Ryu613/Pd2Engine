@@ -53,11 +53,13 @@ void Renderer::doFrame(Renderer::FrameContext& ctx) noexcept {
     recorder.addCmd(SetViewportArgs{});
     recorder.addCmd(SetScissorArgs{});
     recorder.addCmd(BindPipelineArgs{
+        .pipeline = pipeline,
+    });
+    recorder.addCmd(BindGeometryArgs{
         .vertexBuffer = renderable.vertexBuffer,
         .vertexBufferOffset = renderable.vertexBufferOffset,
         .indexBuffer = renderable.indexBuffer,
         .indexBufferOffset = renderable.indexBufferOffset,
-        .pipeline = pipeline,
     });
     recorder.addCmd(DrawIndexedArgs{
         .indexCount = renderable.indexCount,
