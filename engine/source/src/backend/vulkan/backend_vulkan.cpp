@@ -89,6 +89,13 @@ class Backend::Impl {
   }
   void destroyShaderModule(HwShaderModuleHandle handle) noexcept { mResourceRegistry.destroyShaderModule(handle); }
 
+  HwTextureHandle createTexture(const TextureCreateDesc& textureCreateDesc) noexcept {
+    auto handle = mResourceRegistry.createTexture(textureCreateDesc);
+    return handle;
+  }
+
+  void destroyTexture(HwTextureHandle handle) noexcept { mResourceRegistry.destroyTexture(handle); }
+
  private:
   BackendConfig mConfig{};
   vk1::Vk1Device mVulkanDevice;
@@ -133,4 +140,9 @@ HwShaderModuleHandle Backend::createShaderModule(const ShaderModuleCreateDesc& s
   return mImpl->createShaderModule(shaderModuleCreateDesc);
 }
 void Backend::destroyShaderModule(HwShaderModuleHandle handle) noexcept { mImpl->destroyShaderModule(handle); }
+
+HwTextureHandle Backend::createTexture(const TextureCreateDesc& textureCreateDesc) noexcept {
+  return mImpl->createTexture(textureCreateDesc);
+}
+void Backend::destroyTexture(HwTextureHandle handle) noexcept { mImpl->destroyTexture(handle); }
 }  // namespace pd

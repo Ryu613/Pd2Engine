@@ -20,6 +20,33 @@ enum class TextureFormat : u8 {
   RGBA8SRGB,
 };
 
+enum class TextureType : u8 {
+  TextureType1D = 0,
+  TextureType2D,
+  TextureType3D,
+  TextureTypeCube = 3,
+};
+
+enum class TextureUsage : u8 {
+  //   None,
+  //   ColorAttachment,
+  //   DepthAttachment,
+  //   StencilAttachment,
+  //   Sampleable,
+  //   Uploadable,
+  DefaultUsage
+};
+
+enum class CullMode : u8 {
+  Front,
+  Back,
+};
+
+enum class FrontFace : u8 {
+  Clockwise,
+  CounterClockwise,
+};
+
 enum class CmdType : u8 {
   BeginRendering,
   EndRendering,

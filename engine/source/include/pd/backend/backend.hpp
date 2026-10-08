@@ -35,6 +35,9 @@ class Backend {
   HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
   void destroyShaderModule(HwShaderModuleHandle handle) noexcept;
 
+  HwTextureHandle createTexture(const TextureCreateDesc& textureCreateDesc) noexcept;
+  void destroyTexture(HwTextureHandle handle) noexcept;
+
  private:
   class Impl;
   std::unique_ptr<Impl> mImpl;

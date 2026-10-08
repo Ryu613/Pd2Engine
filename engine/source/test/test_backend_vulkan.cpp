@@ -5,6 +5,7 @@
 #include "pd/backend/backend.hpp"
 #include "pd/backend/command_recorder.hpp"
 #include "pd/asset/compiler/shader_compiler.hpp"
+#include "pd/scene/camera.hpp"
 
 #include "pd/core/math/math.hpp"
 
@@ -55,7 +56,7 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
   });
 
   GraphicsPipelineCreateDesc pipelineDesc{
-      .debugName = "triangle",
+      .debugName = "pyramid",
   };
   pipelineDesc.shaderModules.push_back(vertFragShader);
   pipelineDesc.shaderPrograms.push_back({
@@ -129,6 +130,9 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
 
   // pipeline data contains pipeline, layout handles, and other infos
   auto pipelineData = backend.createGraphicsPipeline(pipelineDesc);
+  Camera camera{
+      .aspectRatio = platformCfg.window.width / (float)platformCfg.window.height,
+  };
   // render loop
   CommandRecorder recorder;
   while (!platform.windowSystem().shouldClose()) {
@@ -136,6 +140,11 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
     // begin frame
     recorder.clear();
     auto frameData = backend.beginFrame();
+    backend.updateFrameConstants({
+        .frameIndex = frameData.frameIndex,
+        .projMat = camera.projection(),
+        .viewMat = camera.view(),
+    });
     recorder.setInfo(frameData.frameIndex, frameData.swapchainImageIndex);
     // record rendering commands
     // recorder.addCmd(ClearColorImageArgs{});

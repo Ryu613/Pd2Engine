@@ -142,16 +142,40 @@ struct FrameConstantsDesc {
   math::mat4 viewMat{1.0f};
 };
 
+struct PrimitiveOptions {
+  CullMode cullMode = CullMode::Back;
+  FrontFace frontFace = FrontFace::CounterClockwise;
+};
+
+struct Extent {
+  u32 width = 0;
+  u32 height = 0;
+  u32 depth = 1;
+};
+
 struct GraphicsPipelineCreateDesc {
   std::string_view debugName;
   HwPipelineLayoutHandle layout;
+  PrimitiveOptions primitiveOptions;
   std::vector<HwShaderModuleHandle> shaderModules;
   std::vector<ShaderProgram> shaderPrograms;
 };
 
 struct GraphicsPipelineDestroyDesc {
-  HwPipelineLayoutHandle layout{};
+  HwPipelineLayoutHandle layout;
   HwGraphicsPipelineHandle pipeline;
+};
+
+struct TextureCreateDesc {
+  std::string_view debugName;
+  TextureType type = TextureType::TextureType2D;
+  TextureFormat format = TextureFormat::RGBA8Unorm;
+  Extent extent;
+  uint32_t mipLevel = 1;
+  uint32_t arrayLeyers = 1;
+  TextureUsage usage = TextureUsage::DefaultUsage;
+  uint32_t samples = 1;
+  //   TextureLayout initialLayout = TextureLayout::Undefined;
 };
 
 struct PipelineData {

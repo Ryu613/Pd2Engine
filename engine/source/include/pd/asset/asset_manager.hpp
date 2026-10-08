@@ -10,6 +10,10 @@ namespace pd {
  * @brief 负责资产文件读取，解析，编译，转换为引擎内部格式
  *
  * 拥有解析后的资产数据，缓存在此处，外部通过句柄访问
+ * @todo 合并node引用的重复mesh
+ * @todo texture压缩
+ * @todo mesh optimizer集成
+ * @todo 把资源注册交给asset mgr
  */
 class AssetManager {
  public:

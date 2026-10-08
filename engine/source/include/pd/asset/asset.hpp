@@ -53,7 +53,8 @@ struct SceneNode {
   math::vec3 eulerAngles{};
   math::vec3 scale{1.f};
   u32 meshId = invalidAssetId;
-  // todo: texture ids
+  u32 albedoTextureId = invalidAssetId;
+  u32 normalTextureId = invalidAssetId;
   // u32 parentIndex = invalidAssetId;
   // u32 firstChild = invalidAssetId;
   // u32 nextSibling = invalidAssetId;

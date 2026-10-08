@@ -4,9 +4,12 @@
 
 namespace vk1 {
 struct Vk1Image {
-  VkImage image = VK_NULL_HANDLE;
+  VkImage handle = VK_NULL_HANDLE;
   VmaAllocation allocation{};
+  VkFormat format;
+  VkExtent3D extent;
   uint32_t mipLevels = 1;
+  uint32_t arrayLayers = 1;
   ImageState state;
 
   void transition(VkCommandBuffer cmdBuffer, const ImageState& newState) {

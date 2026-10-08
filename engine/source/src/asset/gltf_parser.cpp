@@ -96,6 +96,25 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
 // }
 
 Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
+  const auto materialTextureId = [&](u32 materialIndex, bool normalTexture) {
+    const auto& material = gltfAsset.materials[materialIndex];
+
+    size_t texIndex = -1;
+    if (normalTexture) {
+      PD_ASSERT_MSG(material.normalTexture.has_value(), "material normal texture invalid!");
+      texIndex = material.normalTexture.value().textureIndex;
+    } else {
+      texIndex = material.pbrData.metallicRoughnessTexture->textureIndex;
+    }
+    PD_ASSERT(texIndex >= 0);
+    auto& texture = gltfAsset.textures[texIndex];
+    if (texture.imageIndex.has_value()) {
+      const auto imageIndex = texture.imageIndex.value();
+      const auto& image = gltfAsset.images[imageIndex];
+    } else {
+      PD_ASSERT_MSG(false, "not supported texture image format");
+    }
+  };
   std::function<void(u32, u32, const math::mat4&)> traverseNode = [&](u32 nodeIndex, u32 meshIndex,
                                                                       const math::mat4& parentTransform) {
     const fastgltf::Node& gltfNode = gltfAsset.nodes[nodeIndex];
@@ -173,6 +192,11 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
         const auto worldTransform = parentTransform * localTransform;
         auto node = makeParsedNode(nodeIndex, worldTransform);
         node.meshId = primitiveIndex;
+        // materials & textures
+        if (primitive.materialIndex.has_value()) {
+          u32 materialIndex = primitive.materialIndex.value();
+          node.albedoTextureId = materialTextureId(materialIndex);
+        }
         asset.mNodes.push_back(node);
       }
       asset.mMeshes.push_back(std::move(meshData));

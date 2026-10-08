@@ -34,6 +34,9 @@ class ResourceRegistry {
   void writeBuffer(const pd::BufferWriteDesc& desc) noexcept;
   void destroyBuffer(pd::HwBufferHandle buffer) noexcept;
 
+  pd::HwTextureHandle createTexture(const pd::TextureCreateDesc& textureCreateDesc) noexcept;
+  void destroyTexture(pd::HwTextureHandle handle) noexcept;
+
   pd::HwShaderModuleHandle createShaderModule(const pd::ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
   void destroyShaderModule(pd::HwShaderModuleHandle handle) noexcept;
 
@@ -67,6 +70,7 @@ class ResourceRegistry {
   DataPool<pd::PipelineLayout_t, Vk1PipelineLayout> mPipelineLayouts;
   DataPool<pd::GraphicsPipeline_t, Vk1Pipeline> mGraphicsPipelines;
   DataPool<pd::Buffer_t, Vk1Buffer> mBuffers;
+  DataPool<pd::Texture_t, Vk1Image> mImages;
   DataPool<pd::ShaderModule_t, Vk1ShaderModule> mShaderModules;
 };
 
@@ -103,6 +107,8 @@ inline auto& ResourceRegistry::findPool() noexcept {
     return mBuffers;
   } else if constexpr (std::is_same_v<Tag, pd::ShaderModule_t>) {
     return mShaderModules;
+  } else if constexpr (std::is_same_v<Tag, pd::Texture_t>) {
+    return mImages;
   }
   PD_ASSERT_MSG(false, "vulkan resource pool error: not supported tag");
 }

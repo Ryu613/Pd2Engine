@@ -155,8 +155,8 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
   VkPipelineRasterizationStateCreateInfo rasterization{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
       .polygonMode = VK_POLYGON_MODE_FILL,
-      .cullMode = VK_CULL_MODE_BACK_BIT,
-    //   .frontFace = VK_FRONT_FACE_CLOCKWISE,
+      .cullMode = util::toVkCullMode(desc.primitiveOptions.cullMode),
+      .frontFace = util::toVkFrontFace(desc.primitiveOptions.frontFace),
       .lineWidth = 1.0f,
   };
   VkPipelineColorBlendAttachmentState colorAttachment{
@@ -309,5 +309,67 @@ void ResourceRegistry::destroyBuffer(pd::HwBufferHandle buffer) noexcept {
   vmaDestroyBuffer(mDevice->getAllocator(), vk1Buffer->handle, vk1Buffer->allocation);
 
   destroyResource(buffer);
+}
+
+pd::HwTextureHandle ResourceRegistry::createTexture(const pd::TextureCreateDesc& textureCreateDesc) noexcept {
+  const auto vkDevice = mDevice->getDevice();
+  VkExtent3D extent = {
+      .width = textureCreateDesc.extent.width,
+      .height = textureCreateDesc.extent.height,
+      .depth = textureCreateDesc.extent.depth,
+  };
+  VkImageCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      .imageType = VK_IMAGE_TYPE_2D,
+      .format = util::toVkImageFormat(textureCreateDesc.format),
+      .extent = extent,
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .samples = VK_SAMPLE_COUNT_1_BIT,
+      .tiling = VK_IMAGE_TILING_OPTIMAL,
+      .usage = util::toVkImageUsage(textureCreateDesc.usage),
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+  };
+  VmaAllocationCreateInfo allocCI{
+      .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+      .usage = VMA_MEMORY_USAGE_AUTO,
+  };
+  Vk1Image image{
+      .format = createInfo.format,
+      .extent = createInfo.extent,
+      .mipLevels = createInfo.mipLevels,
+      .arrayLayers = createInfo.arrayLayers,
+  };
+  checkResult(vmaCreateImage(mDevice->getAllocator(), &createInfo, &allocCI, &image.image, &image.allocation, nullptr));
+  assert(image.handle);
+
+  VmaAllocation vmaAllocation;
+  VmaAllocationInfo allocationInfo;
+  vmaGetAllocationInfo(mDevice->getAllocator(), vmaAllocation, &allocationInfo);
+
+  image.allocation = vmaAllocation;
+
+  Slot<pd::Texture_t, Vk1Image> slot{
+      .gen = 0,
+      .resource = image,
+  };
+  auto newId = nextId<pd::Texture_t>();
+  mImages.emplace(newId, slot);
+
+  setObjectName(vkDevice, VK_OBJECT_TYPE_IMAGE, image.handle, textureCreateDesc.debugName);
+
+  return {{
+      newId,
+      0,
+  }};
+}
+
+void ResourceRegistry::destroyTexture(pd::HwTextureHandle handle) noexcept {
+  auto* vk1Image = getResource(handle);
+  assert(vk1Image->handle);
+  vmaDestroyImage(mDevice->getAllocator(), vk1Image->handle, vk1Image->allocation);
+
+  destroyResource(handle);
 }
 }  // namespace vk1
