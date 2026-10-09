@@ -5,6 +5,8 @@
 
 #include "fastgltf/core.hpp"
 #include "fastgltf/tools.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 namespace pd {
 namespace {
@@ -87,28 +89,101 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
 //   }
 // }
 
-TextureData GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t imageIndex) noexcept {
+void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset, u32& materialTextureIndex,
+                              u32 imageIndex, u32 samplerIndex) noexcept {
+  auto it = mCacheData.textureIds.find({imageIndex, samplerIndex});
+  if (it != mCacheData.textureIds.end()) {
+    materialTextureIndex = it->second;
+    return;
+  }
   auto& image = gltfAsset.images[imageIndex];
+  auto& sampler = gltfAsset.samplers[samplerIndex];
 
-  return TextureData{};
+  std::visit(fastgltf::visitor{
+                 [](auto& arg) {
+                   LOG_WARN("reach!");
+                   PD_ASSERT_MSG(false, "texture parse error!");
+                 },
+                 [&](const fastgltf::sources::URI& filePath) {
+                   PD_ASSERT(filePath.fileByteOffset == 0);
+                   PD_ASSERT(filePath.uri.isLocalPath());
+                   int width = 0;
+                   int height = 0;
+                   int nrChannels = 0;
+                   const auto path = mBasePath / filePath.uri.path();
+                   // 用stb解析图片信息
+                   stbi_uc* texels = stbi_load(path.string().c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+                   if (!texels) {
+                     PD_ASSERT_MSG(false, "failed to load image!");
+                   }
+                   // 加入到asset中
+                   //    asset.mTextures.push_back(handle);
+                   // 清除使用后的image数据
+                   stbi_image_free(texels);
+                 },
+                 [&](const fastgltf::sources::Array& vector) { LOG_WARN("reach!"); },
+                 [&](const fastgltf::sources::BufferView& view) {
+                   const auto& bufferView = gltfAsset.bufferViews[view.bufferViewIndex];
+                   const auto& buffer = gltfAsset.buffers[bufferView.bufferIndex];
+                   const auto& data = std::get<fastgltf::sources::Array>(buffer.data);
+                   const auto* imagePtr = data.bytes.data() + bufferView.byteOffset;
+                   int width = 0;
+                   int height = 0;
+                   int nrChannels = 0;
+                   const auto path = mBasePath;
+                   auto* texels =
+                       stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imagePtr), bufferView.byteLength, &width,
+                                             &height, &nrChannels, STBI_rgb_alpha);
+                   if (!texels) {
+                     PD_ASSERT_MSG(false, "failed to load image!");
+                   }
+                   //    asset.mTextures.push_back(handle);
+
+                   stbi_image_free(texels);
+                 },
+             },
+             image.data);
 }
-MaterialData GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset,
-                                       size_t materialIndex) noexcept {
-  auto& material = gltfAsset.materials[materialIndex];
+void GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset, MeshData::SubMesh& subMesh,
+                               u32 materialIndex) noexcept {
+  auto it = mCacheData.materialIds.find(materialIndex);
+  if (it != mCacheData.materialIds.end()) {
+    subMesh.materialIndex = it->second;
+    return;
+  }
+  const auto& material = gltfAsset.materials[materialIndex];
   if (!material.pbrData.baseColorTexture.has_value()) {
     LOG_WARN("material [{}] base color texture 缺失", materialIndex);
   }
-  // shortcut: use base color texture
+  GltfPbrMaterialData materialData{
+      .name = material.name.empty() ? std::format("mat_{}", materialIndex) : std::string(material.name),
+      .baseColorFactor = math::vec3{material.pbrData.baseColorFactor.x(), material.pbrData.baseColorFactor.y(),
+                                    material.pbrData.baseColorFactor.z()},
+      .metallicFactor = material.pbrData.metallicFactor,
+      .roughnessFactor = material.pbrData.roughnessFactor,
+      .emissiveFactor =
+          math::vec3{material.emissiveFactor.x(), material.emissiveFactor.y(), material.emissiveFactor.z()},
+  };
+
+  // shortcut: use base color texture for testing
   u32 texIndex = material.pbrData.baseColorTexture->textureIndex;
   auto& texture = gltfAsset.textures[texIndex];
+
   if (!texture.imageIndex.has_value()) {
-    LOG_WARN("material [{}] texture的image index为空!", materialIndex);
-    return MaterialData{};
+    LOG_WARN("texture [{}] 的image index为空!", texture.name);
   }
-  // texture
-  auto textureData = parseTexture(asset, gltfAsset, texture.imageIndex.value());
-  asset.mTextures.push_back(std::move(textureData));
-  return MaterialData{};
+  auto imageIndex = texture.imageIndex.value();
+
+  if (!texture.samplerIndex.has_value()) {
+    LOG_WARN("texture [{}] 的sampler为空!", texture.name);
+  }
+  auto samplerIndex = texture.samplerIndex.value();
+
+  // todo: for-each material's texture
+  parseTexture(asset, gltfAsset, materialData.baseColorTextureIndex, imageIndex, samplerIndex);
+
+  asset.mMaterials.push_back(std::move(materialData));
+  subMesh.materialIndex = asset.materials().size();
 }
 
 Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
@@ -192,8 +267,7 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
         // materials
         if (primitive.materialIndex.has_value()) {
           u32 materialIndex = primitive.materialIndex.value();
-          auto materialData = parseMaterial(asset, gltfAsset, materialIndex);
-          asset.mMaterials.push_back(std::move(materialData));
+          parseMaterial(asset, gltfAsset, submesh, materialIndex);
         }
         asset.mNodes.push_back(node);
       }

@@ -39,7 +39,17 @@ struct TextureData {
   std::string uri;
 };
 
-struct MaterialData {};
+struct GltfPbrMaterialData {
+  static constexpr MaterialType materialType = MaterialType::PbrMetallicRoughness;
+  std::string name;
+  math::vec3 baseColorFactor;
+  u32 baseColorTextureIndex = invalidAssetId;
+  float metallicFactor = 0.0f;
+  float roughnessFactor = 0.0f;
+  u32 metallicRoughnessTextureIndex = invalidAssetId;
+  u32 normalTextureIndex = invalidAssetId;
+  math::vec3 emissiveFactor;
+};
 
 using VertexData = pd::Vertex;
 
@@ -48,6 +58,7 @@ struct MeshData {
     std::string name;
     std::vector<VertexData> vertices;
     std::vector<u32> indices;
+    u32 materialIndex = invalidAssetId;
   };
 
   DataInfo dataInfo;
@@ -103,7 +114,7 @@ class GltfAsset : public Asset {
   DELETE_COPY(GltfAsset);
   std::span<const TextureData> textures() const noexcept { return mTextures; }
   std::span<const MeshData> meshes() const noexcept { return mMeshes; }
-  std::span<const MaterialData> materials() const noexcept { return mMaterials; }
+  std::span<const GltfPbrMaterialData> materials() const noexcept { return mMaterials; }
   std::span<const SceneNode> nodes() const noexcept { return mNodes; }
 
  private:
@@ -112,7 +123,7 @@ class GltfAsset : public Asset {
 
   std::vector<SceneNode> mNodes;
   std::vector<TextureData> mTextures;
-  std::vector<MaterialData> mMaterials;
+  std::vector<GltfPbrMaterialData> mMaterials;
   std::vector<MeshData> mMeshes;
 
   explicit GltfAsset(AssetIdType id, CreateInfo info)

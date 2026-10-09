@@ -6,6 +6,7 @@
 #include "pd/core/utils/map.hpp"
 
 #include "pd/asset/asset.hpp"
+#include "pd/asset/compiler/texture_compiler.hpp"
 
 namespace pd {
 class IFileSystem;
@@ -22,6 +23,8 @@ class GltfParser : public IAssetParser {
  private:
   IFileSystem* mFs = nullptr;
   std::filesystem::path mBasePath;
+
+  TextureCompiler mTextureCompiler;
 
   struct TextureKey {
     u32 imageIndex = invalidAssetId;
@@ -44,11 +47,13 @@ class GltfParser : public IAssetParser {
   };
   CacheData mCacheData;
 
-  [[deprecated("not used")]]
+  [[deprecated("not been used")]]
   void parseMeshes(GltfAsset& asset, const fastgltf::Asset& gltfAsset) noexcept;
 
-  TextureData parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t imageIndex) noexcept;
-  MaterialData parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t materialIndex) noexcept;
+  void parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset, u32& materialTextureIndex, u32 textureIndex,
+                    u32 samplerIndex) noexcept;
+  void parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset, MeshData::SubMesh& subMesh,
+                     u32 materialIndex) noexcept;
   Result<void> parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept;
 };
 }  // namespace pd

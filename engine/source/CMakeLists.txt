@@ -52,6 +52,7 @@ target_sources(engine_lib
         include/pd/asset/parser/gltf_parser.hpp
         include/pd/asset/parser/shader_parser.hpp
         include/pd/asset/compiler/shader_compiler.hpp
+        include/pd/asset/compiler/texture_compiler.hpp
         # scene
         include/pd/scene/scene_manager.hpp
         include/pd/scene/scene_descriptor.hpp
@@ -79,6 +80,7 @@ target_sources(engine_lib
         src/asset/asset_manager.cpp
         src/asset/gltf_parser.cpp
         src/asset/shader_parser.cpp
+        src/asset/compiler/texture_compiler.cpp
 )
 
 # platform

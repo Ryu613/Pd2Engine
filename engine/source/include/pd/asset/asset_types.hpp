@@ -6,6 +6,15 @@ enum class AssetType : u8 {
   Shader,
 };
 
+enum class MaterialType : u8 {
+  PbrMetallicRoughness,
+};
+
+enum class TextureDecoderType : u8 {
+  Stb,
+  Ktx2,
+};
+
 inline constexpr u32 invalidAssetId = u32_max;
 
 using AssetIdType = u32;
