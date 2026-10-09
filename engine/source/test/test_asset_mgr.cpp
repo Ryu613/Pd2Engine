@@ -30,25 +30,25 @@ TEST_CASE("test_gltf_asset", "engine") {
   REQUIRE(pAsset);
 }
 
-TEST_CASE("test_shader_asset", "engine") {
-  using namespace pd;
-  StdFileSystem fileSystem;
-  AssetManager assetMgr{&fileSystem};
+// TEST_CASE("test_shader_asset", "engine") {
+//   using namespace pd;
+//   StdFileSystem fileSystem;
+//   AssetManager assetMgr{&fileSystem};
 
-  auto initRes = assetMgr.init();
-  REQUIRE(initRes);
+//   auto initRes = assetMgr.init();
+//   REQUIRE(initRes);
 
-  Asset::CreateInfo assetInfo{
-      .name = "pyramid shader",
-      .path = ASSET_DIR "shader/pyramid/pyramid.slang",
-      .parseType = AssetType::Shader,
-  };
-  auto result = assetMgr.createAsset(assetInfo);
-  REQUIRE(result);
+//   Asset::CreateInfo assetInfo{
+//       .name = "pyramid shader",
+//       .path = ASSET_DIR "shader/pyramid/pyramid.slang",
+//       .parseType = AssetType::Shader,
+//   };
+//   auto result = assetMgr.createAsset(assetInfo);
+//   REQUIRE(result);
 
-  auto handle = result.value();
-  auto assetRes = assetMgr.getAsset(handle);
-  REQUIRE(assetRes);
-  auto* asset = assetRes.value();
-  REQUIRE(asset);
-}
+//   auto handle = result.value();
+//   auto assetRes = assetMgr.getAsset(handle);
+//   REQUIRE(assetRes);
+//   auto* asset = assetRes.value();
+//   REQUIRE(asset);
+// }

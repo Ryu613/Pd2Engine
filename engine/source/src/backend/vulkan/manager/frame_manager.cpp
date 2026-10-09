@@ -38,7 +38,7 @@ void FrameManager::Frame::init(Vk1Device& device, size_t index) {
                           std::format("acquireImageSemaphore[{}]", frameIndex));
     pDevice->setDebugName(cmdPool, VK_OBJECT_TYPE_COMMAND_POOL, std::format("frameCmdPool[{}]", frameIndex));
     pDevice->setDebugName(mainCmdBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER, std::format("frameCmdBuffer[{}]", frameIndex));
-    pDevice->setDebugName(depthImage.image, VK_OBJECT_TYPE_IMAGE, std::format("depthImage[{}]", frameIndex));
+    pDevice->setDebugName(depthImage.handle, VK_OBJECT_TYPE_IMAGE, std::format("depthImage[{}]", frameIndex));
     pDevice->setDebugName(depthImageView.imageView, VK_OBJECT_TYPE_IMAGE_VIEW,
                           std::format("depthImageView[{}]", frameIndex));
     pDevice->setDebugName(uniformBuffer.handle, VK_OBJECT_TYPE_BUFFER, std::format("uniformBuffer[{}]", frameIndex));
@@ -191,7 +191,7 @@ void FrameManager::replayCmd(const pd::CommandPayload& payload, uint32_t frameIn
               .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
               .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
               .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-              .image = frame.depthImage.image,
+              .image = frame.depthImage.handle,
               .subresourceRange{
                   .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
                   .levelCount = 1,

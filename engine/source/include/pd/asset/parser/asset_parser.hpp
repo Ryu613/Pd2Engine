@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pd/asset/asset_types.hpp"
+
 namespace pd {
 class Asset;
 class IAssetParser {

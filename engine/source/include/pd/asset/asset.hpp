@@ -8,31 +8,38 @@
 
 namespace pd {
 
-class TextureData {
- public:
-  struct Props {
-    std::string mPath;
-    u32 width = 0;
-    u32 height = 0;
-    // format
-  };
-  TextureData(const DataInfo& info, const Props& props, std::vector<uint8_t>&& pixels)
-      : mDataInfo(info),
-        mProps(props),
-        mPixels(std::move(pixels)) {}
+// class TextureData {
+//  public:
+//   struct Props {
+//     std::string mPath;
+//     u32 width = 0;
+//     u32 height = 0;
+//     // format
+//   };
+//   TextureData(const DataInfo& info, const Props& props, std::vector<uint8_t>&& pixels)
+//       : mDataInfo(info),
+//         mProps(props),
+//         mPixels(std::move(pixels)) {}
 
-  DEFAULT_MOVABLE(TextureData);
-  DELETE_COPY(TextureData);
+//   DEFAULT_MOVABLE(TextureData);
+//   DELETE_COPY(TextureData);
 
-  const DataInfo& info() const noexcept { return mDataInfo; }
-  const Props& props() const noexcept { return mProps; }
-  std::span<const uint8_t> getPixels() const noexcept { return mPixels; }
+//   const DataInfo& info() const noexcept { return mDataInfo; }
+//   const Props& props() const noexcept { return mProps; }
+//   std::span<const uint8_t> getPixels() const noexcept { return mPixels; }
 
- private:
-  DataInfo mDataInfo;
-  Props mProps;
-  std::vector<uint8_t> mPixels;
+//  private:
+//   DataInfo mDataInfo;
+//   Props mProps;
+//   std::vector<uint8_t> mPixels;
+// };
+
+struct TextureData {
+  std::string name;
+  std::string uri;
 };
+
+struct MaterialData {};
 
 using VertexData = pd::Vertex;
 
@@ -47,17 +54,13 @@ struct MeshData {
   std::vector<SubMesh> subMeshes;
 };
 
+// 一个submesh算一个node，与gltf原本不同
 struct SceneNode {
   std::string name;
   math::vec3 pos{};
   math::vec3 eulerAngles{};
   math::vec3 scale{1.f};
   u32 meshId = invalidAssetId;
-  u32 albedoTextureId = invalidAssetId;
-  u32 normalTextureId = invalidAssetId;
-  // u32 parentIndex = invalidAssetId;
-  // u32 firstChild = invalidAssetId;
-  // u32 nextSibling = invalidAssetId;
 };
 
 struct ShaderInfo {
@@ -100,15 +103,17 @@ class GltfAsset : public Asset {
   DELETE_COPY(GltfAsset);
   std::span<const TextureData> textures() const noexcept { return mTextures; }
   std::span<const MeshData> meshes() const noexcept { return mMeshes; }
+  std::span<const MaterialData> materials() const noexcept { return mMaterials; }
   std::span<const SceneNode> nodes() const noexcept { return mNodes; }
 
  private:
   friend class AssetManager;
   friend class GltfParser;
 
-  std::vector<TextureData> mTextures;
-  std::vector<MeshData> mMeshes;
   std::vector<SceneNode> mNodes;
+  std::vector<TextureData> mTextures;
+  std::vector<MaterialData> mMaterials;
+  std::vector<MeshData> mMeshes;
 
   explicit GltfAsset(AssetIdType id, CreateInfo info)
       : Asset(id, info) {}

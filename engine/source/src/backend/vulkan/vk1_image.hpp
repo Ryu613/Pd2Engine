@@ -6,6 +6,7 @@ namespace vk1 {
 struct Vk1Image {
   VkImage handle = VK_NULL_HANDLE;
   VmaAllocation allocation{};
+  VmaAllocationInfo allocationInfo{};
   VkFormat format;
   VkExtent3D extent;
   uint32_t mipLevels = 1;

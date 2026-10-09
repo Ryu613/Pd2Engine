@@ -69,14 +69,6 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
   if (auto res = parseScene(assetGltf, gltfAsset, scene0); !res) {
     return res;
   }
-  // 2.2 解析网格数据
-  // parseMeshes(asset, gltfAsset);
-  // 2.3 解析texture(samplers)
-  //   parseTextures(asset, gltfAsset);
-  //   // 2.4 解析material
-  //   parseMaterials(asset, gltfAsset);
-  //   // 2.5 解析scene,目前默认只解析第一个场景
-  //   size_t scene0 = gltfAsset.defaultScene.value_or(0);
   return {};
 }
 
@@ -95,26 +87,31 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
 //   }
 // }
 
-Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
-  const auto materialTextureId = [&](u32 materialIndex, bool normalTexture) {
-    const auto& material = gltfAsset.materials[materialIndex];
+TextureData GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t imageIndex) noexcept {
+  auto& image = gltfAsset.images[imageIndex];
 
-    size_t texIndex = -1;
-    if (normalTexture) {
-      PD_ASSERT_MSG(material.normalTexture.has_value(), "material normal texture invalid!");
-      texIndex = material.normalTexture.value().textureIndex;
-    } else {
-      texIndex = material.pbrData.metallicRoughnessTexture->textureIndex;
-    }
-    PD_ASSERT(texIndex >= 0);
-    auto& texture = gltfAsset.textures[texIndex];
-    if (texture.imageIndex.has_value()) {
-      const auto imageIndex = texture.imageIndex.value();
-      const auto& image = gltfAsset.images[imageIndex];
-    } else {
-      PD_ASSERT_MSG(false, "not supported texture image format");
-    }
-  };
+  return TextureData{};
+}
+MaterialData GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset,
+                                       size_t materialIndex) noexcept {
+  auto& material = gltfAsset.materials[materialIndex];
+  if (!material.pbrData.baseColorTexture.has_value()) {
+    LOG_WARN("material [{}] base color texture 缺失", materialIndex);
+  }
+  // shortcut: use base color texture
+  u32 texIndex = material.pbrData.baseColorTexture->textureIndex;
+  auto& texture = gltfAsset.textures[texIndex];
+  if (!texture.imageIndex.has_value()) {
+    LOG_WARN("material [{}] texture的image index为空!", materialIndex);
+    return MaterialData{};
+  }
+  // texture
+  auto textureData = parseTexture(asset, gltfAsset, texture.imageIndex.value());
+  asset.mTextures.push_back(std::move(textureData));
+  return MaterialData{};
+}
+
+Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
   std::function<void(u32, u32, const math::mat4&)> traverseNode = [&](u32 nodeIndex, u32 meshIndex,
                                                                       const math::mat4& parentTransform) {
     const fastgltf::Node& gltfNode = gltfAsset.nodes[nodeIndex];
@@ -192,10 +189,11 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
         const auto worldTransform = parentTransform * localTransform;
         auto node = makeParsedNode(nodeIndex, worldTransform);
         node.meshId = primitiveIndex;
-        // materials & textures
+        // materials
         if (primitive.materialIndex.has_value()) {
           u32 materialIndex = primitive.materialIndex.value();
-          node.albedoTextureId = materialTextureId(materialIndex);
+          auto materialData = parseMaterial(asset, gltfAsset, materialIndex);
+          asset.mMaterials.push_back(std::move(materialData));
         }
         asset.mNodes.push_back(node);
       }

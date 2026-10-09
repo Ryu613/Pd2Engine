@@ -315,14 +315,15 @@ Vk1Image Vk1Device::createImage(VkFormat format, uint32_t width, uint32_t height
       .usage = VMA_MEMORY_USAGE_AUTO,
   };
   Vk1Image image;
-  checkResult(vmaCreateImage(mAllocator, &createInfo, &allocCI, &image.image, &image.allocation, nullptr));
-  assert(image.image);
+  checkResult(
+      vmaCreateImage(mAllocator, &createInfo, &allocCI, &image.handle, &image.allocation, &image.allocationInfo));
+  assert(image.handle);
   return image;
 }
 
 void Vk1Device::destroyImage(Vk1Image& image) {
-  if (image.image) {
-    vmaDestroyImage(mAllocator, image.image, image.allocation);
+  if (image.handle) {
+    vmaDestroyImage(mAllocator, image.handle, image.allocation);
   }
 
   image = {};
@@ -332,7 +333,7 @@ Vk1ImageView Vk1Device::createImageView(const Vk1Image& vk1Image, VkFormat forma
                                         VkImageSubresourceRange subResourceRange) {
   VkImageViewCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-      .image = vk1Image.image,
+      .image = vk1Image.handle,
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
       .format = format,
       .subresourceRange = subResourceRange,

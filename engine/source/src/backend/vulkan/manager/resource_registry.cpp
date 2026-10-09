@@ -341,14 +341,9 @@ pd::HwTextureHandle ResourceRegistry::createTexture(const pd::TextureCreateDesc&
       .mipLevels = createInfo.mipLevels,
       .arrayLayers = createInfo.arrayLayers,
   };
-  checkResult(vmaCreateImage(mDevice->getAllocator(), &createInfo, &allocCI, &image.image, &image.allocation, nullptr));
+  checkResult(vmaCreateImage(mDevice->getAllocator(), &createInfo, &allocCI, &image.handle, &image.allocation,
+                             &image.allocationInfo));
   assert(image.handle);
-
-  VmaAllocation vmaAllocation;
-  VmaAllocationInfo allocationInfo;
-  vmaGetAllocationInfo(mDevice->getAllocator(), vmaAllocation, &allocationInfo);
-
-  image.allocation = vmaAllocation;
 
   Slot<pd::Texture_t, Vk1Image> slot{
       .gen = 0,
