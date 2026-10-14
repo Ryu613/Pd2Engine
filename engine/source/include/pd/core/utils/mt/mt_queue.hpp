@@ -14,6 +14,7 @@ namespace mt {
  * @note T需要保证移动构造不抛异常
  * @warning 不要在T的构造函数和赋值操作符调用此容器的成员函数
  * @version 0.1
+ * @todo 并行度低，全api加锁
  */
 template <typename T>
 class Queue {
