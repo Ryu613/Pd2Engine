@@ -43,8 +43,10 @@ class ResourceManager {
   template <typename Tag>
   using Handle = ResourceHandle<Tag>;
 
+  // 外部使用的tag找到内部存储的resource类型
   template <typename Tag>
   using StoredResource = typename TagInfo<Tag>::Resource;
+  // 外部使用的tag找到内部对应的tag
   template <typename Tag>
   using StoredTag = typename TagInfo<Tag>::Tag;
 
@@ -82,7 +84,7 @@ class ResourceManager {
   Backend* mBackend = nullptr;
 
   /**
-   * 用asset信息判重，规则:
+   * 用asset信息判重，为方便调试，目前用string实现，规则:
    * 1. 若为单个资产，用路径区分(asset里的path)
    * 2. 若为复合资产: prefab resource用asset的path,
    * 包含的各种resource用asset的path加这个asset里面的子数据里的name进行拼接，用冒号隔开,如assets/gltf/a.gltf:mesh_0_0表示a.gltf里的mesh0里的submesh0
@@ -136,6 +138,7 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
   auto regIt = mRegistry.find(resourceName);
   if (regIt != mRegistry.end()) {
     LOG_INFO("asset duplicate! asset id:{}", asset->id());
+    regIt.value().refCount++;
     Handle<ReturnTag> duplicateHandle{.data = {
                                           .id = regIt->second.handle.id,
                                           .gen = regIt->second.handle.gen,

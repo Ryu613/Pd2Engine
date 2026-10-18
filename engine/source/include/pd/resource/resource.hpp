@@ -4,6 +4,10 @@
 #include "pd/asset/asset_types.hpp"
 
 namespace pd {
+/**
+ * @brief 资源基类，统一和规范化资源的操作接口，存储资源通用信息
+ *
+ */
 class Resource {
  public:
   virtual ~Resource();
