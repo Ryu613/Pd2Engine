@@ -32,28 +32,26 @@ Engine::~Engine() noexcept {
 }
 
 Result<void> Engine::shutdown() noexcept {
-  if (!mInitialized) {
-    return {};
-  }
   LOG_INFO("shutdown engine");
-
-  if (auto res = mRenderer.destroy(); !res) {
-    return res;
-  }
-  if (auto res = mSceneManager.destroy(); !res) {
-    return res;
-  }
-  if (auto res = mResourceManager.destroy(); !res) {
-    return res;
-  }
-  if (auto res = mAssetManager.destroy(); !res) {
-    return res;
-  }
-  if (auto res = mBackend.destroy(); !res) {
-    return res;
-  }
-  if (auto res = mPlatform.destroy(); !res) {
-    return res;
+  if (mInitialized) {
+    if (auto res = mRenderer.destroy(); !res) {
+      return res;
+    }
+    if (auto res = mSceneManager.destroy(); !res) {
+      return res;
+    }
+    if (auto res = mResourceManager.destroy(); !res) {
+      return res;
+    }
+    if (auto res = mAssetManager.destroy(); !res) {
+      return res;
+    }
+    if (auto res = mBackend.destroy(); !res) {
+      return res;
+    }
+    if (auto res = mPlatform.destroy(); !res) {
+      return res;
+    }
   }
 
   global::destroyContext();
@@ -112,8 +110,10 @@ void Engine::runImpl() noexcept {
 }
 
 void Engine::loop() noexcept {
-  while (!mPlatform.windowSystem().shouldClose()) {
+  auto& windowSystem = mPlatform.windowSystem();
+  while (!windowSystem.shouldClose()) {
     mPlatform.processEvents();
+
     mSceneManager.updateScene(0);
 
     mRenderer.renderFrame();
@@ -123,7 +123,13 @@ void Engine::loop() noexcept {
 }
 
 Result<void> Engine::stop() noexcept {
-  // todo: destroy resources
+  // reset scene data, status
+  if (auto res = mSceneManager.unloadScene(); !res) {
+    return res;
+  }
+  // todo: clear cached resources
+  // todo: clear cached materials
+  // todo: clear cached assets
   return {};
 }
 

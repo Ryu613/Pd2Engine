@@ -196,7 +196,7 @@ WindowSystem <.. Backend
 . Asset模块设计
 . Scene模块设计
 . Backend模块设计
-. Vulkan模块设计
+. Vulkan/RHI模块设计
 . App模块设计
 
 每个模块的具体设计详见模块设计
@@ -208,3 +208,10 @@ WindowSystem <.. Backend
 == 开发边界
 
 . 插件系统，脚本系统，编辑器等视作后期扩展功能，此阶段暂时不实现
+
+== 测试/验收方法
+
+.保证核心功能跑通
+. 打开项目BUILD_TESTS开关，代码见engine/source/test
+. 用测试用例验收，保证每个子系统核心功能跑通，不保证场景覆盖
+. 引擎跑通samples
