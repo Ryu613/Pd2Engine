@@ -1,0 +1,157 @@
+= 资产管理模块
+
+== 职责和设计思路整理
+
+. 引擎所有需要读入的外部资产，都由asset manager负责
+. am会把外部资产文件读取并转换为统一的内部格式，叫Asset
+. asset会注册到rm中，rm会把asset拆成具体的各类resource并管理
+. asset只有一份，但是允许多个实例
+. asset只有原始数据，不与其它系统耦合，比如rm, scene manager等
+.. 只有rm会与其打交道，rm会把asset注册为resource
+. am应该可以支持多种文件格式的读取解析，包括预制件，复合类型资产,比如gltf
+. am可支持做出额外资产文件处理，比如利用mesh optimizer做mesh优化等
+. am只依赖filesystem接口,不与其他模块,比如resource manager, scene manager耦合
+. am有判重功能，且缓存asset资产转换后数据
+
+== 本版边界
+
+. 架构具备扩展性，包括预留多种类型资产加载的能力
+. 实现gltf和ktx的读取，解析，转换，运行时加载，正确渲染
+. 支持pbr材质
+. 不实现gltf的蒙皮，动作，多场景解析
+. 不实现gltf修改，导出
+
+== 资产，资源，resource handle, RHI资源和handle的关系
+
+* 文件输入到asset mgr，判重，输出为资产(包)
+* 用户把资产 注册到 resource mgr，唯一标识为资产id, 注册就是指把资产包解开，把一个个资产转为对应的资源，并且保存这些资源
+** 注意，此处原始数据(比如顶点数据，纹理像素数据等)不会转移，resource只读，由asset mgr去缓存资产数据
+** 如果不需要缓存，要保证资源确实被加载到CPU(或GPU中)，再清除缓存
+** 复合资源通过handle引用基础资源，不拥有基础资源，基础资源拥有rhi资源
+** rhi资源没有独立的资源管理器，GPU侧的资源生命周期与对应的resource绑定，是为了降低系统复杂度，统一处理
+* 资产只是一组数据，跟用途没关系，用途通过注册时给出tag确定，管理策略也根据tag确定
+
+[plantuml]
+----
+class Resource {
+    资源保持唯一，基类
+    此处有必要接口和实现分离，接口还带有AOP能力，同意执行逻辑，方便debug
+    资源的拥有者是Resource Manager,外部通过带类型的handle引用
+    ==
+    + void load()
+    + void unload()
+    ==
+    # virtual void doLoad()
+    # virtual void doUnload()
+    ==
+
+    - uint32_t mId
+    - uint32_t mAssetId
+    - string mName
+    - ResourceStatus mStatus
+}
+class BufferResource extends Resource {
+    buffer 属于基础资源，其可以单独存在，也可以被其他复合类型的资源包含
+    通过handle表示关联关系
+    ==
+    Hw开头代表RHI资源句柄
+    - HwBufferHandle mBufferHandle;
+}
+class TextureResource extends Resource {
+    texture也属于基础资源
+    ==
+    - HwTextureHandle mTextureHandle
+}
+class ShaderResource extends Resource {
+    基础资源
+    ==
+    - HwShaderModuleHandle mShaderModuleHandle;
+}
+class MeshResource extends Resource {
+    复合资源
+    ==
+    - BufferHandle mVertexBufferHandle
+    - BufferHandle mIndexBufferHandle
+}
+
+class PrefabResource extends Resource {
+    复合资源
+    ==
+    - vector<MeshHandle> mMeshHandles;
+}
+
+class ResourceEntry {
+    - Handle handle
+    - uint32_t refCount
+    - bool isAlive
+}
+
+class ResourceManager {
+    包含判重和资源记录
+    包含各种资源的存储结构
+    基础和复合资源的计数是分开的，复合资源会同时更新包含的基础资源的计数
+    Tag用于支持同种资源根据用途和生命周期特征不同分开管理
+    Tag分为对内Tag和对外Tag，是一对多的关系
+    ==
+    - unordered_map<AssetId, ResourceEntry> mRegistry
+    - Storage<{ResourceType}, {ResourceTag}> mXxxStorage;
+    ...
+}
+
+ResourceManager *-- BufferResource
+ResourceManager *-- TextureResource
+ResourceManager *-- MeshResource
+ResourceManager *-- PrefabResource
+ResourceManager *-- ShaderResource
+ResourceManager *-- ResourceEntry
+----
+
+[plantuml]
+----
+class Asset {
+    唯一性通过路径保证, id由asset mgr生成
+    info包括路径名称，解析方法等
+    ==
+    - uint32_t mId
+    - AssetInfo mInfo
+}
+class GltfAsset extends Asset {
+    - vector<SceneNode> mNodes
+    - vector<MeshData> mMeshes
+    - vector<TextureData> mTextures
+    - vector<GltfPbrMaterialData> mMaterials
+}
+
+class TextureAsset extends Asset {
+    - TextureData mData
+}
+class ShaderAsset extends Asset {
+    包含反射信息
+    ==
+    - vector<uint8_t> mSpirvCode
+}
+class AssetManager{}
+interface AssetParser {
+    + virtual void parse(Asset& asset)
+}
+class GltfParser extends AssetParser{
+    -TextureCompiler
+}
+class ShaderParser extends AssetParser{
+    - ShaderCompiler mCompiler;
+}
+class ShaderCompiler {
+    通过构建时确定具体的shader语言引入对应的cpp，此处使用了pimpl
+    ==
+    + ShaderData compile(const ShaderDesc& spec)
+}
+class TextureCompiler {
+    - unordered_map<DecoderType, TextureDecoder*> mDecoders
+}
+interface TextureDecoder {}
+class Ktx2Decoder extends TextureDecoder {}
+class StbDecoder extends TextureDecoder {}
+class AssetManager {
+    -
+}
+----

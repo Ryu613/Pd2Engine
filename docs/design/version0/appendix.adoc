@@ -1,0 +1,26 @@
+= 附录
+
+== 参考资料
+
+. 架构设计相关
+.. Game Engine Architecture
+.. Clean Architecture
+.. vulkan.org - building a Simple Engine
+.. Google - Filament
+.. KDAP - KDGpu
+.. NVIDIA - NvRHI
+
+. 技术相关
+.. {cpp} core guideline
+.. modern CMake for {cpp}
+.. real time rendering
+.. vkguide.dev - vulkan guide
+.. vulkan programming guide
+.. vulkan cookbook
+.. modern vulkan cookbook
+.. mastering graphics programming with vulkan
+.. howtovulkan.com by Sascha Willems
+.. vulkan samples by Sascha Willems
+.. siggraph 2026 - vk tutorial
+
+还有许多参考资料，由于没有一一记录，此处略

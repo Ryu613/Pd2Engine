@@ -1,0 +1,259 @@
+= Engine
+
+具体代码见engine.hpp
+
+== 职责
+
+. 主入口
+. 暴露必要API给外部操作，尽量简单
+. 掌管公共服务，全局对象
+. 拥有全部子系统，掌管子系统生命周期
+. 确定顶层骨架调用链
+. 其他需要全局协调的相关事务
+
+== 设计思路
+
+. 可看成是一个子系统容器，也是一个顶层全局调度，协调者
+. 全局核心事务和跨系统的重要事务由引擎负责，具体事务由子系统自己内部控制
+. 子系统之间的非核心调用将通过事件系统解耦
+. main loop由其驱动
+. 跨平台相关处理放在在engine内部，由Platform层负责，engine使用者不用特别处理平台相关事务
+. 不做单例，子系统事实上也只有一个实例，由引擎类保障
+
+== 边界
+
+. 本版不做:
+.. 事件系统
+.. 调试/剖析器
+.. 集成自定义内存管理器
+.. 多线程化
+... 只实现主线程串行执行
+
+== 核心调用链
+
+=== 引擎生命周期
+
+[NOTE]
+====
+* 为了简化表述，此图未说明多线程和异步过程
+* 只有架构高层级模块和核心步骤，子系统具体调用步骤参考系统设计和模块设计文档
+* Engine区别于其他模块，其不是一个平级概念，而是一个顶层协调者，具体执行逻辑由各个子系统负责
+* Application是独立模块，只依赖整个引擎库
+* 资源，资产，场景数据处理会委托job system的独立线程完成任务
+* 主线程与后端线程独立,主线程只管理全局统筹相关事务，执行main loop,录制渲染命令，后端线程只处理渲染底层逻辑
+* 具体技术细节此处不赘述，详见模块设计文档
+====
+
+[plantuml]
+....
+actor developer as User
+group 构造
+    User -> Application++: new App()
+    Application -> Engine++: new Engine()
+    Engine -> Engine: init common services(logger, arena, job system, etc)
+    Engine -> Platform++: new
+    Engine -> Backend++: new
+    Engine -> ResourceManager++: new
+    Engine -> AssetManager++: new
+    Engine -> SceneManager++: new
+    Engine -> Renderer++: new
+    Application <-- Engine: engine construction finished
+    User <-- Application: App construction finished
+end
+group 初始化
+    User -> Application: init()
+    Application -> Engine: init()
+    Engine -> Platform: platform.init()
+    Engine <-- Platform: platform init finished
+    Engine -> Platform: create window
+    Engine -> Backend: init(window handle)
+    Engine -> ResourceManager: init()
+    Engine -> AssetManager: init()
+    Engine -> SceneManager: init()
+    Engine -> Renderer: init()
+    Application <-- Engine: engine init finished
+    User <-- Application: app init finished
+end
+group 运行
+    User -> Application: run()
+    Application -> Engine: run()
+    Engine -> SceneManager: load scene
+    SceneManager -> AssetManager: load asset
+    AssetManager -> AssetManager: load file, convert file to Asset data
+    SceneManager <-- AssetManager: finished asset file loading & parsing
+    SceneManager -> ResourceManager: register assets
+    SceneManager -> SceneManager: build scene data 
+    SceneManager -> ResourceManager: load resources
+    ResourceManager -> Backend: load registered backend resources
+    Engine <-- SceneManager: finished scene loading
+    loop
+        Engine -> Platform: poll events and execute callbacks
+        Engine -> SceneManager: update scene data
+        Engine -> Renderer: begin rendering
+        Renderer -> Renderer: prepare rendering context data
+        Renderer -> Backend: new render frame
+        Backend -> Backend: acquire next swapchain image, prepare frame data
+        Renderer <-- Backend: new frame ready
+        Renderer -> Renderer: render graph setup, compile, execute
+        Renderer -> Backend: submit recorded rendering commands
+        Backend -> Backend: execute commands
+        Renderer -> Backend: end frame
+        Backend -> Backend: end commands, end rendering, present etc.
+        Renderer <-- Backend: ended frame
+        Renderer -> ResourceManager: update deletion queue
+    end
+end
+group 用户停止或停止事件触发
+    User -> Application: stop() or engine stop event triggered
+    Application -> Engine: stop()
+    Engine -> Engine: wait job system idle
+    Engine -> Platform: stop event
+    Engine -> Renderer: stop rendering
+    Renderer -> Backend: wait idle
+    Engine <-- Renderer: finished renderer stop
+    Engine -> SceneManager: unload scene
+    SceneManager -> SceneManager: clear scene data, reset status
+    SceneManager -> ResourceManager: unload resources
+    ResourceManager -> ResourceManager: unload scene resources
+    ResourceManager -> Backend: unload backend resources
+    Engine <-- SceneManager: finished stop scene
+    Application <-- Engine: finished engine stop
+    User <-- Application: finished app stop
+end
+group 销毁
+    User -> Application: delete App
+    Application -> Engine: destroy()
+    Engine -> Renderer: destroy()
+    deactivate Renderer
+    Engine -> SceneManager: destroy()
+    deactivate SceneManager
+    Engine -> AssetManager: destroy()
+    deactivate AssetManager
+    Engine -> ResourceManager: destroy()
+    deactivate ResourceManager
+    Engine -> Backend: destroy()
+    deactivate Backend
+    Engine -> Platform: destroy()
+    deactivate Platform
+    Engine -> Engine: destroy common services
+    Application <-- Engine: finished engine destroy
+    Application -> Engine: delete engine
+    deactivate Engine
+    User <-- Application: finished app delete
+    deactivate Application
+end
+....
+
+=== 类结构图
+
+核心类结构及关系如下：
+
+[NOTE]
+====
+* 此处只展示整体代码框架，包含核心成员和类层级及其关系，不包含所有成员
+* 为减轻文档负担，具体成员的声明参考实际代码
+====
+
+[plantuml]
+....
+class Application {
+    封装引擎调用以方便用户使用,加载默认配置和常用资源
+    ==
+    - Engine mEngine
+}
+
+class Engine {
+    协调子系统运行, 提供操作接口，尽量轻，不负责具体逻辑
+    ==
+    - Platform mPlatform
+    - Backend mBackend
+    - ResourceManager mResourceManager
+    - AssetManager mAssetManager
+    - SceneManager mSceneManager
+    - Renderer mRenderer
+}
+class AssetManager {
+    离线资源加载，转换
+    ==
+}
+class ResourceManager {
+    运行时资源管理
+    ==
+}
+class SceneManager {
+    场景管理器：负责场景相关数据统一处理，场景描述，场景
+    ==
+    - Scene mScene
+}
+Interface Platform {
+    平台隔离接口, 构建时确定
+    ==
+}
+Interface IFileSystem{
+    文件系统接口,运行时多态
+    ==
+}
+class StdFileSystem implements IFileSystem {
+    std实现的文件系统
+    ==
+}
+class PlatformWin32 implements Platform {
+    windows平台实现，构建时确定
+    ==
+    - IFileSystem* mFileSystem
+    - WindowSystem mWindowSystem
+}
+Interface WindowSystem {
+    窗口系统接口，构建时确定
+    ==
+}
+class WindowSystemSDL3 implements WindowSystem {
+    SDL3窗口系统
+    ==
+    -SDLWindow* mWindow
+}
+Interface Backend {
+    渲染后端(图形API)接口, 构建时确定
+    ==
+}
+class BackendVulkan implements Backend {
+    vulkan后端实现
+    ==
+}
+class Renderer {
+    渲染器: 指定渲染流程，构建RG,调用渲染后端执行绘制
+    ==
+    - RenderGraph mRg
+    - MaterialSystem mMs
+}
+class Scene {
+    场景描述和相关数据
+    ==
+}
+class View {
+    视图：决定在场景中如何看，怎么看
+    ==
+    - Viewport mViewport
+    - Camera mMainCamera
+}
+
+Application *-- Engine
+Engine o-- Platform
+Engine o-- Backend
+Engine o-- Renderer
+Engine o-- ResourceManager
+Engine o-- AssetManager
+Engine o-- SceneManager
+PlatformWin32 *-- WindowSystem
+PlatformWin32 *-- IFileSystem
+ResourceManager o-- Backend
+AssetManager o-- IFileSystem
+SceneManager "1"*--"1" Scene
+SceneManager "1"*--"n" View
+SceneManager o-- ResourceManager
+SceneManager o-- AssetManager
+Scene "1"o--"n" View
+Renderer o-- Backend
+Renderer o-- SceneManager
+WindowSystem <.. Backend
+....

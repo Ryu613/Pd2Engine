@@ -1,0 +1,28 @@
+= 渲染前端
+
+[NOTE]
+====
+此模块设计改动较大，文档很可能不准确, 正在更新中
+====
+
+== 设计思路
+
+. 只负责具体的渲染命令编排，同步命令调用，和录制，不负责后端如何执行
+. 依赖backend
+.. backend用来执行需要的底层渲染操作
+. 通过render graph去控制整个rendering pipeline
+. 构建并管理每个渲染帧数据
+. gui作为子模块
+. 材质系统作为子模块
+
+== 功能
+
+. render pass
+. render graph
+. shading path(deferred/forward)
+. pbr， ibl, directional shadow, tonemap
+
+== 边界
+
+. 不直接操作和接触RM和RHI层的资源，只描述操作过程
+. 以实现功能为主，设计上采用数据驱动和自动rg，架构上会预留扩展空间，但暂不保证测试覆盖，和性能

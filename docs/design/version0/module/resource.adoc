@@ -1,0 +1,78 @@
+= 资源管理模块
+
+== 职责和边界
+
+. 资源指的是运行时资源，与资产作出区分，资源管理由resource manager负责，资产管理由asset manager负责
+. 负责整个引擎的运行时资源的加载，卸载，防重，状态，缓存，生命周期管理，对外提供操作资源的接口
+. 同时负责资源对应GPU侧资源的生命周期
+. 但是不负责材质系统，管线相关的资源
+. 不碰文件加载，只管理运行时资源
+. 不做资产预处理，只管理处理成内部格式的数据
+
+== 设计思路
+
+. 引擎所有运行时资源都通过resource manager管理，外部不可自行持有或管理资源，而是通过handle访问
+. rm能追踪资源状态，能够管理和分发handle
+. 支持多线程异步，异步任务分派给job system执行
+. 资源系统只依赖backend以便调度GPU资源，GPU侧资源会与运行时资源对应，关系是n对n
+. 资源的真正卸载取决于引用计数
+
+== handle
+
+. handle是一种资源凭证
+. rm的handle是带类型的，方便区分不同类型的资源
+. 为了避免ABA问题，及预留未来热重载扩展性，handle带分代信息，表示版本号
+. handle的生成，包括id分发由RM负责
+. handle可拷贝可移动
+
+== resource
+
+. 运行时资源主要两种，与GPU资源一对一的类型，比如texture对应rhi texture, buffer对应rhi buffer,也包括复合型资源，这种资源是一对多的关系，比如一个mesh resource可能包含多个rhi buffer等
+. 与rhi层表示的GPU资源是N对N关系
+. resource实例是唯一的，但是多个handle可对应同一个resource，resource的嵌套包含通过resource的handle对应，不能resource套resource
+. 引用计数由rm负责，resource自身不负责记录计数
+. resource标签化，用于区分handle类型和支持别名系统，支持分门别类使用不同的存储器和存储策略
+
+== 本版边界
+
+. 暂不实现流式加载，热重载,但是设计上预留空间，比如分代handle,资源带状态，resource类型和标签隔离能力等
+
+== 核心调用链梳理
+
+[plantuml]
+....
+actor developer as User
+group 资产文件读取，资源加载，场景加载
+    Engine -> Engine: run()
+    Engine -> SceneManager: loadScene()
+    SceneManager -> SceneManager: reset scene data
+    SceneManager -> SceneDescriptor: onSceneLoad()
+    SceneDescriptor -> AssetManager: parseAsset()
+    AssetManager -> AssetParser: parse()
+    AssetManager <-- AssetParser: new Asset
+    AssetManager -> AssetManager: own Asset
+    SceneDescriptor <-- AssetManager: parsed Asset
+    SceneDescriptor -> ResourceManager: register Asset
+    ResourceManager -> ResourceManager: convert asset to resources, register info, own resources data
+    SceneDescriptor <-- ResourceManager: finished assets register
+    SceneDescriptor -> ResourceManager: load resources
+    ResourceManager -> Backend: load gpu resources
+    Backend -> Backend: load resources, return Handles
+    ResourceManager <-- Backend: finished gpu resources loading
+    SceneDescriptor <-- ResourceManager: finished resources loading
+    SceneDescriptor -> SceneManager: create Scene entities
+    SceneDescriptor -> SceneDescriptor: set scene entities transforms, cameras, resources handle binding etc.
+    SceneManager <-- SceneDescriptor: finished onSceneLoad()
+end
+group 资源更新
+    Engine -> SceneManager: updateScene()
+    SceneManager -> SceneDescriptor: onSceneUpdate()
+    SceneDescriptor -> SceneDescriptor: custom per-frame scene data update
+end
+group 资源卸载
+
+end
+group 资产卸载
+
+end
+....
