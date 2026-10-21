@@ -1,6 +1,6 @@
 = Backend模块
 
-即RHI层
+即RHI层，对应代码在backend/下
 
 == 职责
 

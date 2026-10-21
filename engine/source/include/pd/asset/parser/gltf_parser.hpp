@@ -18,7 +18,7 @@ class GltfParser : public IAssetParser {
   DEFAULT_MOVABLE(GltfParser);
   DELETE_COPY(GltfParser);
 
-  Result<void> parse(Asset& asset) noexcept override;
+  Result<void> parse(AssetManager& mgr, Asset& asset) noexcept override;
 
  private:
   IFileSystem* mFs = nullptr;
@@ -31,6 +31,7 @@ class GltfParser : public IAssetParser {
     u32 samplerIndex = invalidAssetId;
     bool operator==(const TextureKey&) const = default;
   };
+
   struct TextureKeyHash {
     size_t operator()(const TextureKey& key) const {
       // high 32 = imageIndex, low 32 = samplerIndex

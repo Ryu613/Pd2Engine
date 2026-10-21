@@ -34,23 +34,6 @@ namespace pd {
 //   std::vector<uint8_t> mPixels;
 // };
 
-struct TextureData {
-  std::string name;
-  std::string uri;
-};
-
-struct GltfPbrMaterialData {
-  static constexpr MaterialType materialType = MaterialType::PbrMetallicRoughness;
-  std::string name;
-  math::vec3 baseColorFactor;
-  u32 baseColorTextureIndex = invalidAssetId;
-  float metallicFactor = 0.0f;
-  float roughnessFactor = 0.0f;
-  u32 metallicRoughnessTextureIndex = invalidAssetId;
-  u32 normalTextureIndex = invalidAssetId;
-  math::vec3 emissiveFactor;
-};
-
 using VertexData = pd::Vertex;
 
 struct MeshData {
@@ -65,7 +48,6 @@ struct MeshData {
   std::vector<SubMesh> subMeshes;
 };
 
-// 一个submesh算一个node，与gltf原本不同
 struct SceneNode {
   std::string name;
   math::vec3 pos{};
@@ -81,11 +63,12 @@ struct ShaderInfo {
 
 class Asset {
  public:
-  struct CreateInfo {
+  struct MetaInfo {
     std::string name;
     std::string path;
-    AssetType parseType = AssetType::Gltf;
-    ShaderInfo shaderInfo;
+    AssetType assetType = AssetType::Gltf;
+    std::optional<ShaderInfo> shaderInfo;
+    // std::optional<TextureInfo> shaderInfo;
   };
 
   ~Asset() = default;
@@ -93,10 +76,10 @@ class Asset {
   DELETE_COPY(Asset);
 
   AssetIdType id() const noexcept { return mId; }
-  const CreateInfo& info() const noexcept { return mInfo; }
+  const MetaInfo& info() const noexcept { return mInfo; }
 
  protected:
-  explicit Asset(AssetIdType id, const CreateInfo& info)
+  explicit Asset(AssetIdType id, const MetaInfo& info)
       : mId(std::move(id)),
         mInfo(info) {}
 
@@ -104,29 +87,105 @@ class Asset {
   friend class AssetManager;
 
   AssetIdType mId;
-  CreateInfo mInfo;
+  MetaInfo mInfo;
 };
 
-class GltfAsset : public Asset {
+class MeshAsset : public Asset {
  public:
-  ~GltfAsset() = default;
-  DEFAULT_MOVABLE(GltfAsset);
-  DELETE_COPY(GltfAsset);
-  std::span<const TextureData> textures() const noexcept { return mTextures; }
-  std::span<const MeshData> meshes() const noexcept { return mMeshes; }
-  std::span<const GltfPbrMaterialData> materials() const noexcept { return mMaterials; }
-  std::span<const SceneNode> nodes() const noexcept { return mNodes; }
+  ~MeshAsset() = default;
+  DEFAULT_MOVABLE(MeshAsset);
+  DELETE_COPY(MeshAsset);
 
  private:
   friend class AssetManager;
   friend class GltfParser;
 
-  std::vector<SceneNode> mNodes;
-  std::vector<TextureData> mTextures;
-  std::vector<GltfPbrMaterialData> mMaterials;
-  std::vector<MeshData> mMeshes;
+  std::vector<VertexData> vertices;
+  std::vector<u32> indices;
+  u32 materialIndex = invalidAssetId;
 
-  explicit GltfAsset(AssetIdType id, CreateInfo info)
+  explicit MeshAsset(AssetIdType id, MetaInfo info)
+      : Asset(id, info) {}
+};
+
+class TextureAsset : public Asset {
+ public:
+  ~TextureAsset() = default;
+  DEFAULT_MOVABLE(TextureAsset);
+  DELETE_COPY(TextureAsset);
+
+ private:
+  friend class AssetManager;
+  friend class GltfParser;
+
+  struct Info {
+    u32 width = 0;
+    u32 height = 0;
+    u32 mipsLevel = 0;
+  };
+
+  Info mInfo;
+  std::string uri;
+
+  explicit TextureAsset(AssetIdType id, MetaInfo info)
+      : Asset(id, info) {}
+};
+
+class GltfAsset : public Asset {
+ private:
+  friend class AssetManager;
+  friend class GltfParser;
+  struct ImageData {
+    std::vector<std::byte> ktx2Data;
+  };
+  struct SamplerData {
+    // todo
+  };
+  struct TextureData {
+    std::string name;
+    u32 imageIndex = invalidAssetId;
+    //   u32 samplerIndex = invalidAssetId;
+  };
+  struct MeshData {
+    struct Primitive {
+      std::string name;
+      std::vector<VertexData> mVertices;
+      std::vector<u32> mIndices;
+      u32 materialIndex = invalidAssetId;
+    };
+    std::string name;
+    std::vector<Primitive> primitives;
+  };
+  struct GltfPbrMaterialData {
+    static constexpr MaterialType materialType = MaterialType::PbrMetallicRoughness;
+    std::string name;
+    math::vec3 baseColorFactor;
+    u32 baseColorTextureIndex = invalidAssetId;
+    float metallicFactor = 0.0f;
+    float roughnessFactor = 0.0f;
+    u32 metallicRoughnessTextureIndex = invalidAssetId;
+    u32 normalTextureIndex = invalidAssetId;
+    math::vec3 emissiveFactor;
+  };
+
+ public:
+  ~GltfAsset() = default;
+  DEFAULT_MOVABLE(GltfAsset);
+  DELETE_COPY(GltfAsset);
+
+  std::span<const SceneNode> nodes() const noexcept { return mNodes; }
+  std::span<const MeshData> meshes() const noexcept { return mMeshes; }
+  std::span<const GltfPbrMaterialData> materials() const noexcept { return mMaterials; }
+  std::span<const TextureData> textures() const noexcept { return mTextures; }
+
+ private:
+  std::vector<SceneNode> mNodes;
+  std::vector<MeshData> mMeshes;
+  std::vector<GltfPbrMaterialData> mMaterials;
+  std::vector<TextureData> mTextures;
+  std::vector<ImageData> mImages;
+
+  explicit GltfAsset(AssetIdType id, MetaInfo info)
       : Asset(id, info) {}
 };
 
@@ -148,14 +207,14 @@ class ShaderAsset : public Asset {
   std::vector<std::byte> mParsedCode;
   ReflectionInfo mReflectionInfo;
 
-  explicit ShaderAsset(AssetIdType id, const CreateInfo& info)
+  explicit ShaderAsset(AssetIdType id, const MetaInfo& info)
       : Asset(id, info) {}
 
   void setParsedCode(std::span<u8> code) noexcept {
     mParsedCode.clear();
     mParsedCode.reserve(code.size());
     std::transform(code.begin(), code.end(), std::back_inserter(mParsedCode),
-                   [](uint8_t b) { return static_cast<std::byte>(b); });
+                   [](u8 b) { return static_cast<std::byte>(b); });
   }
 };
 }  // namespace pd

@@ -24,19 +24,19 @@ class AssetManager {
   Result<void> init() noexcept;
   Result<void> destroy() noexcept;
 
-  Result<AssetHandle> createAsset(const Asset::CreateInfo& assetInfo) noexcept;
-
+  Result<AssetHandle> createAsset(const Asset::MetaInfo& meta) noexcept;
   Result<Asset*> getAsset(AssetHandle handle) noexcept;
 
  private:
   IFileSystem* mFs = nullptr;
 
+  // 资产解析器(处理器)
   std::vector<std::unique_ptr<IAssetParser>> mParsers;
-  // std::vector<std::unique_ptr<ITextureCompiler>> mTexCompilers;
 
   using AssetRegistry = util::RobinMap<AssetPathType, AssetIdType, util::StringHasher>;
   AssetRegistry mRegistry;
 
+  // 资产缓存，主要避免重复处理
   using AssetStorage = util::RobinMap<AssetIdType, std::unique_ptr<Asset>>;
   AssetStorage mStorage;
 

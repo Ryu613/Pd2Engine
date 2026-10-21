@@ -1,6 +1,8 @@
 = 资源管理模块
 
-== 职责和边界
+对应resource/目录
+
+== 职责
 
 . 资源指的是运行时资源，与资产作出区分，资源管理由resource manager负责，资产管理由asset manager负责
 . 负责整个引擎的运行时资源的加载，卸载，防重，状态，缓存，生命周期管理，对外提供操作资源的接口
@@ -36,6 +38,85 @@
 == 本版边界
 
 . 暂不实现流式加载，热重载,但是设计上预留空间，比如分代handle,资源带状态，resource类型和标签隔离能力等
+. 暂不支持多线程
+. 暂不集成内存分配器
+
+== 类设计
+
+[plantuml]
+----
+class Resource {
+    资源保持唯一，基类
+    此处有必要接口和实现分离，接口还带有AOP能力，同意执行逻辑，方便debug
+    资源的拥有者是Resource Manager,外部通过带类型的handle引用
+    ==
+    + void load()
+    + void unload()
+    ==
+    # virtual void doLoad()
+    # virtual void doUnload()
+    ==
+
+    - uint32_t mId
+    - uint32_t mAssetId
+    - string mName
+    - ResourceStatus mStatus
+}
+class BufferResource extends Resource {
+    buffer 属于基础资源，其可以单独存在，也可以被其他复合类型的资源包含
+    通过handle表示关联关系
+    ==
+    Hw开头代表RHI资源句柄
+    - HwBufferHandle mBufferHandle;
+}
+class TextureResource extends Resource {
+    texture也属于基础资源
+    ==
+    - HwTextureHandle mTextureHandle
+}
+class ShaderResource extends Resource {
+    基础资源
+    ==
+    - HwShaderModuleHandle mShaderModuleHandle;
+}
+class MeshResource extends Resource {
+    复合资源
+    ==
+    - BufferHandle mVertexBufferHandle
+    - BufferHandle mIndexBufferHandle
+}
+
+class PrefabResource extends Resource {
+    复合资源
+    ==
+    - vector<MeshHandle> mMeshHandles;
+}
+
+class ResourceEntry {
+    - Handle handle
+    - uint32_t refCount
+    - bool isAlive
+}
+
+class ResourceManager {
+    包含判重和资源记录
+    包含各种资源的存储结构
+    基础和复合资源的计数是分开的，复合资源会同时更新包含的基础资源的计数
+    Tag用于支持同种资源根据用途和生命周期特征不同分开管理
+    Tag分为对内Tag和对外Tag，是一对多的关系
+    ==
+    - unordered_map<AssetId, ResourceEntry> mRegistry
+    - Storage<{ResourceType}, {ResourceTag}> mXxxStorage;
+    ...
+}
+
+ResourceManager *-- BufferResource
+ResourceManager *-- TextureResource
+ResourceManager *-- MeshResource
+ResourceManager *-- PrefabResource
+ResourceManager *-- ShaderResource
+ResourceManager *-- ResourceEntry
+----
 
 == 核心调用链梳理
 

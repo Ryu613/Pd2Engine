@@ -1,5 +1,7 @@
 = vulkan后端
 
+对应backend/vulkan目录
+
 == 设计思路
 
 == shader编译方案

@@ -14,7 +14,7 @@ class ShaderParser : public IAssetParser {
   DEFAULT_MOVABLE(ShaderParser);
   DELETE_COPY(ShaderParser);
 
-  Result<void> parse(Asset& asset) noexcept override;
+  Result<void> parse(AssetManager& mgr, Asset& asset) noexcept override;
 
  private:
   IFileSystem* mFs = nullptr;

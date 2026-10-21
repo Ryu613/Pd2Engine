@@ -5,21 +5,23 @@
 
 :leveloffset: +1
 
-include::module/engine.adoc[]
+. link:module/engine.adoc[引擎设计]
 
-include::module/core.adoc[]
+. link:module/platform.adoc[平台层设计]
 
-include::module/asset.adoc[]
+. link:module/core.adoc[核心层设计]
 
-include::module/resource.adoc[]
+. link:module/asset.adoc[资产层设计]
 
-include::module/scene.adoc[]
+. link:module/resource.adoc[资源层设计]
 
-include::module/rendering.adoc[]
+. link:module/scene.adoc[场景层设计]
 
-include::module/backend.adoc[]
+. link:module/rendering.adoc[渲染前端层设计]
 
-include::module/vulkan.adoc[]
+. link:module/backend.adoc[渲染后端层设计]
+
+. link:module/vulkan.adoc[vulkan后端设计]
 
 :leveloffset: -1
 

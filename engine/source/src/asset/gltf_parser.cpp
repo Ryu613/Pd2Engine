@@ -44,7 +44,7 @@ GltfParser::~GltfParser() {}
 
 Result<void> GltfParser::parse(Asset& asset) noexcept {
   auto& assetGltf = static_cast<GltfAsset&>(asset);
-  const auto& assetPath = asset.info().path;
+  const auto& assetPath = assetGltf.info().path;
   // 读取gltf文件
   std::filesystem::path gltfFilePath{assetPath};
   // 设置根文件目录
@@ -65,7 +65,7 @@ Result<void> GltfParser::parse(Asset& asset) noexcept {
     LOG_ERROR("gltf asset file parse failed: {}, reason: {}", gltfFilePath.string(), fastgltf::getErrorMessage(error));
     return make_error<void>(ErrorCode::AssetParseFailed);
   }
-  // 2.1 创建gltf Asset
+  // 创建gltf Asset
   auto& gltfAsset = gltfAssetRes.get();
   size_t scene0 = gltfAsset.defaultScene.value_or(0);
   if (auto res = parseScene(assetGltf, gltfAsset, scene0); !res) {
@@ -205,7 +205,7 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
           .dataInfo =
               {
                   .dataId = meshIndex,
-                  .name = std::format("node_{}:mesh_{}", nodeIndex, meshIndex),
+                  .name = std::format("mesh_{}", meshIndex),
               },
       };
       meshIndex++;

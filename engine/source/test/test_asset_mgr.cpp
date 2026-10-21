@@ -14,10 +14,10 @@ TEST_CASE("test_gltf_asset", "engine") {
   auto initRes = assetMgr.init();
   REQUIRE(initRes);
 
-  pd::Asset::CreateInfo assetInfo{
+  pd::Asset::MetaInfo assetInfo{
       .name = "box",
       .path = ASSET_DIR "BoxTextured/BoxTextured.glb",
-      .parseType = AssetType::Gltf,
+      .assetType = AssetType::Gltf,
   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);
@@ -38,10 +38,10 @@ TEST_CASE("test_gltf_asset", "engine") {
 //   auto initRes = assetMgr.init();
 //   REQUIRE(initRes);
 
-//   Asset::CreateInfo assetInfo{
+//   Asset::MetaInfo assetInfo{
 //       .name = "pyramid shader",
 //       .path = ASSET_DIR "shader/pyramid/pyramid.slang",
-//       .parseType = AssetType::Shader,
+//       .assetType = AssetType::Shader,
 //   };
 //   auto result = assetMgr.createAsset(assetInfo);
 //   REQUIRE(result);

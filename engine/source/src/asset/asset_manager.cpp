@@ -15,7 +15,7 @@ Result<void> AssetManager::init() noexcept {
 }
 Result<void> AssetManager::destroy() noexcept { return {}; }
 
-Result<AssetHandle> AssetManager::createAsset(const Asset::CreateInfo& assetInfo) noexcept {
+Result<AssetHandle> AssetManager::createAsset(const Asset::MetaInfo& assetInfo) noexcept {
   // 检查文件是否存在，类型是否正确, 文件是否可读
   const auto& assetPath = assetInfo.path;
   auto& fs = *mFs;
@@ -31,26 +31,29 @@ Result<AssetHandle> AssetManager::createAsset(const Asset::CreateInfo& assetInfo
   const auto newId = nextId();
   // 1 创建资产实例
   std::unique_ptr<Asset> newAsset;
-  switch (assetInfo.parseType) {
+  switch (assetInfo.assetType) {
     using enum AssetType;
     case Gltf:
       newAsset = std::unique_ptr<GltfAsset>(new GltfAsset(newId, assetInfo));
       break;
     case Shader:
+      if (!assetInfo.shaderInfo) {
+        return make_error<AssetHandle>(ErrorCode::AssetParseFailed, "shader描述信息不存在!");
+      }
       newAsset = std::unique_ptr<ShaderAsset>(new ShaderAsset(newId, assetInfo));
       break;
     default:
       PD_ASSERT_MSG(false, "asset type not supported!");
   }
   // 2. 生成资产实例
-  auto parseResult = mParsers[static_cast<size_t>(assetInfo.parseType)]->parse(*newAsset);
+  auto parseResult = mParsers[static_cast<size_t>(assetInfo.assetType)]->parse(*this, *newAsset);
   if (!parseResult) {
     return make_error<AssetHandle>(ErrorCode::AssetParseFailed);
   }
   // 3. 记录到资产记录表
   auto [regIt, regOk] = mRegistry.emplace(assetPath, newId);
   PD_ASSERT_MSG(regOk, "asset registry update error!");
-  // 4. 记录到数据库
+  // 4. 存储到数据库
   auto [insIt, insOk] = mStorage.emplace(newId, std::move(newAsset));
   PD_ASSERT_MSG(insOk, "unexpected asset creations!");
 

@@ -10,14 +10,15 @@ ShaderParser::ShaderParser(IFileSystem* fs)
 ShaderParser::~ShaderParser() {}
 
 Result<void> ShaderParser::parse(Asset& asset) noexcept {
+  PD_ASSERT_MSG(asset.info().shaderInfo, "shader info 不存在!");
   auto& shaderAsset = static_cast<ShaderAsset&>(asset);
   auto code = mFs->readFileBinary(shaderAsset.info().path);
   if (code.empty()) {
     return make_error<void>(ErrorCode::AssetFileLoadError);
   }
   ShaderDesc desc{
-      .moduleName = asset.info().shaderInfo.moduleName,
-      .modulePath = asset.info().shaderInfo.modulePath,
+      .moduleName = shaderAsset.info().shaderInfo.moduleName,
+      .modulePath = shaderAsset.info().shaderInfo.modulePath,
       .code = std::as_bytes(std::span{code}),
   };
   auto compileRes = mCompiler.compile(desc);
@@ -28,7 +29,7 @@ Result<void> ShaderParser::parse(Asset& asset) noexcept {
   auto& spirvCode = compileRes.value().spirvCode;
 
   shaderAsset.setParsedCode(spirvCode);
- 
+
   shaderAsset.mReflectionInfo = {
       // todo
   };
