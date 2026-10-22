@@ -5,11 +5,10 @@
 namespace pd {
 class StbDecoder : public ITextureDecoder {
  public:
-  StbDecoder();
-  ~StbDecoder();
-  DELETE_COPY(StbDecoder);
-  DEFAULT_MOVABLE(StbDecoder);
+  StbDecoder() = default;
+  ~StbDecoder() = default;
+  DELETE_COPY_MOVE(StbDecoder);
 
-  Result<std::vector<const std::byte>> decode(TextureData& texData) noexcept override;
+  Result<ImageData> decode(TextureData& texData) noexcept override;
 };
 }  // namespace pd

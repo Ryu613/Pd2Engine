@@ -11,10 +11,9 @@ class TextureCompiler {
  public:
   TextureCompiler();
   ~TextureCompiler();
-  DELETE_COPY(TextureCompiler);
-  DEFAULT_MOVABLE(TextureCompiler);
+  DELETE_COPY_MOVE(TextureCompiler);
 
-  Result<void> compile(TextureData& tex) noexcept;
+  Result<ImageData> compile(TextureData& tex) noexcept;
 
  private:
   util::RobinMap<TextureDecoderType, std::unique_ptr<ITextureDecoder>> mDecoders;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pd/core/utils/traits.hpp"
 #include "pd/resource/resource_manager.hpp"
 #include "pd/asset/asset_manager.hpp"
 #include "pd/rendering/material/material_types.hpp"
@@ -18,7 +19,8 @@ struct Renderable {
 
 // 只允许处理继承了此对象的场景描述类
 template <typename T>
-concept DerivedSceneDescriptor = std::derived_from<T, SceneDescriptor>;
+concept DerivedSceneDescriptor = traits::DerivedWithoutBase<T, SceneDescriptor>;
+
 class SceneManager {
  public:
   explicit SceneManager(ResourceManager* rscMgr, AssetManager* assetMgr);
@@ -46,6 +48,7 @@ class SceneManager {
 
 template <DerivedSceneDescriptor T, typename... Args>
 inline Result<void> SceneManager::initScene(Args&&... args) noexcept {
+  LOG_INFO("initializing scene...");
   mSceneDescriptor = std::make_unique<T>(std::forward<Args>(args)...);
   return {};
 }

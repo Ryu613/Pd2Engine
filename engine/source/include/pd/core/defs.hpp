@@ -52,4 +52,14 @@ enum class InFlightFrame : u8 {
   Double = 2,
   Triple = 3,
 };
+
+enum class EngineStatus : u8 {
+  Constructed,
+  Initialized,
+  Running,
+  Stopping,
+  Stopped,
+  Shutdown,
+  Error = u8_max,
+};
 }  // namespace pd

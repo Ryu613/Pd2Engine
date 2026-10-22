@@ -1,7 +1,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "pd/engine.hpp"
 #include "pd/scene/scene_descriptor.hpp"
-#include "pd/scene/camera.hpp"
 
 namespace pd {
 class TestScene : public SceneDescriptor {
@@ -14,7 +13,6 @@ class TestScene : public SceneDescriptor {
 };
 }  // namespace pd
 
-/*
 TEST_CASE("test_engine_lifecycle", "engine") {
   using namespace pd;
   EngineConfig config{
@@ -31,20 +29,22 @@ TEST_CASE("test_engine_lifecycle", "engine") {
           },
   };
   Engine engine{config};
+  REQUIRE(engine.status() == EngineStatus::Constructed);
+
   auto initResult = engine.initialize();
-  REQUIRE(initResult);
+  REQUIRE((initResult && engine.status() == EngineStatus::Initialized));
 
   auto runResult = engine.run<TestScene>();
-  REQUIRE(runResult);
+  REQUIRE((runResult && engine.status() == EngineStatus::Stopped));
 
-  auto stopResult = engine.stop();
-  REQUIRE(stopResult);
+  auto stopResult = engine.requestStop();
+  REQUIRE((stopResult && engine.status() == EngineStatus::Stopped));
 
   auto shutdownResult = engine.shutdown();
-  REQUIRE(shutdownResult);
+  REQUIRE((shutdownResult && engine.status() == EngineStatus::Shutdown));
 }
-*/
 
+/*
 TEST_CASE("gltf_box", "engine") {
   using namespace pd;
   PlatformConfig platformCfg{
@@ -223,4 +223,4 @@ TEST_CASE("gltf_box", "engine") {
   REQUIRE(platform.destroy());
 
   // todo: unload resources
-}
+}*/

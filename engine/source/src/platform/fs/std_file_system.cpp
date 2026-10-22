@@ -54,8 +54,9 @@ bool StdFileSystem::createDirectory(const Path& path) noexcept {
   return true;
 }
 
-std::vector<uint8_t> StdFileSystem::readChunk(const Path& path, size_t offset,
-                                              size_t count) noexcept {
+Path StdFileSystem::normalizedPath(const Path& path) noexcept { return std::filesystem::absolute(path).lexically_normal(); }
+
+std::vector<uint8_t> StdFileSystem::readChunk(const Path& path, size_t offset, size_t count) noexcept {
   std::ifstream file{path, std::ios::binary | std::ios::ate};
 
   if (!file.is_open()) {

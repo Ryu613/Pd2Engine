@@ -13,15 +13,15 @@ class IFileSystem;
 class GltfAsset;
 class GltfParser : public IAssetParser {
  public:
-  explicit GltfParser(IFileSystem* fs);
+  explicit GltfParser(IFileSystem& fs);
   ~GltfParser() override;
-  DEFAULT_MOVABLE(GltfParser);
-  DELETE_COPY(GltfParser);
+  DELETE_COPY_MOVE(GltfParser);
 
-  Result<void> parse(AssetManager& mgr, Asset& asset) noexcept override;
+  Result<void> parse(Asset& asset) noexcept override;
 
  private:
-  IFileSystem* mFs = nullptr;
+  IFileSystem& mFs;
+
   std::filesystem::path mBasePath;
 
   TextureCompiler mTextureCompiler;
@@ -41,20 +41,19 @@ class GltfParser : public IAssetParser {
   };
 
   struct CacheData {
-    // gltf原texture对应解析后的texture data index
+    // gltf原texture对应解析后的texture data的index
     util::RobinMap<TextureKey, u32, TextureKeyHash> textureIds;
     // material index对应解析后的material data index
     util::RobinMap<u32, u32> materialIds;
   };
   CacheData mCacheData;
 
-  [[deprecated("not been used")]]
-  void parseMeshes(GltfAsset& asset, const fastgltf::Asset& gltfAsset) noexcept;
-
   void parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset, u32& materialTextureIndex, u32 textureIndex,
                     u32 samplerIndex) noexcept;
-  void parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset, MeshData::SubMesh& subMesh,
+  void parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset, GltfAsset::MeshData::Primitive& primitive,
                      u32 materialIndex) noexcept;
   Result<void> parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept;
+
+  GltfAsset::SceneNode makeParsedNode(const u32 nodeIndex, const math::mat4& transform);
 };
 }  // namespace pd

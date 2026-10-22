@@ -16,6 +16,7 @@ class StdFileSystem final : public IFileSystem {
   bool isDirectory(const Path& path) noexcept override;
   bool exists(const Path& path) noexcept override;
   bool createDirectory(const Path& path) noexcept override;
+  Path normalizedPath(const Path& path) noexcept override;
   std::vector<uint8_t> readChunk(const Path& path, size_t offset, size_t count) noexcept override;
   bool writeFile(const Path& path, const std::vector<uint8_t>& data) noexcept override;
   bool remove(const Path& path) noexcept override;

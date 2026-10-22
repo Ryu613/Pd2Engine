@@ -9,7 +9,7 @@
 TEST_CASE("test_gltf_asset", "engine") {
   using namespace pd;
   StdFileSystem fileSystem;
-  AssetManager assetMgr{&fileSystem};
+  AssetManager assetMgr{fileSystem};
 
   auto initRes = assetMgr.init();
   REQUIRE(initRes);
@@ -17,7 +17,7 @@ TEST_CASE("test_gltf_asset", "engine") {
   pd::Asset::MetaInfo assetInfo{
       .name = "box",
       .path = ASSET_DIR "BoxTextured/BoxTextured.glb",
-      .assetType = AssetType::Gltf,
+      .parseType = ParseType::Gltf,
   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);

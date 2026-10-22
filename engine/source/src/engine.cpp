@@ -5,14 +5,22 @@ namespace pd {
 namespace {
 void initContext(GlobalAllocator& allocator) noexcept { global::initContext(allocator); }
 
+template <typename T>
+Result<T> setErrorStatus(EngineStatus& status, Result<T> res) noexcept {
+  status = EngineStatus::Error;
+  LOG_ERROR(res.error().msg);
+  return res;
+}
+
 }  // namespace
 
 Engine::Engine(EngineConfig config) noexcept
     : mConfig{std::move(config)},
+      mStatus(EngineStatus::Stopped),
       mArena{"Engine Heap Allocator", ResourceType::NullResource{}},
       mPlatform(mConfig.platform),
       mResourceManager(&mBackend),
-      mAssetManager(&mPlatform.fileSystem()),
+      mAssetManager(mPlatform.fileSystem()),
       mSceneManager(&mResourceManager, &mAssetManager),
       mRenderer(&mSceneManager, &mBackend) {
   // init common services
@@ -23,51 +31,63 @@ Engine::Engine(EngineConfig config) noexcept
 
   log::logo();
   LOG_INFO("Engine created!");
+
+  mStatus = EngineStatus::Constructed;
 }
 
 Engine::~Engine() noexcept {
   if (auto res = shutdown(); !res) {
-    LOG_ERROR(res.error().msg);
+    std::terminate();
   }
 }
 
 Result<void> Engine::shutdown() noexcept {
   LOG_INFO("shutdown engine");
-  if (mInitialized) {
+  if (mStatus == EngineStatus::Shutdown) {
+    return {};
+  } else if (mStatus == EngineStatus::Constructed) {
+    global::destroyContext();
+    mStatus = EngineStatus::Shutdown;
+    return {};
+  } else {
+    if (auto res = requestStop(); !res) {
+      std::terminate();
+    }
     if (auto res = mRenderer.destroy(); !res) {
-      return res;
+      return setErrorStatus(mStatus, res);
     }
     if (auto res = mSceneManager.destroy(); !res) {
-      return res;
+      return setErrorStatus(mStatus, res);
     }
     if (auto res = mResourceManager.destroy(); !res) {
-      return res;
+      return setErrorStatus(mStatus, res);
     }
     if (auto res = mAssetManager.destroy(); !res) {
-      return res;
+      return setErrorStatus(mStatus, res);
     }
     if (auto res = mBackend.destroy(); !res) {
-      return res;
+      return setErrorStatus(mStatus, res);
     }
     if (auto res = mPlatform.destroy(); !res) {
-      return res;
+      return setErrorStatus(mStatus, res);
     }
+
+    global::destroyContext();
+    mStatus = EngineStatus::Shutdown;
   }
 
-  global::destroyContext();
-
-  mInitialized = false;
   return {};
 }
 
 Result<void> Engine::initialize() noexcept {
+  PD_ASSERT(mStatus == EngineStatus::Constructed);
   if (auto res = mPlatform.init(); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
+    return setErrorStatus(mStatus, res);
+    ;
   }
   if (auto res = mPlatform.windowSystem().createWindow(); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
+    return setErrorStatus(mStatus, res);
+    ;
   }
   BackendConfig backendCfg{
       .windowHandle = mPlatform.windowSystem().nativeWindowHandle(),
@@ -76,61 +96,76 @@ Result<void> Engine::initialize() noexcept {
       .enableDebug = mConfig.enableDebug,
   };
   if (auto res = mBackend.init(backendCfg); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
+    return setErrorStatus(mStatus, res);
   }
   if (auto res = mResourceManager.init(); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
+    return setErrorStatus(mStatus, res);
   }
   if (auto res = mAssetManager.init(); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
+    return setErrorStatus(mStatus, res);
   }
   if (auto res = mSceneManager.init(); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
+    return setErrorStatus(mStatus, res);
   }
   if (auto res = mRenderer.init(); !res) {
-    LOG_ERROR(res.error().msg);
-    return res;
+    return setErrorStatus(mStatus, res);
   }
-  mInitialized = true;
+  mStatus = EngineStatus::Initialized;
   return {};
 }
 
-void Engine::runImpl() noexcept {
+Result<void> Engine::runImpl() noexcept {
+  PD_ASSERT(mStatus == EngineStatus::Initialized);
   // load scene
   if (auto res = mSceneManager.loadScene(); !res) {
-    PD_ASSERT_MSG(res, res.error().msg.data());
+    return setErrorStatus(mStatus, res);
   }
+  mStatus = EngineStatus::Running;
   loop();
-  auto engineStopRes = stop();
-  PD_ASSERT(engineStopRes);
+  return {};
 }
 
 void Engine::loop() noexcept {
   auto& windowSystem = mPlatform.windowSystem();
-  while (!windowSystem.shouldClose()) {
+  while (!windowSystem.shouldClose() && mStatus == EngineStatus::Running) {
     mPlatform.processEvents();
-
-    mSceneManager.updateScene(0);
-
-    mRenderer.renderFrame();
+    tick();
   }
-  auto engineStopRes = stop();
-  PD_ASSERT_MSG(engineStopRes, engineStopRes.error().msg.data());
+  auto res = requestStop();
+  PD_ASSERT(res);
+  // auto engineStopRes = stop();
+  // PD_ASSERT_MSG(engineStopRes, engineStopRes.error().msg.data());
+}
+
+Result<void> Engine::requestStop() noexcept {
+  if (mStatus != EngineStatus::Running) {
+    return {};
+  }
+  mStatus = EngineStatus::Stopping;
+  if (auto res = stop(); !res) {
+    return setErrorStatus(mStatus, res);
+  }
+  return {};
 }
 
 Result<void> Engine::stop() noexcept {
+  PD_ASSERT(mStatus == EngineStatus::Stopping);
   // reset scene data, status
   if (auto res = mSceneManager.unloadScene(); !res) {
-    return res;
+    return setErrorStatus(mStatus, res);
   }
   // todo: clear cached resources
   // todo: clear cached materials
   // todo: clear cached assets
+  mStatus = EngineStatus::Stopped;
   return {};
 }
+
+void Engine::tick() noexcept {
+  mSceneManager.updateScene(0);
+  mRenderer.renderFrame();
+}
+
+EngineStatus Engine::status() const noexcept { return mStatus; }
 
 }  // namespace pd

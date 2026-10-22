@@ -16,28 +16,8 @@ math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) {
   return {1.0f};
 }
 
-SceneNode makeParsedNode(const u32 nodeIndex, const math::mat4& transform) {
-  SceneNode node{
-      .name = std::format("node_{}", nodeIndex),
-      .pos = math::vec3{transform[3]},
-      .scale = math::vec3{glm::length(glm::vec3{transform[0]}), glm::length(glm::vec3{transform[1]}),
-                          glm::length(glm::vec3{transform[2]})},
-  };
-  // 参考自siggraph2026_vulkan
-  glm::mat3 rotationMatrix{1.0F};
-  for (glm::length_t column = 0; column < 3; ++column) {
-    const float axisScale = node.scale[column];
-    if (axisScale > 0.0F) {
-      rotationMatrix[column] = glm::vec3{transform[column]} / axisScale;
-    }
-  }
-  node.eulerAngles = glm::eulerAngles(glm::quat_cast(rotationMatrix));
-
-  return node;
-}
-
 }  // namespace
-GltfParser::GltfParser(IFileSystem* fs)
+GltfParser::GltfParser(IFileSystem& fs)
     : mFs(fs) {}
 
 GltfParser::~GltfParser() {}
@@ -99,63 +79,103 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
   auto& image = gltfAsset.images[imageIndex];
   auto& sampler = gltfAsset.samplers[samplerIndex];
 
+  TextureData tex{
+      .name = image.name.empty() ? std::format("texture_{}", imageIndex) : image.name.c_str(),
+  };
+
+  Result<ImageData> compileRes;
+
   std::visit(fastgltf::visitor{
-                 [](auto& arg) {
-                   LOG_WARN("reach!");
-                   PD_ASSERT_MSG(false, "texture parse error!");
-                 },
+                 [](auto& arg) { PD_ASSERT_MSG(false, "texture parse error!"); },
                  [&](const fastgltf::sources::URI& filePath) {
                    PD_ASSERT(filePath.fileByteOffset == 0);
                    PD_ASSERT(filePath.uri.isLocalPath());
-                   int width = 0;
-                   int height = 0;
-                   int nrChannels = 0;
+
+                   //  int width = 0;
+                   //  int height = 0;
+                   //  int nrChannels = 0;
+
                    const auto path = mBasePath / filePath.uri.path();
-                   // 用stb解析图片信息
-                   stbi_uc* texels = stbi_load(path.string().c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
-                   if (!texels) {
-                     PD_ASSERT_MSG(false, "failed to load image!");
+                   tex.uri = path.string();
+
+                   if (compileRes = mTextureCompiler.compile(tex); !compileRes) {
+                     LOG_ERROR("texture compile failed");
+                     return;
                    }
-                   // 加入到asset中
-                   //    asset.mTextures.push_back(handle);
-                   // 清除使用后的image数据
-                   stbi_image_free(texels);
+                   // 用stb解析图片信息
+                   //  stbi_uc* texels = stbi_load(path.string().c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+                   //  if (!texels) {
+                   //    PD_ASSERT_MSG(false, "failed to load image!");
+                   //  }
+                   //  // 加入到asset中
+                   //  asset.mImages.push_back(pixelBytes);
+                   //  tex.imageIndex = asset.mImages.size();
+                   //  asset.mTextures.push_back(tex);
+                   //  // 清除使用后的image数据
+                   //  stbi_image_free(texels);
                  },
-                 [&](const fastgltf::sources::Array& vector) { LOG_WARN("reach!"); },
+                 [&](const fastgltf::sources::Array& vector) { PD_ASSERT_MSG(false, "texture parse error!"); },
                  [&](const fastgltf::sources::BufferView& view) {
                    const auto& bufferView = gltfAsset.bufferViews[view.bufferViewIndex];
                    const auto& buffer = gltfAsset.buffers[bufferView.bufferIndex];
                    const auto& data = std::get<fastgltf::sources::Array>(buffer.data);
                    const auto* imagePtr = data.bytes.data() + bufferView.byteOffset;
-                   int width = 0;
-                   int height = 0;
-                   int nrChannels = 0;
-                   const auto path = mBasePath;
-                   auto* texels =
-                       stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imagePtr), bufferView.byteLength, &width,
-                                             &height, &nrChannels, STBI_rgb_alpha);
-                   if (!texels) {
-                     PD_ASSERT_MSG(false, "failed to load image!");
+                   //  int width = 0;
+                   //  int height = 0;
+                   //  int nrChannels = 0;
+                   //  const auto path = mBasePath;
+
+                   tex.dataPtr = imagePtr;
+                   tex.byteLength = bufferView.byteLength;
+
+                   if (compileRes = mTextureCompiler.compile(tex); !compileRes) {
+                     LOG_ERROR("texture compile failed");
+                     return;
                    }
+                   //  stbi_uc* texels =
+                   //      stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imagePtr), bufferView.byteLength,
+                   //      &width,
+                   //                            &height, &nrChannels, STBI_rgb_alpha);
+                   //  if (!texels) {
+                   //    PD_ASSERT_MSG(false, "failed to load image!");
+                   //  }
                    //    asset.mTextures.push_back(handle);
 
-                   stbi_image_free(texels);
+                   //  stbi_image_free(texels);
                  },
              },
              image.data);
+
+  PD_ASSERT(compileRes);
+
+  // todo: sampler
+
+  // save image
+  auto& imageData = compileRes.value();
+  asset.mImages.push_back(std::move(imageData));
+
+  // save texture
+  tex.imageIndex = asset.mImages.size();
+  asset.mTextures.push_back(std::move(tex));
+
+  // update cache
+  materialTextureIndex = asset.mTextures.size();
+  mCacheData.textureIds.emplace(TextureKey{imageIndex, 0}, materialTextureIndex);
 }
-void GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset, MeshData::SubMesh& subMesh,
-                               u32 materialIndex) noexcept {
+
+void GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsset,
+                               GltfAsset::MeshData::Primitive& primitive, u32 materialIndex) noexcept {
+  // 检查材质缓存
   auto it = mCacheData.materialIds.find(materialIndex);
   if (it != mCacheData.materialIds.end()) {
-    subMesh.materialIndex = it->second;
+    primitive.materialIndex = it->second;
     return;
   }
   const auto& material = gltfAsset.materials[materialIndex];
   if (!material.pbrData.baseColorTexture.has_value()) {
     LOG_WARN("material [{}] base color texture 缺失", materialIndex);
   }
-  GltfPbrMaterialData materialData{
+  GltfAsset::GltfPbrMaterialData materialData{
       .name = material.name.empty() ? std::format("mat_{}", materialIndex) : std::string(material.name),
       .baseColorFactor = math::vec3{material.pbrData.baseColorFactor.x(), material.pbrData.baseColorFactor.y(),
                                     material.pbrData.baseColorFactor.z()},
@@ -183,7 +203,7 @@ void GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsse
   parseTexture(asset, gltfAsset, materialData.baseColorTextureIndex, imageIndex, samplerIndex);
 
   asset.mMaterials.push_back(std::move(materialData));
-  subMesh.materialIndex = asset.materials().size();
+  primitive.materialIndex = asset.materials().size();
 }
 
 Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
@@ -201,57 +221,53 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
 
       // todo: reuse mesh data
 
-      MeshData meshData{
-          .dataInfo =
-              {
-                  .dataId = meshIndex,
-                  .name = std::format("mesh_{}", meshIndex),
-              },
+      GltfAsset::MeshData meshData{
+          .name = std::format("mesh_{}", meshIndex),
       };
       meshIndex++;
-      meshData.subMeshes.resize(primitiveCount);
+      meshData.primitives.resize(primitiveCount);
       for (u32 primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex) {
         const auto& primitive = mesh.primitives[primitiveIndex];
         PD_ASSERT_MSG(primitive.type == fastgltf::PrimitiveType::Triangles, "asset mesh primitive type not supported!");
-        auto& submesh = meshData.subMeshes[primitiveIndex];
-        submesh.name = std::format("{}_{}", meshData.dataInfo.name, primitiveIndex);
+        auto& primitiveData = meshData.primitives[primitiveIndex];
+        primitiveData.name = std::format("{}_{}", meshData.name, primitiveIndex);
         // positions
         const auto positionIt = primitive.findAttribute("POSITION");
         PD_ASSERT_MSG(positionIt != primitive.attributes.end(), "gltf primitive is missing POSITION!");
         const auto& positionAccessor = gltfAsset.accessors[positionIt->accessorIndex];
         // input.positions.reserve(positionAccessor.count);
-        submesh.vertices.resize(positionAccessor.count);
+        primitiveData.vertices.resize(positionAccessor.count);
         fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(
             gltfAsset, positionAccessor, [&](fastgltf::math::fvec3 pos, size_t idx) {
-              submesh.vertices[idx].position = {pos.x(), pos.y(), pos.z()};
+              primitiveData.vertices[idx].position = {pos.x(), pos.y(), pos.z()};
             });
         const auto* uvIt = primitive.findAttribute("TEXCOORD_0");
         if (uvIt != primitive.attributes.end()) {
           const auto& uvAccessor = gltfAsset.accessors[uvIt->accessorIndex];
           fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec2>(
               gltfAsset, uvAccessor,
-              [&](fastgltf::math::fvec2 uv, size_t idx) { submesh.vertices[idx].uv = {uv.x(), uv.y()}; });
+              [&](fastgltf::math::fvec2 uv, size_t idx) { primitiveData.vertices[idx].uv = {uv.x(), uv.y()}; });
         }
         const auto normalIt = primitive.findAttribute("NORMAL");
         PD_ASSERT_MSG(normalIt != primitive.attributes.end(), "GLTF primitive is missing NORMAL!");
         const auto& normalAccessor = gltfAsset.accessors[normalIt->accessorIndex];
         fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(
             gltfAsset, normalAccessor, [&](fastgltf::math::fvec3 norm, size_t idx) {
-              submesh.vertices[idx].normal = {norm.x(), norm.y(), norm.z()};
+              primitiveData.vertices[idx].normal = {norm.x(), norm.y(), norm.z()};
             });
         const auto tangentIt = primitive.findAttribute("TANGENT");
         if (tangentIt != primitive.attributes.end()) {
           const auto& tanAccessor = gltfAsset.accessors[tangentIt->accessorIndex];
           fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec4>(
               gltfAsset, tanAccessor, [&](fastgltf::math::fvec4 tan, size_t idx) {
-                submesh.vertices[idx].tangent = {tan.x(), tan.y(), tan.z(), tan.w()};
+                primitiveData.vertices[idx].tangent = {tan.x(), tan.y(), tan.z(), tan.w()};
               });
         }
         if (primitive.indicesAccessor.has_value()) {
           const auto& indexAccessor = gltfAsset.accessors[*primitive.indicesAccessor];
-          submesh.indices.reserve(indexAccessor.count);
+          primitiveData.indices.reserve(indexAccessor.count);
           fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor,
-                                              [&](uint32_t index) { submesh.indices.emplace_back(index); });
+                                              [&](uint32_t index) { primitiveData.indices.emplace_back(index); });
         }
         // 处理scene node
         const auto& gltfNode = gltfAsset.nodes[nodeIndex];
@@ -263,11 +279,11 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
                               glm::scale(glm::mat4{1.0F}, scale);
         const auto worldTransform = parentTransform * localTransform;
         auto node = makeParsedNode(nodeIndex, worldTransform);
-        node.meshId = primitiveIndex;
+        node.meshId = meshIndex;
         // materials
         if (primitive.materialIndex.has_value()) {
           u32 materialIndex = primitive.materialIndex.value();
-          parseMaterial(asset, gltfAsset, submesh, materialIndex);
+          parseMaterial(asset, gltfAsset, primitiveData, materialIndex);
         }
         asset.mNodes.push_back(node);
       }
@@ -282,5 +298,25 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
   }
 
   return {};
+}
+
+GltfAsset::SceneNode GltfParser::makeParsedNode(const u32 nodeIndex, const math::mat4& transform) {
+  GltfAsset::SceneNode node{
+      .name = std::format("node_{}", nodeIndex),
+      .pos = math::vec3{transform[3]},
+      .scale = math::vec3{glm::length(glm::vec3{transform[0]}), glm::length(glm::vec3{transform[1]}),
+                          glm::length(glm::vec3{transform[2]})},
+  };
+  // 参考自siggraph2026_vulkan
+  glm::mat3 rotationMatrix{1.0F};
+  for (glm::length_t column = 0; column < 3; ++column) {
+    const float axisScale = node.scale[column];
+    if (axisScale > 0.0F) {
+      rotationMatrix[column] = glm::vec3{transform[column]} / axisScale;
+    }
+  }
+  node.eulerAngles = glm::eulerAngles(glm::quat_cast(rotationMatrix));
+
+  return node;
 }
 }  // namespace pd

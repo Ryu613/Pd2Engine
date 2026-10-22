@@ -68,6 +68,11 @@ class IFileSystem {
   virtual bool createDirectory(const Path& path) noexcept = 0;
 
   /**
+   * @brief 得到path的标准化绝对路径
+   */
+  virtual Path normalizedPath(const Path& path) noexcept = 0;
+
+  /**
    * @brief 按块读取文件
    *
    * @param path 文件路径
@@ -75,8 +80,8 @@ class IFileSystem {
    * @param count 读取长度
    * @return std::vector<uint8_t> 字符形成的列表
    */
-  virtual std::vector<uint8_t> readChunk(const Path& path, size_t offset,
-                                         size_t count) noexcept = 0;
+  virtual std::vector<uint8_t> readChunk(const Path& path, size_t offset, size_t count) noexcept = 0;
+  
   virtual bool writeFile(const Path& path, const std::vector<uint8_t>& data) noexcept = 0;
   /**
    * @brief 根据path删除文件

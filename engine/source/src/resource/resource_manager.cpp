@@ -21,37 +21,37 @@ Result<std::unique_ptr<PrefabResource>> ResourceManager::createGltfResource(Reso
   const auto& meshData = gltfAsset->meshes();
   auto& prefabMeshes = prefabRsc->getMeshes();
   prefabMeshes.reserve(meshData.size());
-  for (size_t meshIndex = 0; meshIndex < meshData.size(); ++meshIndex) {
-    const auto& meshDataInfo = meshData[meshIndex].dataInfo;
-    const auto& subMeshes = meshData[meshIndex].subMeshes;
-    for (size_t subMeshIndex = 0; subMeshIndex < subMeshes.size(); ++subMeshIndex) {
-      const auto& subMesh = subMeshes[subMeshIndex];
-      auto newMeshId = nextId<MeshResource_t>();
-      std::string subResourceName = std::format("{}:{}", resourceName, subMesh.name);
-      auto meshRsc = std::unique_ptr<MeshResource>(
-          new MeshResource(newMeshId, meshDataInfo.dataId, std::move(subResourceName), *mBackend));
-      // 由asset mgr保证指针生命周期
-      meshRsc->setMeshDesc({
-          .debugName = std::format("vertex buffer for mesh: {}", subMesh.name),
-          .pData = static_cast<const void*>(subMesh.vertices.data()),
-          .dataSize = sizeof(subMesh.vertices[0]) * subMesh.vertices.size(),
-          .dataOffset = 0,
-      });
-      meshRsc->setIndexData({
-          .debugName = std::format("index buffer for mesh: {}", subMesh.name),
-          .pData = static_cast<const void*>(subMesh.indices.data()),
-          .dataSize = sizeof(subMesh.indices[0]) * subMesh.indices.size(),
-          .dataOffset = 0,
-          .indexCount = static_cast<u32>(subMesh.indices.size()),
-      });
-      auto meshRegRes = registerResource<MeshResource_t>(std::move(meshRsc));
-      if (!meshRegRes) {
-        return make_error<std::unique_ptr<PrefabResource>>(meshRegRes.error().code);
-      }
+  // for (size_t meshIndex = 0; meshIndex < meshData.size(); ++meshIndex) {
+  //   const auto& meshDataInfo = meshData[meshIndex].dataInfo;
+  //   const auto& subMeshes = meshData[meshIndex].subMeshes;
+  //   for (size_t subMeshIndex = 0; subMeshIndex < subMeshes.size(); ++subMeshIndex) {
+  //     const auto& subMesh = subMeshes[subMeshIndex];
+  //     auto newMeshId = nextId<MeshResource_t>();
+  //     std::string subResourceName = std::format("{}:{}", resourceName, subMesh.name);
+  //     auto meshRsc = std::unique_ptr<MeshResource>(
+  //         new MeshResource(newMeshId, meshDataInfo.dataId, std::move(subResourceName), *mBackend));
+  //     // 由asset mgr保证指针生命周期
+  //     meshRsc->setMeshDesc({
+  //         .debugName = std::format("vertex buffer for mesh: {}", subMesh.name),
+  //         .pData = static_cast<const void*>(subMesh.vertices.data()),
+  //         .dataSize = sizeof(subMesh.vertices[0]) * subMesh.vertices.size(),
+  //         .dataOffset = 0,
+  //     });
+  //     meshRsc->setIndexData({
+  //         .debugName = std::format("index buffer for mesh: {}", subMesh.name),
+  //         .pData = static_cast<const void*>(subMesh.indices.data()),
+  //         .dataSize = sizeof(subMesh.indices[0]) * subMesh.indices.size(),
+  //         .dataOffset = 0,
+  //         .indexCount = static_cast<u32>(subMesh.indices.size()),
+  //     });
+  //     auto meshRegRes = registerResource<MeshResource_t>(std::move(meshRsc));
+  //     if (!meshRegRes) {
+  //       return make_error<std::unique_ptr<PrefabResource>>(meshRegRes.error().code);
+  //     }
 
-      prefabMeshes.push_back(meshRegRes.value());
-    }
-  }
+  //     prefabMeshes.push_back(meshRegRes.value());
+  //   }
+  // }
   // todo: material & texture resources
   return prefabRsc;
 }

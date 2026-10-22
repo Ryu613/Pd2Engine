@@ -149,7 +149,7 @@ inline Result<ResourceHandle<ResourceManager::StoredTag<Tag>>> ResourceManager::
   // FIXME: not good implementation
   auto newId = nextId<StoredTag<Tag>>();
   switch (asset->info().parseType) {
-    using enum AssetType;
+    using enum ParseType;
     case Gltf: {
       auto res = createGltfResource(newId, resourceName, static_cast<GltfAsset*>(asset));
       if (!res) {

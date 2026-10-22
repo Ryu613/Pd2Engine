@@ -9,15 +9,14 @@ namespace pd {
 class IFileSystem;
 class ShaderParser : public IAssetParser {
  public:
-  explicit ShaderParser(IFileSystem* fs);
+  explicit ShaderParser(IFileSystem& fs);
   ~ShaderParser() override;
-  DEFAULT_MOVABLE(ShaderParser);
-  DELETE_COPY(ShaderParser);
+  DELETE_COPY_MOVE(ShaderParser);
 
-  Result<void> parse(AssetManager& mgr, Asset& asset) noexcept override;
+  Result<void> parse(Asset& asset) noexcept override;
 
  private:
-  IFileSystem* mFs = nullptr;
+  IFileSystem& mFs;
   std::filesystem::path mBasePath;
   ShaderCompiler mCompiler;
 };

@@ -4,8 +4,8 @@
 #include "pd/asset/parser/shader_parser.hpp"
 
 namespace pd {
-AssetManager::AssetManager(IFileSystem* fs)
-    : mFs(fs) {}
+AssetManager::AssetManager(IFileSystem& fs)
+    : mFs(&fs) {}
 
 AssetManager::~AssetManager() {}
 
@@ -15,7 +15,7 @@ Result<void> AssetManager::init() noexcept {
 }
 Result<void> AssetManager::destroy() noexcept { return {}; }
 
-Result<AssetHandle> AssetManager::createAsset(const Asset::MetaInfo& assetInfo) noexcept {
+Result<AssetHandle> AssetManager::createAsset(Asset::MetaInfo assetInfo) noexcept {
   // 检查文件是否存在，类型是否正确, 文件是否可读
   const auto& assetPath = assetInfo.path;
   auto& fs = *mFs;
@@ -24,15 +24,16 @@ Result<AssetHandle> AssetManager::createAsset(const Asset::MetaInfo& assetInfo) 
     return make_error<AssetHandle>(ErrorCode::AssetFileNotFound);
   }
   // 检查是否已存在此资产
-  auto it = mRegistry.find(assetPath);
+  auto normalPath = getNormalizedPath(assetPath);
+  auto it = mRegistry.find(normalPath);
   if (it != mRegistry.end()) {
     return AssetHandle{it->second};
   }
   const auto newId = nextId();
   // 1 创建资产实例
   std::unique_ptr<Asset> newAsset;
-  switch (assetInfo.assetType) {
-    using enum AssetType;
+  switch (assetInfo.parseType) {
+    using enum ParseType;
     case Gltf:
       newAsset = std::unique_ptr<GltfAsset>(new GltfAsset(newId, assetInfo));
       break;
@@ -46,12 +47,12 @@ Result<AssetHandle> AssetManager::createAsset(const Asset::MetaInfo& assetInfo) 
       PD_ASSERT_MSG(false, "asset type not supported!");
   }
   // 2. 生成资产实例
-  auto parseResult = mParsers[static_cast<size_t>(assetInfo.assetType)]->parse(*this, *newAsset);
+  auto parseResult = mParsers[static_cast<size_t>(assetInfo.parseType)]->parse(*newAsset);
   if (!parseResult) {
     return make_error<AssetHandle>(ErrorCode::AssetParseFailed);
   }
   // 3. 记录到资产记录表
-  auto [regIt, regOk] = mRegistry.emplace(assetPath, newId);
+  auto [regIt, regOk] = mRegistry.emplace(normalPath, newId);
   PD_ASSERT_MSG(regOk, "asset registry update error!");
   // 4. 存储到数据库
   auto [insIt, insOk] = mStorage.emplace(newId, std::move(newAsset));
@@ -70,11 +71,15 @@ Result<Asset*> AssetManager::getAsset(AssetHandle handle) noexcept {
 
 void AssetManager::initParsers() noexcept {
   mParsers.reserve(4);
-  auto gltfParser = std::make_unique<GltfParser>(mFs);
+  auto gltfParser = std::make_unique<GltfParser>(*mFs);
   mParsers.push_back(std::move(gltfParser));
-  auto shaderParser = std::make_unique<ShaderParser>(mFs);
+  auto shaderParser = std::make_unique<ShaderParser>(*mFs);
   mParsers.push_back(std::move(shaderParser));
 }
 
-u32 AssetManager::nextId() noexcept { return ++mNextId; }
+AssetIdType AssetManager::nextId() noexcept { return ++mNextId; }
+
+std::string AssetManager::getNormalizedPath(const std::string& str) const noexcept {
+  return mFs->normalizedPath(str).string();
+}
 }  // namespace pd

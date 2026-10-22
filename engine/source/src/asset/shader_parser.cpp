@@ -5,20 +5,21 @@
 #include "pd/asset/compiler/shader_compiler.hpp"
 
 namespace pd {
-ShaderParser::ShaderParser(IFileSystem* fs)
+ShaderParser::ShaderParser(IFileSystem& fs)
     : mFs(fs) {}
 ShaderParser::~ShaderParser() {}
 
 Result<void> ShaderParser::parse(Asset& asset) noexcept {
   PD_ASSERT_MSG(asset.info().shaderInfo, "shader info 不存在!");
   auto& shaderAsset = static_cast<ShaderAsset&>(asset);
-  auto code = mFs->readFileBinary(shaderAsset.info().path);
+  auto code = mFs.readFileBinary(shaderAsset.info().path);
   if (code.empty()) {
     return make_error<void>(ErrorCode::AssetFileLoadError);
   }
+  auto& shaderInfo = shaderAsset.info().shaderInfo.value();
   ShaderDesc desc{
-      .moduleName = shaderAsset.info().shaderInfo.moduleName,
-      .modulePath = shaderAsset.info().shaderInfo.modulePath,
+      .moduleName = shaderInfo.moduleName,
+      .modulePath = shaderInfo.modulePath,
       .code = std::as_bytes(std::span{code}),
   };
   auto compileRes = mCompiler.compile(desc);
