@@ -48,13 +48,13 @@ void Renderer::doFrame(Renderer::FrameContext& ctx) noexcept {
   const auto& sceneData = mSceneManager->getSceneData();
   for (size_t i = 0; i < sceneData.size(); ++i) {
     const auto& renderable = sceneData[i];
-    const auto pipeline = mMaterialManager.getPipeline(renderable.materialInstance);
+    // const auto pipeline = mMaterialManager.getPipeline(renderable.materialInstance);
     recorder.addCmd(BeginRenderingArgs{});
     recorder.addCmd(SetViewportArgs{});
     recorder.addCmd(SetScissorArgs{});
-    recorder.addCmd(BindPipelineArgs{
-        .pipeline = pipeline,
-    });
+    // recorder.addCmd(BindPipelineArgs{
+    //     .pipeline = pipeline,
+    // });
     recorder.addCmd(BindGeometryArgs{
         .vertexBuffer = renderable.vertexBuffer,
         .vertexBufferOffset = renderable.vertexBufferOffset,

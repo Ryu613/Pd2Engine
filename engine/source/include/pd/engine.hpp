@@ -77,7 +77,7 @@ template <DerivedSceneDescriptor T, typename... Args>
 inline Result<void> Engine::run(Args&&... args) noexcept {
   PD_ASSERT(mStatus == EngineStatus::Initialized);
   // construct scene descriptor
-  if (auto res = mSceneManager.initScene<T>(std::forward<Args>(args)...); res) {
+  if (auto res = mSceneManager.initScene<T>(std::forward<Args>(args)...); !res) {
     return res;
   }
   if (auto res = runImpl(); !res) {
