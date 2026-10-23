@@ -12,19 +12,21 @@
 
 == 设计思路
 
-. am与引擎内部系统尽量解耦，不依赖文件系统以外的模块
+. am的角色定位是整个引擎的文件读写入口，其他模块不会访问或操作外部文件
+. am输入的是各式资产文件，输出的是自包含的资产数据，保证外部不依赖am本身
+. am对资产有缓存能力以便复用解析好的资产
+. am未来希望能够脱离引擎，作为离线资产处理管线，尽量减少依赖
 . am是资产数据的拥有者，控制资产数据的生命周期，外部只能读取，不能更改
 . 只有资源管理器在注册，加载时需要访问资产数据，其他模块不应该访问资产数据
 . asset只是一组自包含的数据，am内部缓存一份，根据绝对路径区分唯一性，asset不关心实际用途
 . 支持多种纹理解码和压缩工具
 . 转换后的资产文件数据可缓存备用
 . 纹理压缩方案拟定为ktx2 + basisu但目前暂不实现，采用解码后的原始像素数据
-. asset根据不同类型继承它，其本身只是一个包含元数据和通用接口的基类，只有纯数据，且业务无关
+. 为了保证解析方案灵活，采用运行时决定解析类型和处理流水线
 
 == 可演进规划
 
-. 未来资产处理会从引擎分离，形成独立的离线资产处理管线，此资产处理器会输出引擎内部使用的文件格式，
-引擎直接加载并使用，不再额外处理资产数据
+. 未来资产处理会从引擎分离，形成独立的离线资产处理管线，此资产处理器会输出引擎内部使用的文件格式，引擎不需要处理资产，而是直接加载处理好的内部数据并使用
 
 == 本版边界
 
@@ -34,7 +36,7 @@
 . 支持slang运行时编译，转换为spirv
 
 . 目前采用运行时处理，集成到引擎中，暂不实现离线资产预烘培
-. 引擎暂不实现自定义预制件文件格式和文件导出
+. 引擎暂不实现自定义预制件文件格式和文件序列化，导出
 . 暂不考虑多线程异步化
 . 暂不支持资产修改
 . 不实现gltf的蒙皮，动作，多场景解析
@@ -75,6 +77,11 @@ stop
 
 == 类设计
 
+. 根据资产类型可以继承parser实现不同的解析策略
+. 可继承compiler实现不同资产的处理流水线
+. decoder接口负责实现纹理转码解码
+. asset采用继承方式方便运行时灵活处理
+
 [plantuml]
 ----
 class MetaInfo {
@@ -94,19 +101,6 @@ class Asset {
     ==
     - uint32_t mId
     - MetaInfo mInfo
-}
-class MeshAsset extends Asset {
-    单个网格资产文件
-    ==
-  - std::vector<Vertex> vertices;
-  - std::vector<u32> indices;
-}
-class TextureAsset extends Asset {
-    像素数据按照预定编译规格得出
-    目前是像素数据，本版暂时不做压缩
-    纹理相关信息放在TextureInfo
-    ==
-    - TextureData mTextureData
 }
 class ShaderAsset extends Asset {
     编译后的spirv二进制代码， spirv是rhi层的跨平台，统一的shader中间语言，方便后续支持各种后端实现
@@ -139,13 +133,15 @@ class GltfAsset extends Asset {
     - vector<TextureData> mTextures
     - vector<MaterialData> mMaterials
     - vector<ImageData> mImages
+    - vector<SamplerData> mSamplers
 }
 class AssetManager{
     资产管理器:拥有资产数据，判重，分发id，构造asset实例
     调用解析器进行处理
     ==
 
-    + AssetHandle createAsset(const Asset::MetaInfo& metaInfo);
+    + AssetHandle createAsset(const Asset::MetaInfo& metaInfo)
+    + Asset* getAsset(AssetHandle handle)
 
     ==
     - IFileSystem* mFs
@@ -259,5 +255,5 @@ User <-- AssetManager: 返回GltfAsset
 
 == 详细设计
 
-为了减少文档工作量，设计思路和实现方法直接写在代码中
+为了减少文档工作量，设计思路和实现方法直接写在代码注释中
 

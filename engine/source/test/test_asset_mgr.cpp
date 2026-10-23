@@ -6,7 +6,7 @@
 #define ASSET_DIR ./
 #endif
 
-TEST_CASE("test_glb_asset", "asset") {
+TEST_CASE("test_gltf_asset", "asset") {
   using namespace pd;
   StdFileSystem fileSystem;
   AssetManager assetMgr{fileSystem};
@@ -16,9 +16,15 @@ TEST_CASE("test_glb_asset", "asset") {
 
   pd::Asset::MetaInfo assetInfo{
       .name = "box",
-      .path = ASSET_DIR "BoxTextured/BoxTextured.glb",
       .parseType = ParseType::Gltf,
   };
+  SECTION("glb") { assetInfo.path = ASSET_DIR "BoxTextured/BoxTextured.glb"; }
+  SECTION("gltf") { assetInfo.path = ASSET_DIR "BoxTextured/BoxTextured.gltf"; }
+  //   pd::Asset::MetaInfo assetInfo{
+  //       .name = "box",
+  //       .path = ASSET_DIR "BoxTextured/BoxTextured.glb",
+  //       .parseType = ParseType::Gltf,
+  //   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);
 

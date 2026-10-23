@@ -138,6 +138,17 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
                    const auto path = mBasePath / filePath.uri.path();
 
                    tex.mimeType = getTextureMimeType(filePath.mimeType);
+                   if (tex.mimeType == TextureMimeType::Unknown) {
+                     // try to get actual mimetype
+                     if (path.has_extension()) {
+                       auto mimeType = TextureMimeTypefromExtensionName(path.extension().string());
+                       tex.mimeType = mimeType;
+                     }
+                     if (tex.mimeType == TextureMimeType::Unknown) {
+                       LOG_ERROR("mime type not supported: {}", path.string());
+                       PD_ASSERT_MSG(false, "mime type error");
+                     }
+                   }
                    tex.decoderType = getDecoder(tex.mimeType);
                    tex.source = TextureData::ExternalFile{
                        .uri = path.string(),

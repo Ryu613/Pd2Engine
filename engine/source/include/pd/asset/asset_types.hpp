@@ -3,6 +3,7 @@
 #include "pd/backend/backend_types.hpp"
 
 #include <variant>
+#include <algorithm>
 
 namespace pd {
 enum class ParseType : u8 {
@@ -92,6 +93,24 @@ inline std::string_view toString(TextureMimeType mime) {
       return "";
   }
   return "";
+}
+
+inline TextureMimeType TextureMimeTypefromExtensionName(std::string_view str) {
+  static constexpr std::array<std::pair<std::string_view, TextureMimeType>, 6> extTable{{
+      {".png", TextureMimeType::ImagePng},
+      {".jpg", TextureMimeType::ImageJpeg},
+      {".jpeg", TextureMimeType::ImageJpeg},
+      {".ktx2", TextureMimeType::ImageKtx2},
+      {".dds", TextureMimeType::ImageDds},
+      {".webp", TextureMimeType::ImageWebp},
+  }};
+  std::string lower{str};
+  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+  for (auto [e, t] : extTable) {
+    if (e == lower) return t;
+  }
+
+  return TextureMimeType::Unknown;
 }
 
 }  // namespace pd
