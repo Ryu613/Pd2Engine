@@ -64,6 +64,8 @@ enum class BufferUsage : u8 {
   VertexBuffer,
   IndexBuffer,
   UniformBuffer,
+
+  Unknown = u8_max,
 };
 
 enum class SharingMode : u8 {

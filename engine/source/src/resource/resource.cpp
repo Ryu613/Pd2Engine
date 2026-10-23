@@ -7,7 +7,8 @@ Resource::~Resource() {}
 Resource::Resource(ResourceIdType id, AssetIdType assetId, const std::string& name)
     : mId(id),
       mAssetId(assetId),
-      mName(name) {}
+      mName(name),
+      mStatus(ResourceStatus::Unload) {}
 
 Result<void> Resource::load() noexcept {
   if (mStatus != ResourceStatus::Unload) {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "pd/core/utils/handle.hpp"
-#include "pd/core/utils/traits.hpp"
 #include "pd/asset/asset_types.hpp"
 #include "pd/core/math/math.hpp"
 

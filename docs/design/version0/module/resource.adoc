@@ -5,13 +5,84 @@
 == 职责
 
 . 资源指的是运行时资源，与资产作出区分，资源管理由resource manager负责，资产管理由asset manager负责
-. 负责整个引擎的运行时资源的加载，卸载，防重，状态，缓存，生命周期管理，对外提供操作资源的接口
+. 整个引擎的运行时资源缓存中心，负责资源缓存以便复用，负责资源生命周期管理，追踪，负责关联的GPU资源
 . 同时负责资源对应GPU侧资源的生命周期
 . 但是不负责材质系统，管线相关的资源
+. 不负责场景图相关数据
 . 不碰文件加载，只管理运行时资源
 . 不做资产预处理，只管理处理成内部格式的数据
 
 == 设计思路
+
+=== resource的种类及实现方式
+
+. 有两种资源类型
+.. 基础类型: 不可拆分的最小单位类型，比如：单个纹理，单个buffer, 没有互相依赖的关系
+.. 复合类型: 可拆分，但是一般看作一个整体的类型，比如：网格资源
+
+* 复合类型应该由基础类型组成，复合类型引用基础类型，同时复合类型可以引用其他复合类型
+* 每种类型都应该有引用计数，当有其他类型依赖时，计数加1，引用由句柄实现
+* 复合类型之间可以交叉引用基础类型，基础类型不能有依赖，只能被依赖
+** 复合类型可以引用其他复合类型
+** 依赖链不能成环
+
+. 本版应该有的基础类型:
++
+* texture: 内部含有 rhi texture handle, 纹理相关属性如宽高等
+* buffer: gpu中的一块内存，和相关属性比如用途，大小，rhi handle等
++
+. 复合类型
++
+* mesh: 引用buffer资源，如vertex buffer, index buffer等, 子网格包含在mesh中，记录对应buffer的偏移值，跨度， buffer可在不同mesh之间共享，用handle引用
+* 预制件类型，如gltf, gltf看作预制件的一种， 可能包含: mesh, texture, 其中material通过材质系统关联，material是一个material handle
++
+. 不包含的类型
++
+* shader module, descriptor set, pipeline, xxx layout, 这些资源放在材质系统
++
+
+. resource
+
+==== 待定问题
+
+. 计数和引用的实现方案
+. 资源存储方案(数据结构, 存储方式)
+. 如何检测和处理依赖链
+. 后续版本中可能需要的扩展性
+.. 多线程加载
+.. 异步加载
+.. 热加载
+.. 延迟卸载
+
+=== gpu资源如何处理
+
+=== 如何操作资源？包括创建，如何销毁
+
+. 资源的真正卸载取决于引用计数
+
+=== 交叉引用方案
+
+. 通过handle引用，需要经过rm让其增加引用计数，不能拷贝进去
+. resource实例是唯一的，但是多个handle可对应同一个resource，resource的嵌套包含通过resource的handle对应，不能resource套resource
+. 带引用计数
+
+=== 如何存储
+
+. resource在rm只有一份数据，外部多个handle可对应同一个resource
+. 拷贝handle不会复制resource或者增加引用计数
+. rm的handle是带类型的，方便区分不同类型的资源
+. 为了避免ABA问题，及预留未来热重载扩展性，handle带分代信息，表示版本号
+. handle的生成，包括id分发由RM负责
+
+=== 如何判重
+
+. 通过asset id判重
+
+==== 待定问题
+
+. 同一个资产是否可能需要多个resource?比如因为用途不同
+
+=== 如何使用
 
 . 引擎所有运行时资源都通过resource manager管理，外部不可自行持有或管理资源，而是通过handle访问
 . rm能追踪资源状态，能够管理和分发handle
@@ -19,35 +90,43 @@
 . 资源系统只依赖backend以便调度GPU资源，GPU侧资源会与运行时资源对应，关系是n对n
 . 资源的真正卸载取决于引用计数
 
-== handle
-
-. handle是一种资源凭证
-. rm的handle是带类型的，方便区分不同类型的资源
-. 为了避免ABA问题，及预留未来热重载扩展性，handle带分代信息，表示版本号
-. handle的生成，包括id分发由RM负责
-
-== resource
-
-. 运行时资源主要两种，与GPU资源一对一的类型，比如texture对应rhi texture, buffer对应rhi buffer,也包括复合型资源，这种资源是一对多的关系，比如一个mesh resource可能包含多个rhi buffer等
-. 与rhi层表示的GPU资源是N对N关系
-. resource实例是唯一的，但是多个handle可对应同一个resource，resource的嵌套包含通过resource的handle对应，不能resource套resource
-. 引用计数由rm负责，resource自身不负责记录计数
-. resource标签化，用于区分handle类型和支持别名系统，支持分门别类使用不同的存储器和存储策略
-
 == 本版边界
 
 . 暂不实现流式加载，热重载, 但是设计上预留空间，比如分代handle,资源带状态，resource类型和标签隔离能力等
 . 暂不支持多线程
 . 暂不集成内存分配器，job system
 
+== 用例梳理
+
+=== 加载gltf资产
+
+只依赖asset的结构体，在注册时用，不依赖asset mgr
+
+[plantuml]
+----
+start
+:注册gltf;
+floating note right: 根据asset id判重, 分配resource id
+:gltf解包;
+floating note right: 把gltf文件拆分成一组textures, 一组meshes
+:资源转换;
+floating note right: 把拆分出来的基础资源转换为texture resource, mesh resource
+:存储资源;
+floating note right: 把转换好的资源存储，更新引用计数，更新注册表，返回handle
+stop
+----
+
 == 类设计
+
+此处只展示核心类的核心成员，详见代码
 
 [plantuml]
 ----
 class Resource {
     资源保持唯一，基类
-    此处有必要接口和实现分离，接口还带有AOP能力，同意执行逻辑，方便debug
-    资源的拥有者是Resource Manager,外部通过带类型的handle引用
+    此处有必要接口和实现分离，接口还带有AOP能力，可同时执行逻辑，方便debug
+    资源的拥有者是Resource Manager,外部通过带类型的handle使用
+    如果需要
     ==
     + void load()
     + void unload()
@@ -73,28 +152,18 @@ class TextureResource extends Resource {
     ==
     - HwTextureHandle mTextureHandle
 }
-class ShaderResource extends Resource {
-    基础资源
-    ==
-    - HwShaderModuleHandle mShaderModuleHandle;
-}
 class MeshResource extends Resource {
     复合资源
     ==
-    - BufferHandle mVertexBufferHandle
-    - BufferHandle mIndexBufferHandle
+    - ResourceRef<BufferResource> mVertexBuffer
+    - esourceRef<BufferResource> mIndexBuffer
 }
 
 class PrefabResource extends Resource {
     复合资源
     ==
-    - vector<MeshHandle> mMeshHandles;
-}
-
-class ResourceEntry {
-    - Handle handle
-    - uint32_t refCount
-    - bool isAlive
+    - vector<ResourceRef<MeshResource>> mMeshes
+    - vector<ResourceRef<TextureResource>> mTextures
 }
 
 class ResourceManager {
@@ -104,8 +173,8 @@ class ResourceManager {
     Tag用于支持同种资源根据用途和生命周期特征不同分开管理
     Tag分为对内Tag和对外Tag，是一对多的关系
     ==
-    - unordered_map<AssetId, ResourceEntry> mRegistry
-    - Storage<{ResourceType}, {ResourceTag}> mXxxStorage;
+    - unordered_map<ResourceKey, ResourceHandle<T>> mRegistry
+    - Pool<ResourceType> mXxxPool;
     ...
 }
 
@@ -113,8 +182,6 @@ ResourceManager *-- BufferResource
 ResourceManager *-- TextureResource
 ResourceManager *-- MeshResource
 ResourceManager *-- PrefabResource
-ResourceManager *-- ShaderResource
-ResourceManager *-- ResourceEntry
 ----
 
 == 核心调用链梳理
@@ -122,37 +189,35 @@ ResourceManager *-- ResourceEntry
 [plantuml]
 ....
 actor developer as User
-group 资产文件读取，资源加载，场景加载
-    Engine -> Engine: run()
-    Engine -> SceneManager: loadScene()
-    SceneManager -> SceneManager: reset scene data
-    SceneManager -> SceneDescriptor: onSceneLoad()
-    SceneDescriptor -> AssetManager: parseAsset()
-    AssetManager -> AssetParser: parse()
-    AssetManager <-- AssetParser: new Asset
-    AssetManager -> AssetManager: own Asset
-    SceneDescriptor <-- AssetManager: parsed Asset
-    SceneDescriptor -> ResourceManager: register Asset
-    ResourceManager -> ResourceManager: convert asset to resources, register info, own resources data
-    SceneDescriptor <-- ResourceManager: finished assets register
-    SceneDescriptor -> ResourceManager: load resources
-    ResourceManager -> Backend: load gpu resources
-    Backend -> Backend: load resources, return Handles
-    ResourceManager <-- Backend: finished gpu resources loading
-    SceneDescriptor <-- ResourceManager: finished resources loading
-    SceneDescriptor -> SceneManager: create Scene entities
-    SceneDescriptor -> SceneDescriptor: set scene entities transforms, cameras, resources handle binding etc.
-    SceneManager <-- SceneDescriptor: finished onSceneLoad()
+group 普通资产注册
+     User -> ResourceManager: registerResource(T* asset)
+     ResourceManager -> ResourceManager: 判重
+     ResourceManager -> ResourceManager: 生成对应的Resource
+     ResourceManager -> ResourceManager: 存储resource， 更新注册表
+     User <-- ResourceManager: 返回Handle
 end
-group 资源更新
-    Engine -> SceneManager: updateScene()
-    SceneManager -> SceneDescriptor: onSceneUpdate()
-    SceneDescriptor -> SceneDescriptor: custom per-frame scene data update
+group 复合资产注册
+    User -> ResourceManager: registerResource(T* asset)
+    ResourceManager -> ResourceManager: 判重
+    ResourceManager -> ResourceManager: 生成prefab resource
+    ResourceManager -> ResourceManager: 比如gltf解包为多种子资产
+    ResourceManager -> ResourceManager: 把mesh拆分为buffer, 转换为buffer resource
+    ResourceManager -> ResourceManager: 注册buffer resource(同普通资产注册)
+    ResourceManager -> ResourceManager: 建立mesh引用关系
+    ResourceManager -> ResourceManager: 建立prefab resource和mesh resource引用关系
+    ResourceManager -> ResourceManager: 把texture转换为texture resource
+    ResourceManager -> ResourceManager: 注册texture resource(同普通资产注册)
+    ResourceManager -> ResourceManager: 建立prefab resource和texture resource引用关系
+    ResourceManager -> ResourceManager: 存储prefab resource， 更新注册表
+    User <-- ResourceManager: 返回Handle
+end
+
+group 资源加载
 end
 group 资源卸载
 
 end
-group 资产卸载
+group 资源销毁
 
 end
 ....

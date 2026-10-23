@@ -257,3 +257,13 @@ User <-- AssetManager: 返回GltfAsset
 
 为了减少文档工作量，设计思路和实现方法直接写在代码注释中
 
+== 测试用例
+
+本版需要以下用例通过，详见test/test_asset
+
+. gltf文件解析(包括gltf和glb)，资产id，索引，名称，数据解析项全部通过
+.. 纹理，材质(pbr), 网格数据，场景节点
+.. 暂不做采样器和相机
+. stb对png纹理的解码
+. slang编译器对slang的编译
+

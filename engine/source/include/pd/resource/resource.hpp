@@ -30,9 +30,9 @@ class Resource {
 
  private:
   friend class ResourceManager;
-  ResourceIdType mId = invalidResourceId;
-  AssetIdType mAssetId = invalidAssetId;
+  ResourceIdType mId;
+  AssetIdType mAssetId;
   std::string mName;
-  ResourceStatus mStatus = ResourceStatus::Unload;
+  ResourceStatus mStatus;
 };
 }  // namespace pd

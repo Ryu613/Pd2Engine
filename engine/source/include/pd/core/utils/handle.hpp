@@ -10,7 +10,7 @@ using HandleIdType = u32;
  */
 struct BaseHandle {
   using IdType = HandleIdType;
-  inline static constexpr IdType invalidId = std::numeric_limits<IdType>::max();
+  static constexpr IdType invalidId = std::numeric_limits<IdType>::max();
 
   HandleIdType id = invalidId;
   u32 gen = 0;
