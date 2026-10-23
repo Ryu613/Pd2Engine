@@ -5,8 +5,6 @@
 
 #include "fastgltf/core.hpp"
 #include "fastgltf/tools.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 namespace pd {
 namespace {
@@ -14,6 +12,52 @@ namespace {
 math::mat4 getGltfNodeLocalTransform(const fastgltf::Node& node) {
   //   if (node.transform)
   return {1.0f};
+}
+
+TextureMimeType getTextureMimeType(fastgltf::MimeType mime) {
+  switch (mime) {
+    using enum fastgltf::MimeType;
+    case None:
+      return TextureMimeType::Unknown;
+    case PNG:
+      return TextureMimeType::ImagePng;
+    case JPEG:
+      return TextureMimeType::ImageJpeg;
+    case KTX2:
+      return TextureMimeType::ImageKtx2;
+    case DDS:
+      return TextureMimeType::ImageDds;
+    case WEBP:
+      return TextureMimeType::ImageWebp;
+    case GltfBuffer:
+      return TextureMimeType::ApplicationGltfBuffer;
+    case OctetStream:
+      return TextureMimeType::ApplicationOctetStream;
+  }
+  return TextureMimeType::Unknown;
+}
+
+TextureDecoderType getDecoder(TextureMimeType mime) {
+  switch (mime) {
+    case TextureMimeType::ImagePng:
+    case TextureMimeType::ImageJpeg:
+      return TextureDecoderType::Stb;
+
+    case TextureMimeType::ImageKtx2:
+      return TextureDecoderType::BasisU;
+
+    case TextureMimeType::ImageDds:
+      return TextureDecoderType::Dds;
+
+    case TextureMimeType::ImageWebp:
+      return TextureDecoderType::WebP;
+
+    case TextureMimeType::ApplicationGltfBuffer:
+    case TextureMimeType::ApplicationOctetStream:
+    case TextureMimeType::Unknown:
+      return TextureDecoderType::Custom;
+  }
+  return TextureDecoderType::Custom;
 }
 
 }  // namespace
@@ -80,7 +124,7 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
   auto& sampler = gltfAsset.samplers[samplerIndex];
 
   TextureData tex{
-      .name = image.name.empty() ? std::format("texture_{}", imageIndex) : image.name.c_str(),
+      .name = image.name.empty() ? std::format("texture_{}", asset.mTextures.size()) : image.name.c_str(),
   };
 
   Result<ImageData> compileRes;
@@ -91,28 +135,18 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
                    PD_ASSERT(filePath.fileByteOffset == 0);
                    PD_ASSERT(filePath.uri.isLocalPath());
 
-                   //  int width = 0;
-                   //  int height = 0;
-                   //  int nrChannels = 0;
-
                    const auto path = mBasePath / filePath.uri.path();
-                   tex.uri = path.string();
+
+                   tex.mimeType = getTextureMimeType(filePath.mimeType);
+                   tex.decoderType = getDecoder(tex.mimeType);
+                   tex.source = TextureData::ExternalFile{
+                       .uri = path.string(),
+                   };
 
                    if (compileRes = mTextureCompiler.compile(tex); !compileRes) {
                      LOG_ERROR("texture compile failed");
                      return;
                    }
-                   // 用stb解析图片信息
-                   //  stbi_uc* texels = stbi_load(path.string().c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
-                   //  if (!texels) {
-                   //    PD_ASSERT_MSG(false, "failed to load image!");
-                   //  }
-                   //  // 加入到asset中
-                   //  asset.mImages.push_back(pixelBytes);
-                   //  tex.imageIndex = asset.mImages.size();
-                   //  asset.mTextures.push_back(tex);
-                   //  // 清除使用后的image数据
-                   //  stbi_image_free(texels);
                  },
                  [&](const fastgltf::sources::Array& vector) { PD_ASSERT_MSG(false, "texture parse error!"); },
                  [&](const fastgltf::sources::BufferView& view) {
@@ -120,28 +154,17 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
                    const auto& buffer = gltfAsset.buffers[bufferView.bufferIndex];
                    const auto& data = std::get<fastgltf::sources::Array>(buffer.data);
                    const auto* imagePtr = data.bytes.data() + bufferView.byteOffset;
-                   //  int width = 0;
-                   //  int height = 0;
-                   //  int nrChannels = 0;
-                   //  const auto path = mBasePath;
 
-                   tex.dataPtr = imagePtr;
-                   tex.byteLength = bufferView.byteLength;
+                   tex.mimeType = TextureMimeType::ApplicationGltfBuffer;
+                   tex.source = TextureData::BufferView{
+                       .dataPtr = imagePtr,
+                       .byteLength = buffer.byteLength,
+                   };
 
                    if (compileRes = mTextureCompiler.compile(tex); !compileRes) {
                      LOG_ERROR("texture compile failed");
                      return;
                    }
-                   //  stbi_uc* texels =
-                   //      stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imagePtr), bufferView.byteLength,
-                   //      &width,
-                   //                            &height, &nrChannels, STBI_rgb_alpha);
-                   //  if (!texels) {
-                   //    PD_ASSERT_MSG(false, "failed to load image!");
-                   //  }
-                   //    asset.mTextures.push_back(handle);
-
-                   //  stbi_image_free(texels);
                  },
              },
              image.data);
@@ -155,11 +178,11 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
   asset.mImages.push_back(std::move(imageData));
 
   // save texture
-  tex.imageIndex = asset.mImages.size();
+  tex.imageIndex = asset.mImages.size() - 1;
   asset.mTextures.push_back(std::move(tex));
 
   // update cache
-  materialTextureIndex = asset.mTextures.size();
+  materialTextureIndex = asset.mTextures.size() - 1;
   mCacheData.textureIds.emplace(TextureKey{imageIndex, 0}, materialTextureIndex);
 }
 
@@ -203,7 +226,7 @@ void GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsse
   parseTexture(asset, gltfAsset, materialData.baseColorTextureIndex, imageIndex, samplerIndex);
 
   asset.mMaterials.push_back(std::move(materialData));
-  primitive.materialIndex = asset.materials().size();
+  primitive.materialIndex = asset.materials().size() - 1;
 }
 
 Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& gltfAsset, size_t sceneIndex) noexcept {
@@ -224,7 +247,6 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
       GltfAsset::MeshData meshData{
           .name = std::format("mesh_{}", meshIndex),
       };
-      meshIndex++;
       meshData.primitives.resize(primitiveCount);
       for (u32 primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex) {
         const auto& primitive = mesh.primitives[primitiveIndex];
@@ -288,6 +310,8 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
         asset.mNodes.push_back(node);
       }
       asset.mMeshes.push_back(std::move(meshData));
+
+      meshIndex++;
     }
     for (const int childIndex : gltfNode.children) {
       traverseNode(childIndex, meshIndex, worldTransform);

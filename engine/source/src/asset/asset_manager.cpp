@@ -77,7 +77,7 @@ void AssetManager::initParsers() noexcept {
   mParsers.push_back(std::move(shaderParser));
 }
 
-AssetIdType AssetManager::nextId() noexcept { return ++mNextId; }
+AssetIdType AssetManager::nextId() noexcept { return mNextId++; }
 
 std::string AssetManager::getNormalizedPath(const std::string& str) const noexcept {
   return mFs->normalizedPath(str).string();

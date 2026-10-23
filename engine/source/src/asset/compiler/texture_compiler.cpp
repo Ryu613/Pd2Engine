@@ -7,6 +7,8 @@ TextureCompiler::TextureCompiler() { initDecoders(); }
 TextureCompiler::~TextureCompiler() {}
 
 Result<ImageData> TextureCompiler::compile(TextureData& tex) noexcept {
+  // 当前只支持stb
+  PD_ASSERT(tex.decoderType == TextureDecoderType::Stb);
   return mDecoders[tex.decoderType]->decode(tex);
 }
 

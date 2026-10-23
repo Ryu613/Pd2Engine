@@ -6,7 +6,7 @@
 #define ASSET_DIR ./
 #endif
 
-TEST_CASE("test_gltf_asset", "engine") {
+TEST_CASE("test_glb_asset", "asset") {
   using namespace pd;
   StdFileSystem fileSystem;
   AssetManager assetMgr{fileSystem};
@@ -26,29 +26,53 @@ TEST_CASE("test_gltf_asset", "engine") {
 
   auto getAssetRes = assetMgr.getAsset(gltfAssetHandle);
   REQUIRE(getAssetRes);
-  auto* pAsset = getAssetRes.value();
-  REQUIRE(pAsset);
+  GltfAsset* pAsset = static_cast<GltfAsset*>(getAssetRes.value());
+  REQUIRE(pAsset->info().name == "box");
+  REQUIRE(pAsset->nodes().size() == 1);
+
+  auto& node = pAsset->nodes().front();
+  REQUIRE(node.meshId == 0);
+  auto meshes = pAsset->meshes();
+  auto& meshData = meshes[node.meshId];
+  REQUIRE(meshData.primitives.size() == 1);
+  auto& primitives = meshData.primitives;
+  auto& primitive = primitives[0];
+  REQUIRE(primitive.vertices.size() == 24);
+  REQUIRE(primitive.indices.size() == 36);
+  REQUIRE(primitive.materialIndex == 0);
+  auto& material = pAsset->materials()[primitive.materialIndex];
+  REQUIRE(material.baseColorTextureIndex == 0);
+  auto& texture = pAsset->textures()[material.baseColorTextureIndex];
+  REQUIRE(texture.imageIndex == 0);
+  REQUIRE(pAsset->images().size() == 1);
+  auto& image = pAsset->images()[texture.imageIndex];
+  REQUIRE(image.bytes.size() > 0);
 }
 
-// TEST_CASE("test_shader_asset", "engine") {
-//   using namespace pd;
-//   StdFileSystem fileSystem;
-//   AssetManager assetMgr{&fileSystem};
+TEST_CASE("test_shader_asset", "asset") {
+  using namespace pd;
+  StdFileSystem fileSystem;
+  AssetManager assetMgr{fileSystem};
 
-//   auto initRes = assetMgr.init();
-//   REQUIRE(initRes);
+  auto initRes = assetMgr.init();
+  REQUIRE(initRes);
 
-//   Asset::MetaInfo assetInfo{
-//       .name = "pyramid shader",
-//       .path = ASSET_DIR "shader/pyramid/pyramid.slang",
-//       .assetType = AssetType::Shader,
-//   };
-//   auto result = assetMgr.createAsset(assetInfo);
-//   REQUIRE(result);
+  Asset::MetaInfo assetInfo{
+      .name = "pyramid shader",
+      .path = ASSET_DIR "shader/pyramid/pyramid.slang",
+      .parseType = ParseType::Shader,
+      .shaderInfo =
+          Asset::ShaderInfo{
+              .moduleName = "pyramid",
+              .modulePath = "pyramid/pyramid.slang",
+          },
+  };
+  auto result = assetMgr.createAsset(assetInfo);
+  REQUIRE(result);
 
-//   auto handle = result.value();
-//   auto assetRes = assetMgr.getAsset(handle);
-//   REQUIRE(assetRes);
-//   auto* asset = assetRes.value();
-//   REQUIRE(asset);
-// }
+  auto handle = result.value();
+  auto assetRes = assetMgr.getAsset(handle);
+  REQUIRE(assetRes);
+  ShaderAsset* asset = static_cast<ShaderAsset*>(assetRes.value());
+  REQUIRE(asset->sources().size() > 0);
+}

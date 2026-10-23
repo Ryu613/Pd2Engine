@@ -122,6 +122,7 @@ class GltfAsset : public Asset {
   std::span<const MeshData> meshes() const noexcept { return mMeshes; }
   std::span<const GltfPbrMaterialData> materials() const noexcept { return mMaterials; }
   std::span<const TextureData> textures() const noexcept { return mTextures; }
+  std::span<const ImageData> images() const noexcept { return mImages; }
 
  private:
   std::vector<SceneNode> mNodes;

@@ -69,7 +69,7 @@ floating note right: 读取文件原始数据
 :解析(Parser负责);
 floating note right: 用对应解析器解析原始信息，并输出待编译资产
 :编译(Compiler负责);
-floating note right: 资产后处理，比如纹理解码，压缩；网格优化等，在此步进行,处理过程由对应的compiler制定
+floating note right: 资产后处理，比如纹理解码，压缩；网格优化等，在此步进行,处理流程由对应的compiler制定
 stop
 ----
 

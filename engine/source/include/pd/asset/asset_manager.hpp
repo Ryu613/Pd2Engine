@@ -13,6 +13,7 @@ namespace pd {
  * @todo 复合资产交叉引用去重
  * @todo texture转码压缩
  * @todo 资产并行处理
+ * @todo 健壮和容错处理
  */
 class AssetManager {
  public:

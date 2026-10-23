@@ -2,6 +2,8 @@
 
 #include "pd/backend/backend_types.hpp"
 
+#include <variant>
+
 namespace pd {
 enum class ParseType : u8 {
   Gltf,
@@ -14,7 +16,21 @@ enum class MaterialType : u8 {
 
 enum class TextureDecoderType : u8 {
   Stb,
-  Ktx2,
+  BasisU,
+  Dds,
+  WebP,
+  Custom,
+};
+
+enum class TextureMimeType : u8 {
+  Unknown = 0,
+  ImagePng,
+  ImageJpeg,
+  ImageKtx2,
+  ImageDds,
+  ImageWebp,
+  ApplicationGltfBuffer,
+  ApplicationOctetStream,
 };
 
 using AssetIdType = u32;
@@ -35,15 +51,47 @@ struct SamplerData {
 };
 struct TextureData {
   std::string name;
-  std::string uri;
-  const std::byte* dataPtr = nullptr;
-  size_t byteLength = 0;
+  TextureMimeType mimeType;
+  struct DataUri {
+    std::string uri;
+  };
+  struct ExternalFile {
+    std::string uri;
+  };
+  struct BufferView {
+    const std::byte* dataPtr = nullptr;
+    size_t byteLength = 0;
+  };
+  u32 imageIndex = invalidAssetId;
+  u32 samplerIndex = invalidAssetId;
+  std::variant<DataUri, ExternalFile, BufferView> source;
   TextureDecoderType decoderType = TextureDecoderType::Stb;
   u32 width = 0;
   u32 height = 0;
-  u32 mipLevel = 0;
-  u32 imageIndex = invalidAssetId;
-  u32 samplerIndex = invalidAssetId;
+  u32 channels = 0;
+  u32 mipLevels = 1;
 };
+
+inline std::string_view toString(TextureMimeType mime) {
+  switch (mime) {
+    case TextureMimeType::ImagePng:
+      return "image/png";
+    case TextureMimeType::ImageJpeg:
+      return "image/jpeg";
+    case TextureMimeType::ImageKtx2:
+      return "image/ktx2";
+    case TextureMimeType::ImageDds:
+      return "image/vnd-ms.dds";
+    case TextureMimeType::ImageWebp:
+      return "image/webp";
+    case TextureMimeType::ApplicationGltfBuffer:
+      return "application/gltf-buffer";
+    case TextureMimeType::ApplicationOctetStream:
+      return "application/octet-stream";
+    case TextureMimeType::Unknown:
+      return "";
+  }
+  return "";
+}
 
 }  // namespace pd
