@@ -61,17 +61,17 @@ class Pool {
     // 有空位用空位，没有就加
     if (mFreeIndices.size() > 0) {
       auto newId = mFreeIndices.back();
-      handle.setId(newId);
+      handle.data.id = newId;
       mFreeIndices.pop_back();
       // 在清除时gen已经更新过了
-      handle.setGen(mGens[newId].gen);
+      handle.data.gen = mGens[newId].gen;
       mGens[newId].isAlive = true;
       new (&mData[newId]) T(std::forward<Args>(args)...);
     } else {
       mData.emplace_back(std::forward<Args>(args)...);
       mGens.emplace_back(GenerationEntry{1, true});
-      handle.setId(mData.size() - 1);
-      handle.setGen(1);
+      handle.data.id = mData.size() - 1;
+      handle.data.gen = 1;
     }
     return handle;
   }
@@ -94,8 +94,8 @@ class Pool {
     mFreeIndices.push_back(handleId);
   }
 
-  /**
-   * @brief 注：只标记可移除，不会直接析构，在复用时才会真正析构
+    /**
+   * @brief 注：标记可移除并析构
    *
    */
   void clear() noexcept {

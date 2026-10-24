@@ -18,9 +18,11 @@ class ResourceManager {
   Result<void> init() noexcept;
   Result<void> destroy() noexcept;
 
+  // 注册时解包，资产转转为子资产，再存储资源，注册资源
   template <typename TAsset, typename Tag>
-  Result<ResourceHandle<Tag>> registerResource(TAsset* asset) noexcept;
+  Result<ResourceHandle<Tag>> registerResourceFromAsset(TAsset* asset) noexcept;
 
+  // 拿到资源的强引用
   template <typename Tag>
   Result<ResourceRef<Tag>> acquire(ResourceHandle<Tag> handle) noexcept;
 
@@ -35,16 +37,35 @@ class ResourceManager {
 
   Backend& mBackend;
 
-  struct ResourceKey {};
+  struct ResourceKey {
+    AssetIdType assetId;
+    ResourceIdType resourceId;
+
+    friend bool operator==(const ResourceKey&, const ResourceKey&) = default;
+  };
+
+  struct ResourceKeyHasher {
+    size_t operator()(const ResourceKey& k) const noexcept { return rapidhash(&k, sizeof(k)); }
+  };
 
   template <typename Tag>
-  using Registry = util::RobinMap<ResourceKey, ResourceHandle<Tag>>;
-  Registry<PrefabResource_t> mRegistry;
+  using Registry = util::RobinMap<ResourceKey, ResourceHandle<Tag>, ResourceKeyHasher>;
 
-  Pool<PrefabResource, PrefabResource_t> mPrefabs;
+  // basic resource
+  Registry<BufferResource_t> mBufferRegistry;
+  Pool<BufferResource, BufferResource_t> mBuffers{64};
+  Registry<MeshResource_t> mTextureRegistry;
+  Pool<TextureResource, TextureResource_t> mTextures{64};
+
+  // prefabs
+  Registry<MeshResource_t> mMeshRegistry;
+  Pool<MeshResource, MeshResource_t> mMeshes{64};
+  // gltf, etc
+  Registry<PrefabResource_t> mPrefabRegistry;
+  Pool<PrefabResource, PrefabResource_t> mPrefabs{64};
 
   template <typename Tag>
-  typename TagInfo<Tag>::ResourceType* get(ResourceHandle<Tag> handle) const noexcept;
+  typename TagInfo<Tag>::ResourceType* get(ResourceHandle<Tag> handle) noexcept;
   template <typename Tag>
   void retain(ResourceHandle<Tag> handle) noexcept;
   template <typename Tag>

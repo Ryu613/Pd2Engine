@@ -17,8 +17,9 @@
 代码风格和规范参考clang-format和tidy配置，基本上可参考google代码风格，代码规范和建议主要参考{cpp} core guideline
 
 [NOTE]
-----
+====
 cmake理由: 
+
 . 事实上的{cpp}构建标准，被广泛使用
 . 支持跨平台构建，模块化构建，支持定制化构建方案
 . 限制:
@@ -29,6 +30,7 @@ cmake理由:
 . 网络资料质量参差不齐，有额外的调研筛选成本
 
 vcpkg理由:
+
 . 对于普通三方库引入容易，降低每个库构建方案不同导致的学习成本，支持按平台指定编译方案，支持自定义构建参数，易用
 . 采取manifest mode 搭配manifest features可实现项目独立的，三方库条件导入，特别方便
 . 限制:
@@ -38,14 +40,15 @@ vcpkg理由:
 .. vcpkg文档不一定及时和清晰
 
 解决办法及个人最佳实践:
-. 参考link:../../articles/现代{cpp}项目构建方案心得.adoc[现代项目构建方案心得]
-----
+
+. 参考link:../../articles/现代C++项目构建方案心得.adoc[现代{cpp}项目构建方案心得]
+====
 
 === 项目文件组织结构
 
 * **docs**: 项目相关的文档记录，index.adoc是文档主入口
 ** doxygen: doxygen生成的源码文档
-** design: 项目设计文档
+** architecture: 项目架构设计文档
 * **assets**: 通用资产
 ** models: 模型文件
 *** characters: 人物模型
@@ -60,7 +63,7 @@ vcpkg理由:
 *** core: 核心着色器
 *** effect: 效果相关着色器
 * **cmake**: cmake公共配置项
-* **vcpkg**: vcpkg配置项
+* **vcpkg**: vcpkg配置项，包括ports和triplet配置
 * **engine**: 引擎主目录
 ** config: 引擎配置
 ** source: 引擎源码
@@ -72,7 +75,7 @@ vcpkg理由:
 
 CMake设置构建测试用例的开关，对于单元测试放在engine/test目录下，以test_{name}.cpp命名
 
-测试框架采用Catch2, 为了降低开发成本，测试以基础功能跑通为主，不保证测试覆盖
+测试框架采用Catch2, 测试用例放在模块设计目录中，会在设计时考虑。为了降低开发成本，测试以基础功能跑通为主，不保证测试覆盖
 
 === 文档方案
 

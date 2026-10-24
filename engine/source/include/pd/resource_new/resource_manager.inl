@@ -4,8 +4,8 @@
 
 namespace pd {
 template <typename TAsset, typename Tag>
-inline Result<ResourceHandle<Tag>> ResourceManager::registerResource(TAsset* asset) noexcept {}
+inline Result<ResourceHandle<Tag>> ResourceManager::registerResourceFromAsset(TAsset* asset) noexcept {}
 
 template <>
-Result<ResourceHandle<PrefabResource_t>> ResourceManager::registerResource(GltfAsset* asset) noexcept;
+Result<ResourceHandle<PrefabResource_t>> ResourceManager::registerResourceFromAsset(GltfAsset* asset) noexcept;
 }  // namespace pd
