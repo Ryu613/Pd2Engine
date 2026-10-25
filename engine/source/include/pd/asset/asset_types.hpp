@@ -34,8 +34,10 @@ enum class TextureMimeType : u8 {
   ApplicationOctetStream,
 };
 
-using AssetIdType = u32;
+using AssetIdType = u64;
 inline constexpr AssetIdType invalidAssetId = std::numeric_limits<AssetIdType>::max();
+
+inline constexpr u32 invalidAssetIndex = std::numeric_limits<u32>::max();
 
 using AssetPathType = std::string;
 using VertexData = pd::Vertex;
@@ -45,12 +47,14 @@ struct AssetHandle {
 };
 
 struct ImageData {
+  AssetIdType id;
   std::vector<std::byte> bytes;
 };
 struct SamplerData {
   // todo
 };
 struct TextureData {
+  AssetIdType id;
   std::string name;
   TextureMimeType mimeType;
   struct DataUri {
@@ -63,8 +67,8 @@ struct TextureData {
     const std::byte* dataPtr = nullptr;
     size_t byteLength = 0;
   };
-  u32 imageIndex = invalidAssetId;
-  u32 samplerIndex = invalidAssetId;
+  u32 imageIndex = invalidAssetIndex;
+  u32 samplerIndex = invalidAssetIndex;
   std::variant<DataUri, ExternalFile, BufferView> source;
   TextureDecoderType decoderType = TextureDecoderType::Stb;
   u32 width = 0;
@@ -111,6 +115,11 @@ inline TextureMimeType TextureMimeTypefromExtensionName(std::string_view str) {
   }
 
   return TextureMimeType::Unknown;
+}
+
+inline AssetIdType getNewAssetId() noexcept {
+  static std::atomic<AssetIdType> newId{0};
+  return ++newId;
 }
 
 }  // namespace pd

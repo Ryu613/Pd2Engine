@@ -124,6 +124,7 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
   auto& sampler = gltfAsset.samplers[samplerIndex];
 
   TextureData tex{
+      .id = getNewAssetId(),
       .name = image.name.empty() ? std::format("texture_{}", asset.mTextures.size()) : image.name.c_str(),
   };
 
@@ -186,6 +187,7 @@ void GltfParser::parseTexture(GltfAsset& asset, const fastgltf::Asset& gltfAsset
 
   // save image
   auto& imageData = compileRes.value();
+  imageData.id = getNewAssetId();
   asset.mImages.push_back(std::move(imageData));
 
   // save texture
@@ -210,6 +212,7 @@ void GltfParser::parseMaterial(GltfAsset& asset, const fastgltf::Asset& gltfAsse
     LOG_WARN("material [{}] base color texture 缺失", materialIndex);
   }
   GltfAsset::GltfPbrMaterialData materialData{
+      .id = getNewAssetId(),
       .name = material.name.empty() ? std::format("mat_{}", materialIndex) : std::string(material.name),
       .baseColorFactor = math::vec3{material.pbrData.baseColorFactor.x(), material.pbrData.baseColorFactor.y(),
                                     material.pbrData.baseColorFactor.z()},
@@ -256,6 +259,7 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
       // todo: reuse mesh data
 
       GltfAsset::MeshData meshData{
+          .id = getNewAssetId(),
           .name = std::format("mesh_{}", meshIndex),
       };
       meshData.primitives.resize(primitiveCount);
@@ -263,6 +267,7 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
         const auto& primitive = mesh.primitives[primitiveIndex];
         PD_ASSERT_MSG(primitive.type == fastgltf::PrimitiveType::Triangles, "asset mesh primitive type not supported!");
         auto& primitiveData = meshData.primitives[primitiveIndex];
+        primitiveData.id = getNewAssetId();
         primitiveData.name = std::format("{}_{}", meshData.name, primitiveIndex);
         // positions
         const auto positionIt = primitive.findAttribute("POSITION");
@@ -312,7 +317,7 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
                               glm::scale(glm::mat4{1.0F}, scale);
         const auto worldTransform = parentTransform * localTransform;
         auto node = makeParsedNode(nodeIndex, worldTransform);
-        node.meshId = meshIndex;
+        node.meshIndex = meshIndex;
         // materials
         if (primitive.materialIndex.has_value()) {
           u32 materialIndex = primitive.materialIndex.value();

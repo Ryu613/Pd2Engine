@@ -6,8 +6,8 @@ namespace pd {
 class TextureResource : public Resource {
  public:
   struct Info {};
-  TextureResource(ResourceIdType id, AssetIdType assetId, std::string name, Info info)
-      : Resource(id, assetId, std::move(name)),
+  TextureResource(AssetIdType assetId, ResourceVariantIdType variantId, std::string name, Info info)
+      : Resource(assetId, variantId, std::move(name)),
         mInfo(std::move(info)) {}
 
   ~TextureResource() = default;

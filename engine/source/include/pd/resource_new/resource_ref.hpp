@@ -16,11 +16,16 @@ class ResourceRef {
 
   void reset() noexcept;
 
-  TagInfo<Tag>::ResourceType* get() const noexcept;
-  TagInfo<Tag>::ResourceType* operator->() const noexcept { return get(); }
-  TagInfo<Tag>::ResourceType& operator*() const noexcept { return *get(); }
+  Result<void> load() noexcept;
 
-  explicit operator bool() const noexcept { return mMgr != nullptr && mHandle.valid(); }
+  // 不打算给外部直接拿到本体
+  //   TagInfo<Tag>::ResourceType* get() const noexcept;
+  //   TagInfo<Tag>::ResourceType* operator->() const noexcept { return get(); }
+  //   TagInfo<Tag>::ResourceType& operator*() const noexcept { return *get(); }
+
+  ResourceHandle<Tag> handle() const noexcept { return mHandle; }
+
+  explicit operator bool() const noexcept { return mMgr != nullptr && mHandle.isValid(); }
 
  private:
   friend class ResourceManager;

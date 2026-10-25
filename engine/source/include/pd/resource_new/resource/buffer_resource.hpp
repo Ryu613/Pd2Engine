@@ -5,8 +5,8 @@
 namespace pd {
 class BufferResource : public Resource {
  public:
-  BufferResource(ResourceIdType id, AssetIdType assetId, std::string name)
-      : Resource(id, assetId, std::move(name)) {}
+  BufferResource(AssetIdType assetId, ResourceVariantIdType variantId, std::string name)
+      : Resource(assetId, variantId, std::move(name)) {}
 
   ~BufferResource() = default;
   DELETE_COPY(BufferResource);

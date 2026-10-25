@@ -14,9 +14,6 @@ class MeshResource : public Resource {
     u32 materialSlot = 0;
   };
 
-  MeshResource(ResourceIdType id, AssetIdType assetId, std::string name)
-      : Resource(id, assetId, std::move(name)) {}
-
   ~MeshResource() = default;
   DELETE_COPY(MeshResource);
   DEFAULT_MOVABLE(MeshResource);
@@ -29,11 +26,16 @@ class MeshResource : public Resource {
   Result<void> doUnload(Backend& backend) noexcept override;
 
  private:
+  friend class ResourceManager;
+  
   ResourceRef<BufferResource_t> mVertexBuffer;
   u32 vertexCount = 0;
   ResourceRef<BufferResource_t> mIndexBuffer;
   u32 indexCount = 0;
   std::vector<SubMesh> mSubMeshes;
+
+  MeshResource(AssetIdType assetId, ResourceVariantIdType variantId, std::string name)
+      : Resource(assetId, variantId, std::move(name)) {}
 };
 
 template <>

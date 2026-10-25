@@ -44,12 +44,7 @@ class AssetManager {
   using AssetStorage = util::RobinMap<AssetIdType, std::unique_ptr<Asset>>;
   AssetStorage mStorage;
 
-  // todo: 本版暂未实现并行处理
-  std::atomic<AssetIdType> mNextId = 1;
-
   void initParsers() noexcept;
-
-  AssetIdType nextId() noexcept;
 
   std::string getNormalizedPath(const std::string& str) const noexcept;
 };

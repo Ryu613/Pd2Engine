@@ -37,9 +37,9 @@ TEST_CASE("test_gltf_asset", "asset") {
   REQUIRE(pAsset->nodes().size() == 1);
 
   auto& node = pAsset->nodes().front();
-  REQUIRE(node.meshId == 0);
+  REQUIRE(node.meshIndex == 0);
   auto meshes = pAsset->meshes();
-  auto& meshData = meshes[node.meshId];
+  auto& meshData = meshes[node.meshIndex];
   REQUIRE(meshData.primitives.size() == 1);
   auto& primitives = meshData.primitives;
   auto& primitive = primitives[0];

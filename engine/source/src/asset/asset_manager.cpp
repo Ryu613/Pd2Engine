@@ -29,7 +29,7 @@ Result<AssetHandle> AssetManager::createAsset(Asset::MetaInfo assetInfo) noexcep
   if (it != mRegistry.end()) {
     return AssetHandle{it->second};
   }
-  const auto newId = nextId();
+  const auto newId = getNewAssetId();
   // 1 创建资产实例
   std::unique_ptr<Asset> newAsset;
   switch (assetInfo.parseType) {
@@ -76,8 +76,6 @@ void AssetManager::initParsers() noexcept {
   auto shaderParser = std::make_unique<ShaderParser>(*mFs);
   mParsers.push_back(std::move(shaderParser));
 }
-
-AssetIdType AssetManager::nextId() noexcept { return mNextId++; }
 
 std::string AssetManager::getNormalizedPath(const std::string& str) const noexcept {
   return mFs->normalizedPath(str).string();

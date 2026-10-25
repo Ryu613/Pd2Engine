@@ -88,27 +88,30 @@ class GltfAsset : public Asset {
     math::vec3 pos{};
     math::vec3 eulerAngles{};
     math::vec3 scale{1.f};
-    u32 meshId = invalidAssetId;
+    u32 meshIndex = invalidAssetIndex;
   };
   struct MeshData {
     struct Primitive {
+      AssetIdType id;
       std::string name;
       std::vector<VertexData> vertices;
       std::vector<u32> indices;
-      u32 materialIndex = invalidAssetId;
+      u32 materialIndex = invalidAssetIndex;
     };
+    AssetIdType id;
     std::string name;
     std::vector<Primitive> primitives;
   };
   struct GltfPbrMaterialData {
     static constexpr MaterialType materialType = MaterialType::PbrMetallicRoughness;
+    AssetIdType id;
     std::string name;
     math::vec3 baseColorFactor;
-    u32 baseColorTextureIndex = invalidAssetId;
+    u32 baseColorTextureIndex = invalidAssetIndex;
     float metallicFactor = 0.0f;
     float roughnessFactor = 0.0f;
-    u32 metallicRoughnessTextureIndex = invalidAssetId;
-    u32 normalTextureIndex = invalidAssetId;
+    u32 metallicRoughnessTextureIndex = invalidAssetIndex;
+    u32 normalTextureIndex = invalidAssetIndex;
     math::vec3 emissiveFactor;
   };
 
