@@ -34,31 +34,76 @@
 . 复合类型
 +
 * mesh: 引用buffer资源，如vertex buffer, index buffer等, 子网格包含在mesh中，记录对应buffer的偏移值，跨度， buffer可在不同mesh之间共享，用handle引用
-* 预制件类型，如gltf, gltf看作预制件的一种， 可能包含: mesh, texture, 其中material通过材质系统关联，material是一个material handle
+* prefab(预制件)类型，如gltf, gltf看作预制件的一种， 可能包含: mesh, texture, 其中material通过材质系统关联，material是一个material handle
 +
 . 不包含的类型
 +
 * shader module, descriptor set, pipeline, xxx layout, 这些资源放在材质系统
-+
+* scene node, scene graph, 这些在场景系统中维护
 
-. resource
 
-==== 待定问题
+=== 引擎资源关系梳理
 
-. 计数和引用的实现方案
-. 资源存储方案(数据结构, 存储方式)
-. 如何检测和处理依赖链
-. 后续版本中可能需要的扩展性
-.. 多线程加载
-.. 异步加载
-.. 热加载
-.. 延迟卸载
+引擎的资源理论上要支持dag图结构，示意图如下:
+
+[graphviz]
+----
+digraph ResourceArchitecture {
+    subgraph cluster_asset{
+        label="复合资产"
+        gltf [label="gltf asset\nasset id:0"]
+    }
+    subgraph cluster_prefab_resource {
+        label="复合资源"
+
+        PrefabResource0 [label="prefab resource 0\nasset id:0,variant id:0"]
+        PrefabResource1 [label="prefab resource 1\nasset id:0,variant id:1"]
+
+        gltf -> PrefabResource0[label="view: 1-N"]
+        gltf -> PrefabResource1[label="view: 1-N"]
+
+        MeshResource0 [label="mesh resource 0\nasset id:1\n submesh[3]"]
+        MeshResource1 [label="mesh resource 1\nasset id:2\n submesh[1]"]
+        MeshResource2 [label="mesh resource 2\nasset id:3\n submesh[1]"]
+
+        PrefabResource0 -> MeshResource0[label="ref: 1-N"]
+        PrefabResource0 -> MeshResource1[label="ref: 1-N"]
+        PrefabResource1 -> MeshResource2[label="ref: 1-N"]
+    }
+    subgraph cluster_basic_resource {
+        label="基础资源"
+
+        BufferResource0 [label="buffer resource 0\nindex"]
+        BufferResource1 [label="buffer resource 1\nvertex"]
+        BufferResource2 [label="buffer resource 2\nindex/vertex"]
+        BufferResource3 [label="buffer resource 3\nindex/vertex"]
+
+        MeshResource0 -> BufferResource0[label="ref: 1-2"]
+        MeshResource0 -> BufferResource1[label="ref: 1-2"]
+        MeshResource1 -> BufferResource2[label="ref: 1-2"]
+        MeshResource2 -> BufferResource3[label="ref: 1-2"]
+
+    }
+    subgraph cluster_rhi {
+        label="RHI资源句柄"
+
+        RhiBufferHandle0 [label="rhi buffer 0\nid:0"]
+        RhiBufferHandle1 [label="rhi buffer 0\nid:1"]
+        RhiBufferHandle2 [label="rhi buffer 0\nid:2"]
+
+        BufferResource0 -> RhiBufferHandle0[label="ref: N-1"]
+        BufferResource1 -> RhiBufferHandle1[label="ref: N-1"]
+        BufferResource2 -> RhiBufferHandle2[label="ref: N-1"]
+        BufferResource3 -> RhiBufferHandle2[label="ref: N-1"]
+    }
+}
+----
 
 === gpu资源如何处理
 
 === 如何操作资源？包括创建，如何销毁
 
-. 资源的真正卸载取决于引用计数
+. 资源的真正卸载取决于引用计数,每个资源节点都有引用计数
 
 === 交叉引用方案
 
@@ -76,11 +121,7 @@
 
 === 如何判重
 
-. 通过asset id判重
-
-==== 待定问题
-
-. 同一个资产是否可能需要多个resource?比如因为用途不同
+. 通过asset id和变体id判重，变体id默认为0，变体id用于实现同一个资产多个resource
 
 === 如何使用
 
@@ -124,9 +165,7 @@ stop
 ----
 class Resource {
     资源保持唯一，基类
-    此处有必要接口和实现分离，接口还带有AOP能力，可同时执行逻辑，方便debug
-    资源的拥有者是Resource Manager,外部通过带类型的handle使用
-    如果需要
+    此处有必要接口和实现分离，接口还带有AOP能力，可同时执行逻辑，方便跟踪资源状态，执行统一命令，存储公共数据
     ==
     + void load()
     + void unload()
@@ -152,18 +191,23 @@ class TextureResource extends Resource {
     ==
     - HwTextureHandle mTextureHandle
 }
+class SubMesh {
+    + uint32_t firstIndex
+    + uint32_t indexCount
+    + int32_t baseVertex
+    + uint32_t materialSlot
+}
 class MeshResource extends Resource {
     复合资源
     ==
     - ResourceRef<BufferResource> mVertexBuffer
-    - esourceRef<BufferResource> mIndexBuffer
+    - ResourceRef<BufferResource> mIndexBuffer
 }
 
 class PrefabResource extends Resource {
     复合资源
     ==
     - vector<ResourceRef<MeshResource>> mMeshes
-    - vector<ResourceRef<TextureResource>> mTextures
 }
 
 class ResourceManager {
@@ -182,6 +226,7 @@ ResourceManager *-- BufferResource
 ResourceManager *-- TextureResource
 ResourceManager *-- MeshResource
 ResourceManager *-- PrefabResource
+MeshResource *-- SubMesh
 ----
 
 == 核心调用链梳理
@@ -203,11 +248,8 @@ group 复合资产注册
     ResourceManager -> ResourceManager: 比如gltf解包为多种子资产
     ResourceManager -> ResourceManager: 把mesh拆分为buffer, 转换为buffer resource
     ResourceManager -> ResourceManager: 注册buffer resource(同普通资产注册)
-    ResourceManager -> ResourceManager: 建立mesh引用关系
-    ResourceManager -> ResourceManager: 建立prefab resource和mesh resource引用关系
     ResourceManager -> ResourceManager: 把texture转换为texture resource
-    ResourceManager -> ResourceManager: 注册texture resource(同普通资产注册)
-    ResourceManager -> ResourceManager: 建立prefab resource和texture resource引用关系
+    ResourceManager -> ResourceManager: 更新prefab resource引用计数，从上之下遍历图，经过的节点+1
     ResourceManager -> ResourceManager: 存储prefab resource， 更新注册表
     User <-- ResourceManager: 返回Handle
 end

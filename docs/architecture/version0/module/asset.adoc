@@ -57,6 +57,82 @@
 ** rhi资源没有独立的资源管理器，GPU侧的资源生命周期与对应的resource绑定，是为了降低系统复杂度，统一处理生命周期
 ////
 
+== 复合资产的关系图
+
+[NOTE]
+====
+* 目前不支持跨符合资产复用子资产
+* gltf需要支持交叉引用
+* gltf只取scene0涉及到的资产
+* gltf当前是作为一个整体模型，不作为场景图
+* 此处展示关系，指代的是复合资产需要支持DAG, 不考虑用途
+====
+
+[graphviz]
+----
+digraph AssetArchitecture {
+    subgraph cluster_asset {
+        label="资产模块"
+
+        Gltf [label="glTF Asset\nasset id:0"]
+
+        M1 [label="Mesh 0"]
+        M2 [label="Mesh 1"]
+        M3 [label="Mesh 2"]
+
+        S1 [label="SubMesh 0 0"]
+        S2 [label="SubMesh 0 1"]
+        S3 [label="SubMesh 1 0"]
+        S4 [label="SubMesh 2 0"]
+        S5 [label="SubMesh 2 1"]
+        S6 [label="SubMesh 2 2"]
+
+        Mat1 [label="material 0"]
+        Mat2 [label="material 1"]
+        Mat3 [label="material 2"]
+
+        T1 [label="texture 0"]
+        T2 [label="texture 1"]
+        T3 [label="texture 2"]
+        T4 [label="texture 3"]
+
+        I1 [label="image 0"]
+        I2 [label="image 1"]
+        I3 [label="image 3"]
+
+        Gltf -> M1
+        Gltf -> M2
+        Gltf -> M3
+
+        M1 -> S1
+        M1 -> S2
+        M2 -> S3
+        M3 -> S4
+        M3 -> S5
+        M3 -> S6
+
+        S1 -> Mat1
+        S2 -> Mat1
+        S3 -> Mat2
+        S4 -> Mat1
+        S5 -> Mat3
+        S6 -> Mat1
+
+        Mat1 -> T1
+        Mat1 -> T3
+        Mat2 -> T2
+        Mat2 -> T4
+        Mat3 -> T1
+        
+        T1 -> I1
+        T2 -> I1
+        T3 -> I3
+        T4 -> I2
+
+    }
+}
+----
+
 == 处理流程
 
 无论何种类型的原始资产，资产处理管线会经过如下几步
