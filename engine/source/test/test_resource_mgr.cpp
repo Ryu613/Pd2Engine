@@ -70,7 +70,7 @@ TEST_CASE("test_shader_resource_register", "engine") {
 }
 */
 
-TEST_CASE("test_gltf_resource_register", "engine") {
+TEST_CASE("test_gltf_register", "resource") {
   using namespace pd;
   PlatformConfig platformCfg{
       .window =
@@ -82,15 +82,15 @@ TEST_CASE("test_gltf_resource_register", "engine") {
 
   Platform platform(platformCfg);
   REQUIRE(platform.init());
-  AssetManager assetMgr{&platform.fileSystem()};
+  AssetManager assetMgr{platform.fileSystem()};
 
   auto initRes = assetMgr.init();
   REQUIRE(initRes);
 
-  Asset::CreateInfo assetInfo{
+  Asset::MetaInfo assetInfo{
       .name = "Box Textured",
       .path = ASSET_DIR "BoxTextured/BoxTextured.gltf",
-      .parseType = AssetType::Gltf,
+      .parseType = ParseType::Gltf,
   };
   auto result = assetMgr.createAsset(assetInfo);
   REQUIRE(result);
@@ -98,7 +98,7 @@ TEST_CASE("test_gltf_resource_register", "engine") {
   auto handle = result.value();
   auto assetRes = assetMgr.getAsset(handle);
   REQUIRE(assetRes);
-  auto* asset = assetRes.value();
+  const auto* asset = assetRes.value();
   REQUIRE(asset);
 
   REQUIRE(platform.windowSystem().createWindow());
@@ -112,17 +112,38 @@ TEST_CASE("test_gltf_resource_register", "engine") {
   Backend backend;
   REQUIRE(backend.init(backendCfg));
 
-  ResourceManager rscMgr(&backend);
+  ResourceManager rscMgr(backend);
 
-  auto gltfAssetHandleRes = rscMgr.registerAsset<GltfResource_t>(asset);
-  REQUIRE(gltfAssetHandleRes);
+  SECTION("create one prefab") {
+    auto gltfAssetRefRes = rscMgr.registerResourceFromAsset<GltfAsset, PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
+        .pAsset = static_cast<const GltfAsset*>(asset),
+        .variantId = 0,
+    });
+    REQUIRE(gltfAssetRefRes);
 
-  auto gltfHandle = gltfAssetHandleRes.value();
+    auto gltfRef = gltfAssetRefRes.value();
+  }
+  //   SECTION("create two prefab with same asset") {
+  //     // one
+  //     auto gltfAssetRefRes = rscMgr.registerResourceFromAsset<GltfAsset,
+  //     PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
+  //         .pAsset = static_cast<const GltfAsset*>(asset),
+  //         .variantId = 0,
+  //     });
+  //     REQUIRE(gltfAssetRefRes);
 
-  auto loadResult = rscMgr.loadResource(gltfHandle);
-  REQUIRE(loadResult);
+  //     auto gltfRef = gltfAssetRefRes.value();
+  //     // two
+  //     auto gltfAssetRef1Res = rscMgr.registerResourceFromAsset<GltfAsset,
+  //     PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
+  //         .pAsset = static_cast<const GltfAsset*>(asset),
+  //         .variantId = 1,
+  //     });
+  //     REQUIRE(gltfAssetRef1Res);
+  //     auto gltfRef1 = gltfAssetRef1Res.value();
+  //   }
 
-  auto unloadResult = rscMgr.unloadResource(gltfHandle);
+  REQUIRE(rscMgr.destroy());
 
   REQUIRE(backend.destroy());
   REQUIRE(platform.destroy());

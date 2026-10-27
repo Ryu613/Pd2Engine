@@ -19,7 +19,7 @@ Engine::Engine(EngineConfig config) noexcept
       mStatus(EngineStatus::Stopped),
       mArena{"Engine Heap Allocator", ResourceType::NullResource{}},
       mPlatform(mConfig.platform),
-      mResourceManager(&mBackend),
+      mResourceManager(mBackend),
       mAssetManager(mPlatform.fileSystem()),
       mSceneManager(&mResourceManager, &mAssetManager),
       mRenderer(&mSceneManager, &mBackend) {

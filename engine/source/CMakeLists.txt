@@ -38,12 +38,15 @@ target_sources(engine_lib
         include/pd/backend/backend.hpp
         # resource
         include/pd/resource/resource_types.hpp
-        include/pd/resource/resource_manager.hpp
         include/pd/resource/resource.hpp
-        include/pd/resource/mesh_resource.hpp
-        include/pd/resource/texture_resource.hpp
-        include/pd/resource/shader_resource.hpp
-        include/pd/resource/prefab_resource.hpp
+        include/pd/resource/resource_ref.hpp
+        include/pd/resource/resource_ref.inl
+        include/pd/resource/resource_manager.hpp
+        include/pd/resource/resource_manager.inl
+        include/pd/resource/resource/texture_resource.hpp
+        include/pd/resource/resource/buffer_resource.hpp
+        include/pd/resource/resource/mesh_resource.hpp
+        include/pd/resource/resource/prefab_resource.hpp
         # asset
         include/pd/asset/asset_types.hpp
         include/pd/asset/asset.hpp
@@ -68,11 +71,12 @@ target_sources(engine_lib
         src/platform/fs/file_system.cpp
         src/platform/fs/std_file_system.cpp
         src/platform/platform.cpp
-        src/resource/resource_manager.cpp
         src/resource/resource.cpp
-        src/resource/shader_resource.cpp
-        src/resource/mesh_resource.cpp
-        src/resource/prefab_resource.cpp
+        src/resource/resource_manager.cpp
+        src/resource/resource/buffer_resource.cpp
+        src/resource/resource/texture_resource.cpp
+        src/resource/resource/mesh_resource.cpp
+        src/resource/resource/prefab_resource.cpp
         src/asset/asset_manager.cpp
         src/scene/scene_manager.cpp
         src/scene/scene_descriptor.cpp

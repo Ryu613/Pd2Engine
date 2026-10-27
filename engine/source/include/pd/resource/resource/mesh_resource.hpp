@@ -1,17 +1,25 @@
 #pragma once
 
-#include "pd/resource_new/resource.hpp"
-#include "pd/resource_new/resource_ref.hpp"
-#include "pd/resource_new/resource/buffer_resource.hpp"
+#include "pd/resource/resource.hpp"
+#include "pd/resource/resource_ref.hpp"
+#include "pd/resource/resource/buffer_resource.hpp"
 
 namespace pd {
 class MeshResource : public Resource {
  public:
+  struct Info {
+    u32 vertexCount = 0;
+    u32 indexCount = 0;
+  };
   struct SubMesh {
     u32 firstIndex = 0;
     u32 indexCount = 0;
-    i32 baseVertex = 0;
+    i32 vertexOffset = 0;
     u32 materialSlot = 0;
+
+    // 由asset mgr保证load时存在
+    std::span<const VertexData> vertexData;
+    std::span<const u32> indexData;
   };
 
   ~MeshResource() = default;
@@ -27,14 +35,17 @@ class MeshResource : public Resource {
 
  private:
   friend class ResourceManager;
-  
+
+  Info mInfo;
+
   ResourceRef<BufferResource_t> mVertexBuffer;
-  u32 vertexCount = 0;
+
   ResourceRef<BufferResource_t> mIndexBuffer;
-  u32 indexCount = 0;
+
   std::vector<SubMesh> mSubMeshes;
 
-  MeshResource(AssetIdType assetId, ResourceVariantIdType variantId, std::string name)
+  explicit MeshResource(AssetIdType assetId, ResourceVariantIdType variantId = defaultVariantId,
+                        std::string name = "mesh")
       : Resource(assetId, variantId, std::move(name)) {}
 };
 

@@ -21,7 +21,7 @@ class MaterialDefinition {
     u32 offset;
   };
   struct ShaderDef {
-    ShaderHandle shaderHandle;
+    // ShaderHandle shaderHandle;
   };
   struct TextureDef {
     std::string name;
@@ -44,10 +44,10 @@ class MaterialDefinition {
       mParamDefs.emplace_back(name, paramType, offset);
       return *this;
     }
-    Builder& addShaderModule(ShaderHandle shaderHandle) {
-      mShaderDefs.emplace_back(shaderHandle);
-      return *this;
-    }
+    // Builder& addShaderModule(ShaderHandle shaderHandle) {
+    //   mShaderDefs.emplace_back(shaderHandle);
+    //   return *this;
+    // }
     MaterialDefinition build() { return MaterialDefinition(*this); }
 
    private:

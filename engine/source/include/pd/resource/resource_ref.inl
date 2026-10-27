@@ -1,5 +1,5 @@
 #pragma once
-#include "pd/resource_new/resource_manager.hpp"
+#include "pd/resource/resource_manager.hpp"
 
 namespace pd {
 template <typename Tag>
@@ -27,27 +27,35 @@ ResourceRef<Tag>& ResourceRef<Tag>::operator=(const ResourceRef& rhs) {
   return *this;
 }
 
-// template <typename Tag>
-// ResourceRef<Tag>& ResourceRef<Tag>::operator=(ResourceRef&& rhs) noexcept {
-//   if (this != &rhs) {
-//     reset();
-//     mMgr = std::exchange(rhs.mMgr, nullptr);
-//     mHandle = std::exchange(rhs.mHandle, {});
-//   }
-//   return *this;
-// }
+template <typename Tag>
+ResourceRef<Tag>& ResourceRef<Tag>::operator=(ResourceRef&& rhs) noexcept {
+  if (this != &rhs) {
+    reset();
+    mMgr = std::exchange(rhs.mMgr, nullptr);
+    mHandle = std::exchange(rhs.mHandle, {});
+  }
+  return *this;
+}
 
-// template <typename Tag>
-// void ResourceRef<Tag>::reset() noexcept {
-//   if (!mMgr) {
-//     return;
-//   }
+template <typename Tag>
+void ResourceRef<Tag>::reset() noexcept {
+  if (!mMgr) {
+    return;
+  }
 
-//   auto* manager = std::exchange(mMgr, nullptr);
-//   auto handle = std::exchange(mHandle, {});
+  auto* manager = std::exchange(mMgr, nullptr);
+  auto handle = std::exchange(mHandle, {});
 
-//   manager->release(handle);
-// }
+  manager->release(handle);
+}
+
+template <typename Tag>
+Result<void> ResourceRef<Tag>::load() noexcept {
+  if (!mMgr || !mHandle) {
+    return {};
+  }
+  mMgr->load(mHandle);
+}
 
 // template <typename Tag>
 // TagInfo<Tag>::ResourceType* ResourceRef<Tag>::get() const noexcept {

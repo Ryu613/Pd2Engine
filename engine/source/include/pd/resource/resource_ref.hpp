@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pd/resource_new/resource_types.hpp"
+#include "pd/resource/resource_types.hpp"
 
 namespace pd {
 class ResourceManager;
@@ -14,6 +14,7 @@ class ResourceRef {
   ResourceRef(ResourceRef&& rhs) noexcept;
   ResourceRef& operator=(ResourceRef&& rhs) noexcept;
 
+  // 释放强引用，引用计数-1
   void reset() noexcept;
 
   Result<void> load() noexcept;
@@ -29,11 +30,12 @@ class ResourceRef {
 
  private:
   friend class ResourceManager;
-  ResourceManager* mMgr;
+  ResourceManager* mMgr = nullptr;
 
-  ResourceHandle<Tag> mHandle;
+  ResourceHandle<Tag> mHandle{};
 
-  ResourceRef(ResourceManager& mgr)
-      : mMgr(&mgr) {}
+  ResourceRef(ResourceManager& mgr, ResourceHandle<Tag> handle)
+      : mMgr(&mgr),
+        mHandle(handle) {}
 };
 }  // namespace pd

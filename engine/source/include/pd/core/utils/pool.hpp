@@ -15,7 +15,7 @@ class Pool {
  public:
   template <typename TPool>
   using PoolType = std::vector<TPool>;
-  
+
   using Handle = TypedHandle<TTag>;
 
   explicit Pool(uint32_t capacity) noexcept
@@ -49,7 +49,7 @@ class Pool {
     if (!isValidHandle(handle)) {
       return nullptr;
     }
-    return const_cast<T*>(&mData[handle.id()]);
+    return const_cast<T*>(&mData[handle.data.id]);
   }
 
   template <typename... Args>
@@ -94,7 +94,7 @@ class Pool {
     mFreeIndices.push_back(handleId);
   }
 
-    /**
+  /**
    * @brief 注：标记可移除并析构
    *
    */
@@ -123,10 +123,9 @@ class Pool {
   uint32_t mCapacity = 0;
 
   bool isValidHandle(const Handle& handle) const noexcept {
-    auto handleId = handle.id();
-    auto handleGen = handle.gen();
-    return handle.isValid() && handleId < mData.size() && handleGen == mGens[handleId].gen &&
-           mGens[handleId].isAlive;
+    auto handleId = handle.data.id;
+    auto handleGen = handle.data.gen;
+    return handle.isValid() && handleId < mData.size() && handleGen == mGens[handleId].gen && mGens[handleId].isAlive;
   }
 
   void growCapacity() noexcept;

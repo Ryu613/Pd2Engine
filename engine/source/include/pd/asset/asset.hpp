@@ -100,6 +100,8 @@ class GltfAsset : public Asset {
     };
     AssetIdType id;
     std::string name;
+    u32 verticesSize = 0;
+    u32 indicesSize = 0;
     std::vector<Primitive> primitives;
   };
   struct GltfPbrMaterialData {

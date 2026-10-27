@@ -1,14 +1,11 @@
 #pragma once
 
-#include "pd/resource_new/resource.hpp"
+#include "pd/resource/resource.hpp"
 
 namespace pd {
 class TextureResource : public Resource {
  public:
   struct Info {};
-  TextureResource(AssetIdType assetId, ResourceVariantIdType variantId, std::string name, Info info)
-      : Resource(assetId, variantId, std::move(name)),
-        mInfo(std::move(info)) {}
 
   ~TextureResource() = default;
   DELETE_COPY(TextureResource);
@@ -19,8 +16,14 @@ class TextureResource : public Resource {
   Result<void> doUnload(Backend& backend) noexcept override;
 
  private:
+  friend class ResourceManager;
+
   Info mInfo;
   HwTextureHandle mTexture;
+
+  explicit TextureResource(AssetIdType assetId, ResourceVariantIdType variantId = defaultVariantId,
+                           std::string name = "texture")
+      : Resource(assetId, variantId, std::move(name)) {}
 };
 
 template <>

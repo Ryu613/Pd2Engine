@@ -263,6 +263,8 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
           .name = std::format("mesh_{}", meshIndex),
       };
       meshData.primitives.resize(primitiveCount);
+      u32 verticesSize = 0;
+      u32 indicesSize = 0;
       for (u32 primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex) {
         const auto& primitive = mesh.primitives[primitiveIndex];
         PD_ASSERT_MSG(primitive.type == fastgltf::PrimitiveType::Triangles, "asset mesh primitive type not supported!");
@@ -307,25 +309,30 @@ Result<void> GltfParser::parseScene(GltfAsset& asset, const fastgltf::Asset& glt
           fastgltf::iterateAccessor<uint32_t>(gltfAsset, indexAccessor,
                                               [&](uint32_t index) { primitiveData.indices.emplace_back(index); });
         }
-        // 处理scene node
-        const auto& gltfNode = gltfAsset.nodes[nodeIndex];
-        const auto& trs = std::get<fastgltf::TRS>(gltfNode.transform);
-        auto translation = math::vec3{trs.translation.x(), trs.translation.y(), trs.translation.z()};
-        auto rotation = math::quat{trs.rotation.w(), trs.rotation.x(), trs.rotation.y(), trs.rotation.z()};
-        auto scale = math::vec3{trs.scale.x(), trs.scale.y(), trs.scale.z()};
-        auto localTransform = glm::translate(glm::mat4{1.0F}, translation) * glm::mat4_cast(rotation) *
-                              glm::scale(glm::mat4{1.0F}, scale);
-        const auto worldTransform = parentTransform * localTransform;
-        auto node = makeParsedNode(nodeIndex, worldTransform);
-        node.meshIndex = meshIndex;
+        // calculate sizes
+        verticesSize += sizeof(VertexData) * primitiveData.vertices.size();
+        indicesSize += sizeof(u32) * primitiveData.indices.size();
         // materials
         if (primitive.materialIndex.has_value()) {
           u32 materialIndex = primitive.materialIndex.value();
           parseMaterial(asset, gltfAsset, primitiveData, materialIndex);
         }
-        asset.mNodes.push_back(node);
       }
+      meshData.verticesSize = verticesSize;
+      meshData.indicesSize = indicesSize;
+      // create scene node
+      const auto& gltfNode = gltfAsset.nodes[nodeIndex];
+      const auto& trs = std::get<fastgltf::TRS>(gltfNode.transform);
+      auto translation = math::vec3{trs.translation.x(), trs.translation.y(), trs.translation.z()};
+      auto rotation = math::quat{trs.rotation.w(), trs.rotation.x(), trs.rotation.y(), trs.rotation.z()};
+      auto scale = math::vec3{trs.scale.x(), trs.scale.y(), trs.scale.z()};
+      auto localTransform =
+          glm::translate(glm::mat4{1.0F}, translation) * glm::mat4_cast(rotation) * glm::scale(glm::mat4{1.0F}, scale);
+      const auto worldTransform = parentTransform * localTransform;
+      auto node = makeParsedNode(nodeIndex, worldTransform);
+      node.meshIndex = meshIndex;
       asset.mMeshes.push_back(std::move(meshData));
+      asset.mNodes.push_back(node);
 
       meshIndex++;
     }

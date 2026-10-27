@@ -1,34 +1,33 @@
 #include "pd/resource/resource.hpp"
 
 namespace pd {
-
 Resource::~Resource() {}
 
-Resource::Resource(ResourceIdType id, AssetIdType assetId, const std::string& name)
-    : mId(id),
-      mAssetId(assetId),
-      mName(name),
+Resource::Resource(AssetIdType assetId, ResourceVariantIdType variantId, std::string name)
+    : mAssetId(assetId),
+      mVariantId(variantId),
+      mName(std::move(name)),
       mStatus(ResourceStatus::Unload) {}
 
-Result<void> Resource::load() noexcept {
+Result<void> Resource::load(Backend& backend) noexcept {
   if (mStatus != ResourceStatus::Unload) {
-    LOG_DEBUG("resource status is not [unload]: id={}, name={}", mId, mName);
+    LOG_DEBUG("resource status is not [unload]: name={}", mName);
     return {};
   }
   mStatus = ResourceStatus::Loading;
-  if (auto res = doLoad(); !res) {
+  if (auto res = doLoad(backend); !res) {
     return res;
   }
   mStatus = ResourceStatus::Loaded;
   return {};
 }
 
-Result<void> Resource::unload() noexcept {
-  LOG_DEBUG("unloading resource: {}", mId);
+Result<void> Resource::unload(Backend& backend) noexcept {
+  LOG_DEBUG("unloading resource: {}", mName);
   if (mStatus != ResourceStatus::Loaded) {
     return {};
   }
-  if (auto res = doUnload(); !res) {
+  if (auto res = doUnload(backend); !res) {
     return res;
   }
   mStatus = ResourceStatus::Unload;
