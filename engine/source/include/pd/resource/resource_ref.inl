@@ -7,7 +7,8 @@ ResourceRef<Tag>::ResourceRef(const ResourceRef& rhs)
     : mMgr(rhs.mMgr),
       mHandle(rhs.mHandle) {
   if (mMgr) {
-    mMgr->retain(mHandle);
+    auto result = mMgr->retain(mHandle);
+    PD_ASSERT(result);
   }
 }
 
@@ -46,7 +47,7 @@ void ResourceRef<Tag>::reset() noexcept {
   auto* manager = std::exchange(mMgr, nullptr);
   auto handle = std::exchange(mHandle, {});
 
-  manager->release(handle);
+  auto result = manager->release(handle);
 }
 
 template <typename Tag>

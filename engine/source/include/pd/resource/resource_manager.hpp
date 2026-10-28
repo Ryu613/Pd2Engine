@@ -17,6 +17,9 @@ struct ResourceCreateInfo {
   const TAsset* pAsset = nullptr;
   ResourceVariantIdType variantId = defaultVariantId;
 };
+/**
+* @brief 运行时资源管理器，负责CPU/GPU资源的生命周期，加载，引用，句柄等逻辑，是引擎的资源中枢，除了材质相关的资源以外都在此处处理
+*/
 class ResourceManager {
  public:
   ResourceManager(Backend& backend);
@@ -34,6 +37,8 @@ class ResourceManager {
   // handle换强引用
   template <typename Tag>
   Result<ResourceRef<Tag>> acquire(ResourceHandle<Tag> ref) noexcept;
+
+  Result<void> gc() noexcept;
 
  private:
   template <typename>
@@ -66,6 +71,7 @@ class ResourceManager {
   struct ResourceEntry {
     ResourceHandle<Tag> handle;
     u32 refCount = 0;
+    std::array<ResourceKey> children;
   };
 
   template <typename Tag>

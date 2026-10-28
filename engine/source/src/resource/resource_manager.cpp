@@ -157,4 +157,13 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
   }
   return {};
 }
+
+Result<void> ResourceManager::gc() noexcept {
+  // 1. prefab
+  // 2. mesh
+  // 3. texture
+  // 4. buffer
+
+  return {};
+}
 }  // namespace pd

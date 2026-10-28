@@ -123,25 +123,23 @@ TEST_CASE("test_gltf_register", "resource") {
 
     auto gltfRef = gltfAssetRefRes.value();
   }
-  //   SECTION("create two prefab with same asset") {
-  //     // one
-  //     auto gltfAssetRefRes = rscMgr.registerResourceFromAsset<GltfAsset,
-  //     PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
-  //         .pAsset = static_cast<const GltfAsset*>(asset),
-  //         .variantId = 0,
-  //     });
-  //     REQUIRE(gltfAssetRefRes);
+  SECTION("create two prefab with same asset") {
+    // one
+    auto gltfAssetRefRes = rscMgr.registerResourceFromAsset<GltfAsset, PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
+        .pAsset = static_cast<const GltfAsset*>(asset),
+        .variantId = 0,
+    });
+    REQUIRE(gltfAssetRefRes);
 
-  //     auto gltfRef = gltfAssetRefRes.value();
-  //     // two
-  //     auto gltfAssetRef1Res = rscMgr.registerResourceFromAsset<GltfAsset,
-  //     PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
-  //         .pAsset = static_cast<const GltfAsset*>(asset),
-  //         .variantId = 1,
-  //     });
-  //     REQUIRE(gltfAssetRef1Res);
-  //     auto gltfRef1 = gltfAssetRef1Res.value();
-  //   }
+    auto gltfRef = gltfAssetRefRes.value();
+    // two
+    auto gltfAssetRef1Res = rscMgr.registerResourceFromAsset<GltfAsset, PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
+        .pAsset = static_cast<const GltfAsset*>(asset),
+        .variantId = 1,
+    });
+    REQUIRE(gltfAssetRef1Res);
+    auto gltfRef1 = gltfAssetRef1Res.value();
+  }
 
   REQUIRE(rscMgr.destroy());
 

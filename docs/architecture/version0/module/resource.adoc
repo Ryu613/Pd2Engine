@@ -44,7 +44,7 @@
 
 === 引擎资源关系梳理
 
-引擎的资源理论上要支持dag图结构，示意图如下:
+引擎的资源要支持dag图结构，每个节点需要可以复用，资源要有加载状态和引用计数， 示意图如下:
 
 [graphviz]
 ----
@@ -65,10 +65,16 @@ digraph ResourceArchitecture {
         MeshResource0 [label="mesh resource 0\nasset id:1\n submesh[3]"]
         MeshResource1 [label="mesh resource 1\nasset id:2\n submesh[1]"]
         MeshResource2 [label="mesh resource 2\nasset id:3\n submesh[1]"]
+        MeshResource3 [label="mesh resource 0\nasset id:1\n submesh[3]"]
+        MeshResource4 [label="mesh resource 1\nasset id:2\n submesh[1]"]
+        MeshResource5 [label="mesh resource 2\nasset id:3\n submesh[1]"]
 
         PrefabResource0 -> MeshResource0[label="ref: 1-N"]
         PrefabResource0 -> MeshResource1[label="ref: 1-N"]
-        PrefabResource1 -> MeshResource2[label="ref: 1-N"]
+        PrefabResource0 -> MeshResource2[label="ref: 1-N"]
+        PrefabResource1 -> MeshResource3[label="ref: 1-N"]
+        PrefabResource1 -> MeshResource4[label="ref: 1-N"]
+        PrefabResource1 -> MeshResource5[label="ref: 1-N"]
     }
     subgraph cluster_basic_resource {
         label="基础资源"
@@ -77,11 +83,19 @@ digraph ResourceArchitecture {
         BufferResource1 [label="buffer resource 1\nvertex"]
         BufferResource2 [label="buffer resource 2\nindex/vertex"]
         BufferResource3 [label="buffer resource 3\nindex/vertex"]
+        BufferResource4 [label="buffer resource 0\nindex"]
+        BufferResource5 [label="buffer resource 1\nvertex"]
+        BufferResource6 [label="buffer resource 2\nindex/vertex"]
+        BufferResource7 [label="buffer resource 3\nindex/vertex"]
 
         MeshResource0 -> BufferResource0[label="ref: 1-2"]
         MeshResource0 -> BufferResource1[label="ref: 1-2"]
         MeshResource1 -> BufferResource2[label="ref: 1-2"]
         MeshResource2 -> BufferResource3[label="ref: 1-2"]
+        MeshResource3 -> BufferResource4[label="ref: 1-2"]
+        MeshResource3 -> BufferResource5[label="ref: 1-2"]
+        MeshResource4 -> BufferResource6[label="ref: 1-2"]
+        MeshResource5 -> BufferResource7[label="ref: 1-2"]
 
     }
     subgraph cluster_rhi {
@@ -90,11 +104,18 @@ digraph ResourceArchitecture {
         RhiBufferHandle0 [label="rhi buffer 0\nid:0"]
         RhiBufferHandle1 [label="rhi buffer 0\nid:1"]
         RhiBufferHandle2 [label="rhi buffer 0\nid:2"]
+        RhiBufferHandle3 [label="rhi buffer 0\nid:0"]
+        RhiBufferHandle4 [label="rhi buffer 0\nid:1"]
+        RhiBufferHandle5 [label="rhi buffer 0\nid:2"]
 
         BufferResource0 -> RhiBufferHandle0[label="ref: N-1"]
         BufferResource1 -> RhiBufferHandle1[label="ref: N-1"]
         BufferResource2 -> RhiBufferHandle2[label="ref: N-1"]
         BufferResource3 -> RhiBufferHandle2[label="ref: N-1"]
+        BufferResource4 -> RhiBufferHandle3[label="ref: N-1"]
+        BufferResource5 -> RhiBufferHandle4[label="ref: N-1"]
+        BufferResource6 -> RhiBufferHandle5[label="ref: N-1"]
+        BufferResource7 -> RhiBufferHandle5[label="ref: N-1"]
     }
 }
 ----
@@ -103,13 +124,14 @@ digraph ResourceArchitecture {
 
 === 如何操作资源？包括创建，如何销毁
 
-. 资源的真正卸载取决于引用计数,每个资源节点都有引用计数
+. 资源的真正卸载取决于引用计数,每个资源节点都有引用计数， 外部不能直接销毁资源，只能请求gc(), 由resource manager最终负责
 
 === 交叉引用方案
 
-. 通过handle引用，需要经过rm让其增加引用计数，不能拷贝进去
-. resource实例是唯一的，但是多个handle可对应同一个resource，resource的嵌套包含通过resource的handle对应，不能resource套resource
-. 带引用计数
+. 通过ref引用，拷贝会增加引用计数，或者通过resource manager显式增加计数，移动不会增加计数
+. 加载、卸载行为不会导致计数变化
+. resource实例是唯一的，但是多个handle可对应同一个resource，resource的嵌套包含通过resource的ref对应，不能resource套resource
+. 引用计数在resource manager处统一管理，resource或者ref, handle没有引用计数数据
 
 === 如何存储
 
@@ -118,24 +140,31 @@ digraph ResourceArchitecture {
 . rm的handle是带类型的，方便区分不同类型的资源
 . 为了避免ABA问题，及预留未来热重载扩展性，handle带分代信息，表示版本号
 . handle的生成，包括id分发由RM负责
+. 存储按照tag类型分不同的池存储
 
 === 如何判重
 
 . 通过asset id和变体id判重，变体id默认为0，变体id用于实现同一个资产多个resource
+. 如果不是资产创建的资源，有运行时id判断判重
 
 === 如何使用
 
-. 引擎所有运行时资源都通过resource manager管理，外部不可自行持有或管理资源，而是通过handle访问
+. 引擎所有运行时资源都通过resource manager管理，外部不可自行持有或管理资源，而是通过handle/ref访问
 . rm能追踪资源状态，能够管理和分发handle
 . 支持多线程异步，异步任务分派给job system执行
 . 资源系统只依赖backend以便调度GPU资源，GPU侧资源会与运行时资源对应，关系是n对n
-. 资源的真正卸载取决于引用计数
+
+=== 失败回退
+
+. 注册时中途失败，整个资源引用计数不会更新，可以在gc()时被清理，会返回一个错误信息
+. 加载时失败目前会报错，报错如何处理取决于调用方
 
 == 本版边界
 
 . 暂不实现流式加载，热重载, 但是设计上预留空间，比如分代handle,资源带状态，resource类型和标签隔离能力等
 . 暂不支持多线程
 . 暂不集成内存分配器，job system
+. buffer目前是被mesh独占，不是共用的，但是架构上支持共用，未来可以优化
 
 == 用例梳理
 
@@ -174,7 +203,6 @@ class Resource {
     # virtual void doUnload()
     ==
 
-    - uint32_t mId
     - uint32_t mAssetId
     - string mName
     - ResourceStatus mStatus
@@ -209,6 +237,10 @@ class PrefabResource extends Resource {
     ==
     - vector<ResourceRef<MeshResource>> mMeshes
 }
+class ResourceEntry {
+    ResourceHandle handle
+    uint32_t refCount
+}
 
 class ResourceManager {
     包含判重和资源记录
@@ -217,7 +249,9 @@ class ResourceManager {
     Tag用于支持同种资源根据用途和生命周期特征不同分开管理
     Tag分为对内Tag和对外Tag，是一对多的关系
     ==
-    - unordered_map<ResourceKey, ResourceHandle<T>> mRegistry
+    具体成员详见代码
+    ==
+    - unordered_map<ResourceKey, ResourceEntry<T>> mRegistry
     - Pool<ResourceType> mXxxPool;
     ...
 }
@@ -227,39 +261,98 @@ ResourceManager *-- TextureResource
 ResourceManager *-- MeshResource
 ResourceManager *-- PrefabResource
 MeshResource *-- SubMesh
+ResourceManager *-- ResourceEntry
 ----
 
 == 核心调用链梳理
 
+以复合资产(prefab为例)
+
 [plantuml]
 ....
 actor developer as User
-group 普通资产注册
+activate ResourceManager
+group 复合资产注册
      User -> ResourceManager: registerResource(T* asset)
      ResourceManager -> ResourceManager: 判重
-     ResourceManager -> ResourceManager: 生成对应的Resource
-     ResourceManager -> ResourceManager: 存储resource， 更新注册表
-     User <-- ResourceManager: 返回Handle
+     ResourceManager -> PrefabResource++: 构造 PrefabResource
+     ResourceManager -> MeshResource++: 构造 PrefabResource的mesh resources
+     ResourceManager -> BufferResource++: 构造 MeshResource的buffer resources
+     ResourceManager -> TextureResource++: 构造 PrefabResource的texture resources
+     ResourceManager <-- PrefabResource: 构造完成
+     ResourceManager -> ResourceManager: 存储resources，  更新注册表, 更新计数
+     User <-- ResourceManager: 返回prefab resource Handle
 end
-group 复合资产注册
-    User -> ResourceManager: registerResource(T* asset)
-    ResourceManager -> ResourceManager: 判重
-    ResourceManager -> ResourceManager: 生成prefab resource
-    ResourceManager -> ResourceManager: 比如gltf解包为多种子资产
-    ResourceManager -> ResourceManager: 把mesh拆分为buffer, 转换为buffer resource
-    ResourceManager -> ResourceManager: 注册buffer resource(同普通资产注册)
-    ResourceManager -> ResourceManager: 把texture转换为texture resource
-    ResourceManager -> ResourceManager: 更新prefab resource引用计数，从上之下遍历图，经过的节点+1
-    ResourceManager -> ResourceManager: 存储prefab resource， 更新注册表
-    User <-- ResourceManager: 返回Handle
-end
-
-group 资源加载
+group 资源加载(prefab(gltf))
+    User -> ResourceManager: load()
+    ResourceManager -> PrefabResource: load(), PrefabResource status: [unload] to [loading]
+    PrefabResource -> PrefabResource: doLoad()
+    loop meshes
+        PrefabResource -> MeshResource: load(), MeshResource status: [unload] to [loading]
+        loop vertex/index buffers
+            MeshResource -> BufferResource: load(), BufferResource status: [unload] to [loading]
+            BufferResource -> BufferResource: create rhi buffer
+            MeshResource <-- BufferResource: created buffer, BufferResource status: [loading] to [loaded]
+            MeshResource -> BufferResource: writeBuffer(), upload mesh data
+            MeshResource <-- BufferResource: uploaded, MeshResource status: [loading] to [loaded]
+        end
+    end
+    loop textures
+        PrefabResource -> TextureResource: load(), TextureResource status: [unload] to [loading]
+        TextureResource -> TextureResource: create rhi texture
+        PrefabResource <-- TextureResource: texture created, TextureResource status: [loading] to [loaded]
+    end
+    PrefabResource <-- PrefabResource: sub resources loaded, PrefabResource status: [loading] to [loaded]
+    ResourceManager <-- PrefabResource: loaded
+    User <-- ResourceManager: loaded
 end
 group 资源卸载
-
+    User -> ResourceManager: load()
+    ...与加载过程流程一致，只是逆向迭代unload， 不会改变计数, 当前版本buffer会被清空，可以unload()后重新load()...
+    User <-- ResourceManager: unloaded
 end
 group 资源销毁
-
+    ResourceManager -> ResourceManager: gc()
+    loop 注册表资源(1. prefab resource)
+        ResourceManager -> PrefabResource: 找到ref为0的prefab handle
+        ResourceManager -> PrefabResource: unload() 不向下递归
+        PrefabResource -> MeshResource: 计数-1
+        ResourceManager <-- PrefabResource--: prefab从pool里清除，析构
+    end
+    loop 注册表资源(2, mesh resource)
+        ResourceManager -> MeshResource: 找到ref为0的mesh handle
+        ResourceManager -> MeshResource: unload()
+        loop vertex/index buffers
+            MeshResource -> BufferResource--: 计数-1
+        end
+        ResourceManager <-- MeshResource: mesh从pool里清除，析构
+    end
+    loop 注册表资源(3, texture resource)
+        ResourceManager -> TextureResource: 找到ref为0的texture handle
+        ResourceManager -> TextureResource: unload()
+        ResourceManager <-- TextureResource--: mesh从pool里清除，析构
+    end
+    loop 注册表资源(4, buffer resource)
+        ResourceManager -> BufferResource: 找到ref为0的buffer handle
+        ResourceManager -> BufferResource: unload()
+        ResourceManager <-- BufferResource--: buffer从pool里清除，析构
+    end
+end
+group 全局销毁
+    ResourceManager -> ResourceManager: clearAll()
+    ...与销毁相似，先prefab unload,再mesh,再texture,再buffer只是不管refCount...
+    ResourceManager -> ResourceManager--: 清空注册表
 end
 ....
+
+== 测试用例
+
+本版需要以下用例通过，详见test/test_resource
+
+. gltf资产注册
+.. 纹理, 网格数据，buffer
+. 资源加载
+. 引用计数正确
+. 资源卸载
+. 资源gc
+. resource mgr销毁

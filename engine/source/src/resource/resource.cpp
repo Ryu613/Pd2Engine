@@ -10,20 +10,19 @@ Resource::Resource(AssetIdType assetId, ResourceVariantIdType variantId, std::st
       mStatus(ResourceStatus::Unload) {}
 
 Result<void> Resource::load(Backend& backend) noexcept {
-  if (mStatus != ResourceStatus::Unload) {
-    LOG_DEBUG("resource status is not [unload]: name={}", mName);
+  if (mStatus == ResourceStatus::Unload) {
+    mStatus = ResourceStatus::Loading;
+    if (auto res = doLoad(backend); !res) {
+      return res;
+    }
+    mStatus = ResourceStatus::Loaded;
     return {};
   }
-  mStatus = ResourceStatus::Loading;
-  if (auto res = doLoad(backend); !res) {
-    return res;
-  }
-  mStatus = ResourceStatus::Loaded;
+  LOG_DEBUG("resource is not loaded because the status is not [unload]: name={}", mName);
   return {};
 }
 
 Result<void> Resource::unload(Backend& backend) noexcept {
-  LOG_DEBUG("unloading resource: {}", mName);
   if (mStatus != ResourceStatus::Loaded) {
     return {};
   }
@@ -31,7 +30,6 @@ Result<void> Resource::unload(Backend& backend) noexcept {
     return res;
   }
   mStatus = ResourceStatus::Unload;
-
   return {};
 }
 }  // namespace pd

@@ -131,9 +131,25 @@ inline Result<void> ResourceManager::load(ResourceHandle<Tag> handle) noexcept {
   }
   if (resource->status() != ResourceStatus::Unload) {
     LOG_INFO("resource id: {} cannot load because status not unloaded!", handle.data.id);
-    return make_error<void>(ErrorCode::ResourceLoadFailed);
+    return {};
   }
   return resource->load();
+}
+
+template <typename Tag>
+void ResourceManager::unload(ResourceHandle<Tag> handle) noexcept {
+  if (!handle) {
+    return;
+  }
+  auto* resource = get<Tag>(handle);
+  if (!resource) {
+    return;
+  }
+  auto* resourceEntry = findEntry(handle);
+  PD_ASSERT(resourceEntry);
+  if (resource->status() == ResourceStatus::Loaded && resourceEntry->refCount <= 1) {
+    resource->unload();
+  }
 }
 
 template <typename Tag>
