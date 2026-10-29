@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pd/core/utils/map.hpp"
+#include "pd/core/utils/set.hpp"
 #include "pd/core/utils/pool.hpp"
 
 #include "pd/backend/backend.hpp"
@@ -18,8 +19,10 @@ struct ResourceCreateInfo {
   ResourceVariantIdType variantId = defaultVariantId;
 };
 /**
-* @brief 运行时资源管理器，负责CPU/GPU资源的生命周期，加载，引用，句柄等逻辑，是引擎的资源中枢，除了材质相关的资源以外都在此处处理
-*/
+ * @brief
+ * 运行时资源管理器，负责CPU/GPU资源的生命周期，加载，引用，句柄等逻辑，是引擎的资源中枢，除了材质相关的资源以外都在此处处理
+ * 依赖图内聚在此处维护，外部
+ */
 class ResourceManager {
  public:
   ResourceManager(Backend& backend);
@@ -52,6 +55,8 @@ class ResourceManager {
     // 变体id标识，用于支持同一asset不同resource，可由资源创建者提供
     ResourceVariantIdType variantId = defaultVariantId;  // u32
 
+    explicit operator bool() const noexcept { return keyId != invalidResourceId; }
+
     friend bool operator==(const ResourceKey&, const ResourceKey&) = default;
 
     static ResourceKey fromAsset(AssetIdType assetId, u32 variantId = defaultVariantId) noexcept {
@@ -69,10 +74,16 @@ class ResourceManager {
 
   template <typename Tag>
   struct ResourceEntry {
-    ResourceHandle<Tag> handle;
+    u32 entryId = u32_max;
     u32 refCount = 0;
-    std::array<ResourceKey> children;
+    ResourceHandle<Tag> handle;
+    std::vector<ResourceKey> children;
   };
+
+  // 用于支持依赖图unload
+  // u32: entryId
+  using ResourceKeySet = util::RobinSet<ResourceKey>;
+  ResourceKeySet mRequestedRoots;
 
   template <typename Tag>
   using Registry = util::RobinMap<ResourceKey, ResourceEntry<Tag>, ResourceKeyHasher>;
@@ -111,7 +122,13 @@ class ResourceManager {
   Result<void> load(ResourceHandle<Tag> handle) noexcept;
 
   template <typename Tag>
-  void unload(ResourceHandle<Tag> handle) noexcept;
+  Result<void> loadInternal(ResourceHandle<Tag> handle) noexcept;
+
+  template <typename Tag>
+  Result<void> unload(ResourceHandle<Tag> handle) noexcept;
+
+  template <typename Tag>
+  Result<void> unloadInternal(ResourceHandle<Tag> handle) noexcept;
 
   template <typename Tag>
   auto& findPool() noexcept;

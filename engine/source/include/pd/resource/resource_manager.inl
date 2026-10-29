@@ -122,39 +122,73 @@ inline Result<void> ResourceManager::release(ResourceHandle<Tag> handle) noexcep
 
 template <typename Tag>
 inline Result<void> ResourceManager::load(ResourceHandle<Tag> handle) noexcept {
-  if (!handle) {
-    return {};
+  if (auto res = loadInternal(handle); !res) {
+    return res;
   }
-  auto* resource = get<Tag>(handle);
-  if (!resource) {
-    return make_error<void>(ErrorCode::ResourceNotFound);
-  }
-  if (resource->status() != ResourceStatus::Unload) {
-    LOG_INFO("resource id: {} cannot load because status not unloaded!", handle.data.id);
-    return {};
-  }
-  return resource->load();
+  auto resourceKey = getResourceKey(handle);
+  PD_ASSERT(resourceKey);
+
+  mRequestedRoots.emplace(resourceKey);
+
+  return {};
 }
 
 template <typename Tag>
-void ResourceManager::unload(ResourceHandle<Tag> handle) noexcept {
+inline Result<void> ResourceManager::loadInternal(ResourceHandle<Tag> handle) noexcept {
   if (!handle) {
-    return;
+    return {};
+  }
+  auto* resourceEntry = findEntry(handle);
+  if (!resourceEntry) {
+    return {};
+  }
+  auto* resource = get<Tag>(handle);
+  PD_ASSERT(resource);
+  return resource->load(mBackend);
+}
+
+template <typename Tag>
+inline Result<void> ResourceManager::unload(ResourceHandle<Tag> handle) noexcept {
+  auto resourceKey = getResourceKey(handle);
+  if (!resourceKey) {
+    return {};
+  }
+  auto traverseChildren = [](ResourceKey key) {
+    
+    for()
+  }
+  ResourceKeySet requested;
+  ResourceKeySet otherRoots;
+  for (const auto entryId : mRequestedRoots) {
+  }
+  if (auto res = unloadInternal(handle); !res) {
+    return res;
+  }
+  mRequestedRoots.erase(resourceEntry->entryId);
+
+  return {};
+}
+
+template <typename Tag>
+inline Result<void> ResourceManager::unloadInternal(ResourceHandle<Tag> handle) noexcept {
+  if (!handle) {
+    return {};
+  }
+  auto* resourceEntry = findEntry(handle);
+  if (!resourceEntry) {
+    return {};
   }
   auto* resource = get<Tag>(handle);
   if (!resource) {
-    return;
+    return {};
   }
-  auto* resourceEntry = findEntry(handle);
-  PD_ASSERT(resourceEntry);
-  if (resource->status() == ResourceStatus::Loaded && resourceEntry->refCount <= 1) {
-    resource->unload();
-  }
+  return resource->unload(mBackend);
 }
 
 template <typename Tag>
 inline ResourceManager::ResourceEntry<Tag>* ResourceManager::findEntry(ResourceHandle<Tag> handle) noexcept {
   auto resourceKey = getResourceKey<Tag>(handle);
+  if (!resourceKey) return nullptr;
   auto& registry = findRegistry<Tag>();
   auto it = registry.find(resourceKey);
   if (it == registry.end()) {
@@ -177,11 +211,10 @@ inline ResourceManager::ResourceKey ResourceManager::getResourceKey(ResourceHand
   // buffer没有asset id,目前是运行时创建
   if constexpr (!std::is_same_v<ResourceType, BufferResource>) {
     resourceKey = ResourceKey::fromAsset(resource->assetId(), resource->variantId());
-    return resourceKey;
   } else {
     resourceKey = ResourceKey::fromRuntime(handle.data.id, handle.data.gen);
-    return resourceKey;
   }
+  return resourceKey;
 }
 
 // template specialization

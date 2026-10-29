@@ -13,6 +13,7 @@ Result<void> Resource::load(Backend& backend) noexcept {
   if (mStatus == ResourceStatus::Unload) {
     mStatus = ResourceStatus::Loading;
     if (auto res = doLoad(backend); !res) {
+      mStatus = ResourceStatus::Unload;
       return res;
     }
     mStatus = ResourceStatus::Loaded;
