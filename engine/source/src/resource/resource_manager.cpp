@@ -17,8 +17,10 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
   PD_ASSERT_MSG(createInfo.pAsset, "asset pointer is null!");
   auto assetId = createInfo.pAsset->id();
   // 1. 判重, 同一个资产只能注册一次，如果要生成独立的，需要给不同的variant
-  const auto resourceKey = ResourceKey::fromAsset(assetId, createInfo.variantId);
-  if (auto findResult = findRegisteredResource<PrefabResource_t>(resourceKey)) {
+  // 重复注册算错误，不会返回引用也不会增加计数
+  const auto poolType = getPoolType<PrefabResource_t>();
+  const auto resourceKey = ResourceKey::makeKeyAsset(assetId, poolType, createInfo.variantId);
+  if (auto findResult = findRegisteredResource<PrefabResource_t>(resourceKey); findResult) {
     return make_error<ResourceRef<PrefabResource_t>>(ErrorCode::ResourceRegisterFailed);
   }
   // 2. 创建资源(有ref但是refcount都是0，若中途失败，已成功的资源都是0，方便被后续回收)

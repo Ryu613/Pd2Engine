@@ -95,6 +95,7 @@ class ResourceManager {
 
   struct ResourceKeyHasher {
     size_t operator()(const ResourceKey& k) const noexcept {
+      // 保证对齐
       const auto code = std::to_array<u64>({
           static_cast<u64>(k.sourceType),
           k.keyId,
@@ -177,6 +178,9 @@ class ResourceManager {
   template <typename Tag>
   [[nodiscard]]
   std::optional<ResourceHandle<Tag>> findRegisteredResource(const ResourceKey& key) noexcept;
+
+  template <typename Tag>
+  [[nodiscard]] std::type_index getPoolType() const noexcept;
 };
 }  // namespace pd
 

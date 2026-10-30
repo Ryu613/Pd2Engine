@@ -24,7 +24,9 @@ inline Result<ResourceHandle<Tag>> ResourceManager::saveResource(std::unique_ptr
 template <typename Tag>
 inline Result<ResourceHandle<Tag>> ResourceManager::saveRegistry(ResourceHandle<Tag> handle) noexcept {
   PD_ASSERT(handle);
-  auto resourceKey = getResourceKey<Tag>(handle);
+  auto* resource = get<Tag>(handle);
+  PD_ASSERT(resource);
+  auto resourceKey = getResourceKey<Tag>(*resource);
   PD_ASSERT(resourceKey.keyId != invalidResourceId);
 
   auto& registry = findRegistry<Tag>();
@@ -53,7 +55,6 @@ inline typename TagInfo<Tag>::ResourceType* ResourceManager::get(ResourceHandle<
 
   ResourceType* resource = dataPool.get(handle);
   if (resource) {
-    // todo: gen equality
     return resource;
   }
   return static_cast<ResourceType*>(nullptr);
@@ -138,12 +139,14 @@ inline Result<void> ResourceManager::loadInternal(ResourceHandle<Tag> handle) no
   if (!handle) {
     return {};
   }
+  auto* resource = get<Tag>(handle);
+  if (!resource) {
+    return {};
+  }
   auto* resourceEntry = findEntry(handle);
   if (!resourceEntry) {
     return {};
   }
-  auto* resource = get<Tag>(handle);
-  PD_ASSERT(resource);
   return resource->load(mBackend);
 }
 
@@ -153,11 +156,7 @@ inline Result<void> ResourceManager::unload(ResourceHandle<Tag> handle) noexcept
   if (!resourceKey) {
     return {};
   }
-  auto traverseChildren = [](ResourceKey key) {
-    
-    for()
-  }
-  ResourceKeySet requested;
+  auto traverseChildren = [](ResourceKey key) { for () } ResourceKeySet requested;
   ResourceKeySet otherRoots;
   for (const auto entryId : mRequestedRoots) {
   }
@@ -202,19 +201,17 @@ template <typename Tag>
 inline ResourceManager::ResourceKey ResourceManager::getResourceKey(ResourceHandle<Tag> handle) noexcept {
   PD_ASSERT(handle);
   auto* resource = get<Tag>(handle);
-  if (!resource) {
-    LOG_WARN("prefab resource retain failed! id:{}", handle.data.id);
-    return {};
+  PD_ASSERT(resource);
+  const auto poolType = getPoolType<Tag>();
+  if (isRuntime(handle)) {
+    return ResourceKey::makeKeyRuntime(handle.data.id, handle.data.gen, poolType);
   }
-  using ResourceType = TagInfo<Tag>::ResourceType;
-  ResourceKey resourceKey{};
-  // buffer没有asset id,目前是运行时创建
-  if constexpr (!std::is_same_v<ResourceType, BufferResource>) {
-    resourceKey = ResourceKey::fromAsset(resource->assetId(), resource->variantId());
-  } else {
-    resourceKey = ResourceKey::fromRuntime(handle.data.id, handle.data.gen);
-  }
-  return resourceKey;
+  return ResourceKey::makeKeyAsset(resource->assetId(), poolType, resource->variantId());
+}
+
+template <typename Tag>
+inline std::type_index ResourceManager::getPoolType() const noexcept {
+  return std::type_index(typeid(Pool<typename TagInfo<Tag>::ResourceType, Tag>));
 }
 
 // template specialization
