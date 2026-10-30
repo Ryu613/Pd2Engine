@@ -1,5 +1,7 @@
 #pragma once
 
+#include <typeindex>
+
 #include "pd/core/utils/map.hpp"
 #include "pd/core/utils/set.hpp"
 #include "pd/core/utils/pool.hpp"
@@ -39,7 +41,7 @@ class ResourceManager {
 
   // handle换强引用
   template <typename Tag>
-  Result<ResourceRef<Tag>> acquire(ResourceHandle<Tag> ref) noexcept;
+  Result<ResourceRef<Tag>> acquire(ResourceHandle<Tag> handle) noexcept;
 
   Result<void> gc() noexcept;
 
@@ -49,41 +51,71 @@ class ResourceManager {
 
   Backend& mBackend;
 
+  inline static const std::type_index invalidPoolType = std::type_index(typeid(void));
+
   struct ResourceKey {
-    // resource唯一键
+    enum class SourceType : u8 {
+      Asset,
+      Runtime,
+      Unknown = u8_max,
+    };
+
+    // 区分运行时动态还是资产创建
+    SourceType sourceType = SourceType::Unknown;
+
+    // 来自asset: 即asset id(u64)
+    // 来自runtime: handle id + gen(u32 + u32)
     u64 keyId = invalidResourceId;  // u64
-    // 变体id标识，用于支持同一asset不同resource，可由资源创建者提供
+    // 变体id标识，用于支持同一asset不同resource，可由资源创建者提供，默认0
     ResourceVariantIdType variantId = defaultVariantId;  // u32
 
-    explicit operator bool() const noexcept { return keyId != invalidResourceId; }
+    std::type_index poolType = invalidPoolType;
+
+    explicit operator bool() const noexcept {
+      return sourceType != SourceType::Unknown  //
+             && poolType != invalidPoolType     //
+             && keyId != invalidResourceId;
+    }
 
     friend bool operator==(const ResourceKey&, const ResourceKey&) = default;
 
-    static ResourceKey fromAsset(AssetIdType assetId, u32 variantId = defaultVariantId) noexcept {
-      return {assetId, variantId};
+    // 资产guid + 池类型的type_index + 变体id(默认0)
+    [[nodiscard]] static ResourceKey makeKeyAsset(AssetIdType assetId, std::type_index poolType,
+                                                  ResourceVariantIdType variantId = defaultVariantId) noexcept {
+      return {SourceType::Asset, assetId, variantId, poolType};
     }
 
-    static ResourceKey fromRuntime(ResourceIdType id, u32 variantId = defaultVariantId) noexcept {
-      return {id, variantId};
+    // handle的id,gen + 池类型的type_index
+    [[nodiscard]] static ResourceKey makeKeyRuntime(ResourceIdType id, u32 gen, std::type_index poolType,
+                                                    u32 variantId = defaultVariantId) noexcept {
+      const u64 packedId = (static_cast<u64>(gen) << 32) | static_cast<u64>(id);
+      return {SourceType::Runtime, packedId, variantId, poolType};
     }
   };
 
   struct ResourceKeyHasher {
-    size_t operator()(const ResourceKey& k) const noexcept { return rapidhash(&k, sizeof(k)); }
+    size_t operator()(const ResourceKey& k) const noexcept {
+      const auto code = std::to_array<u64>({
+          static_cast<u64>(k.sourceType),
+          k.keyId,
+          static_cast<u64>(k.variantId),
+          static_cast<u64>(k.poolType.hash_code()),
+      });
+      const size_t codeSize = sizeof(u64) * code.size();
+      return rapidhash(code.data(), codeSize);
+    }
   };
 
   template <typename Tag>
   struct ResourceEntry {
-    u32 entryId = u32_max;
     u32 refCount = 0;
     ResourceHandle<Tag> handle;
-    std::vector<ResourceKey> children;
   };
 
-  // 用于支持依赖图unload
-  // u32: entryId
-  using ResourceKeySet = util::RobinSet<ResourceKey>;
-  ResourceKeySet mRequestedRoots;
+  //   // 用于支持依赖图unload
+  //   // u32: entryId
+  //   using ResourceKeySet = util::RobinSet<ResourceKey>;
+  //   ResourceKeySet mRequestedRoots;
 
   template <typename Tag>
   using Registry = util::RobinMap<ResourceKey, ResourceEntry<Tag>, ResourceKeyHasher>;

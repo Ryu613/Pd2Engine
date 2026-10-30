@@ -2,7 +2,7 @@
 
 对应resource/目录
 
-== 职责
+== 在本引擎中的职责定位
 
 . 资源指的是运行时资源，与资产作出区分，资源管理由resource manager负责，资产管理由asset manager负责
 . 整个引擎的运行时资源缓存中心，负责资源缓存以便复用，负责资源生命周期管理，追踪，负责关联的GPU资源
@@ -11,14 +11,20 @@
 . 不负责场景图相关数据
 . 不碰文件加载，只管理运行时资源
 . 不做资产预处理，只管理处理成内部格式的数据
+. 不含资产具体数据，只会在加载时引用，资产数据由使用者保证在加载前还存在
+. 管理资源内部的依赖图引用完整性，保证加载/卸载顺序
 
-== 设计思路
+== 资源的定义和定位
 
-=== resource的种类及实现方式
+. 资源是一个可构造，销毁，加载，卸载的运行时CPU/GPU内存的单位
+.. 构造时，代表的是不变性开始成立并需要在其生命周期内进行管理维护，不代表数据已经加载到内存或显存中
+.. 构造和加载是分离的，加载代表的是内存或显存相关的数据真正提交到其内并在unload前一直存在
 
-. 有两种资源类型
+=== 资源的类型
+
+. 按资源的组成来分，有两种资源类型
 .. 基础类型: 不可拆分的最小单位类型，比如：单个纹理，单个buffer, 没有互相依赖的关系
-.. 复合类型: 可拆分，但是一般看作一个整体的类型，比如：网格资源
+.. 复合类型: 可拆分，但是一般看作一个整体的类型，比如：网格资源，模型资源
 
 * 复合类型应该由基础类型组成，复合类型引用基础类型，同时复合类型可以引用其他复合类型
 * 每种类型都应该有引用计数，当有其他类型依赖时，计数加1，引用由句柄实现
@@ -26,10 +32,44 @@
 ** 复合类型可以引用其他复合类型
 ** 依赖链不能成环
 
+. 按资源的创建来分
+.. 动态资源：无法预先知道创建时机的资源，比如场景中需要爆出的金币
+.. 静态资源: 运行前就可知道创建时机的资源，比如要加载场景中的某个固定出现的模型
+
+资源不是资源实例，场景系统会用资源句柄来创建对应的实例，资源只有一个，实例可以有多个
+
+== 资源与资产，资源实例的关系
+
+. 资产无关用途，根据标准化的文件绝对路径路径作为唯一键，复合资产内部的子资产当前不可跨复合资产复用，子资产也有唯一键，是复合资产的唯一键加根据系统生成的资产名拼接后生成，能支持每次加载都是唯一的，稳定的
+. 资源与用途无关，只与生命周期特征有关，比如某个资产可能需要独立成为2个资源，它们之间的数据也不允许共享
+. 复合资产可以成为复合资源，内部维持一个引用关系，同类复合资源不能相互引用，同类复合资源可以共享一个子资源，方法就是用注册时提供的信息生成资源唯一键来确定
+. 资源本身不会有副本，也不能复制，同一个资源键只对应一个资源
+. 资源实例与用途有关，与资源本身是多对一的关系，资源实例不由资源管理器生成或管理，由场景管理器管理
+
+== 生命周期区分
+
+有三类生命周期：
+
+. 全局资源：这部分资源一旦创建，中途不会被销毁，随resource mgr销毁时统一清除
+. 通用资源: 这部分资源是由外部持有强引用保证存活，能请求加载，释放引用代表计数减少，不一定当场清除，清除取决于mgr内部的计数和引用图决定
+. 瞬态资源: 一般是rg使用，有专门的内存管理和处理机制
+
+== 设计思路
+
+=== 资源唯一键
+
+. 对于由资产注册得到的资源， 资源唯一键是由资产GUID + variantId + 资源池类型type_index 生成的字符串
+.. variant id是使用者授予，代表同一个资产要不要独立存一份，不填默认是0，variant id不同，资产数据在缓存时严格不共享(比如buffer或者buffer内部使用的数据会分开两份)，但是资产原生数据还是引用的同一份，因为资产GUID相同
+.. 资产生成的资源的唯一性，是由： 资源唯一键 + handle id + handle gen确定
+.. 支持不同池同一种资源，相同池同一个资产生成两个独立资源
+. 对于运行时动态创建的资源，资源唯一性靠带类型的句柄保证
+
+=== resource的种类及实现方式
+
 . 本版应该有的基础类型:
 +
-* texture: 内部含有 rhi texture handle, 纹理相关属性如宽高等
-* buffer: gpu中的一块内存，和相关属性比如用途，大小，rhi handle等
+* texture resource: 内部含有 rhi texture handle, 纹理相关属性如宽高,格式，类型等
+* buffer resource: gpu中的一块内存，和相关属性比如用途，大小，rhi handle等
 +
 . 复合类型
 +
@@ -40,9 +80,21 @@
 +
 * shader module, descriptor set, pipeline, xxx layout, 这些资源放在材质系统
 * scene node, scene graph, 这些在场景系统中维护
+. 根据资源来源分两类
++
+* 运行时动态创建的
+* 资产固定创建的
+. 根据使用者区分
++
+* 由使用者使用的
+* 由内部使用的
 
 
 === 引擎资源关系梳理
+
+本版设计考虑的是使用者通过prefab resource的强引用句柄来使用资源
+
+资源关系
 
 引擎的资源要支持dag图结构，每个节点需要可以复用，资源要有加载状态和引用计数， 示意图如下:
 
@@ -208,7 +260,7 @@ class Resource {
     - ResourceStatus mStatus
 }
 class BufferResource extends Resource {
-    buffer 属于基础资源，其可以单独存在，也可以被其他复合类型的资源包含
+    buffer 属于基础资源，其可以单独存在，也可以被其他复合类型的资源引用
     通过handle表示关联关系
     ==
     Hw开头代表RHI资源句柄
@@ -249,10 +301,25 @@ class ResourceManager {
     Tag用于支持同种资源根据用途和生命周期特征不同分开管理
     Tag分为对内Tag和对外Tag，是一对多的关系
     ==
-    具体成员详见代码
+
+    + template<typename Tag> Result<ResourceRef<Tag>> registerAsset(ResourceCreateInfo createInfo);
+
+    拷贝一个实例(概念上就等同于instance,内部结构是2个prefab的ref都指向共同的mesh resources和texture resources)
+    + template<typename Tag> Result<ResourceInstance<Tag>> createInstance(ResourceHandle handle)
+
+    + template<typename Tag> Result<Tag> loadAll()
+
+    + template<typename Tag> Result<Tag> unloadAll()
+
     ==
-    - unordered_map<ResourceKey, ResourceEntry<T>> mRegistry
-    - Pool<ResourceType> mXxxPool;
+    ResourceKey需要一个稳定键，且目前注册表是按Tag类型分开的
+    当前版本有两种类型的tag: scene tag和global_tag
+    - unordered_map<ResourceKey, ResourceEntry<PrefabResource_t>> mPrefabRegistry
+    - Pool<PrefabResource, PrefabResource_t> mPrefabPool
+    - unordered_map<ResourceKey, ResourceEntry<MeshResource_t>> mMeshRegistry
+    - Pool<MeshResource,MeshResource_t> mMeshPool
+    - unordered_map<ResourceKey, ResourceEntry<BufferResource_t>> mBufferRegistry
+    - Pool<BufferResource, BufferResource_t> mBufferPool
     ...
 }
 
