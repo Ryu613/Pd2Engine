@@ -55,7 +55,7 @@ Result<void> ResourceRef<Tag>::load() noexcept {
   if (!mMgr || !mHandle) {
     return {};
   }
-  mMgr->load(mHandle);
+  return mMgr->load(mHandle);
 }
 
 // template <typename Tag>
