@@ -39,7 +39,6 @@ class MeshResource : public Resource {
   Info mInfo;
 
   ResourceRef<BufferResource_t> mVertexBuffer;
-
   ResourceRef<BufferResource_t> mIndexBuffer;
 
   std::vector<SubMesh> mSubMeshes;

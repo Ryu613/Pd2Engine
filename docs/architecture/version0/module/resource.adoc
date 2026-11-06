@@ -20,11 +20,16 @@
 .. 构造时，代表的是不变性开始成立并需要在其生命周期内进行管理维护，不代表数据已经加载到内存或显存中
 .. 构造和加载是分离的，加载代表的是内存或显存相关的数据真正提交到其内并在unload前一直存在
 
+== 引擎资源与其他模块数据的关系整理
+
+.引擎资源关系总览
+image::att/resource relations.drawio2.png[]
+
 === 资源的类型
 
 . 按资源的组成来分，有两种资源类型
 .. 基础类型: 不可拆分的最小单位类型，比如：单个纹理，单个buffer, 没有互相依赖的关系
-.. 复合类型: 可拆分，但是一般看作一个整体的类型，比如：网格资源，模型资源
+.. 复合类型: 可拆分，但是一般看作一个整体的类型，比如：网格资源
 
 * 复合类型应该由基础类型组成，复合类型引用基础类型，同时复合类型可以引用其他复合类型
 * 每种类型都应该有引用计数，当有其他类型依赖时，计数加1，引用由句柄实现
@@ -340,7 +345,7 @@ ResourceManager *-- ResourceEntry
 actor developer as User
 activate ResourceManager
 group 复合资产注册
-     User -> ResourceManager: registerResource(T* asset)
+     User -> ResourceManager: registerResourceFromAsset(const ResourceCreateInfo& asset)
      ResourceManager -> ResourceManager: 判重
      ResourceManager -> PrefabResource++: 构造 PrefabResource
      ResourceManager -> MeshResource++: 构造 PrefabResource的mesh resources
