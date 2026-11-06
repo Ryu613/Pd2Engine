@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pd/core/utils/traits.hpp"
-#include "pd/asset/asset_types.hpp"
 #include "pd/resource/resource_types.hpp"
 
 namespace pd {
@@ -12,22 +11,22 @@ class Resource {
   DELETE_COPY(Resource);
   DEFAULT_MOVABLE(Resource);
 
-  Result<void> load(Backend& backend) noexcept;
-  Result<void> unload(Backend& backend) noexcept;
+  Result<void> load(Backend& backend, u32& loadCount) noexcept;
+  Result<void> unload(Backend& backend, u32& loadCount) noexcept;
 
   ResourceIdType variantId() const noexcept { return mVariantId; }
-  AssetIdType assetId() const noexcept { return mAssetId; };
+  u64 sourceId() const noexcept { return mSourceId; };
   const std::string& name() const noexcept { return mName; }
   ResourceStatus status() const noexcept { return mStatus; }
 
  protected:
-  explicit Resource(AssetIdType assetId, ResourceVariantIdType variantId, std::string name = "Unknown");
+  explicit Resource(u64 mSourceId, ResourceVariantIdType variantId, std::string name = "Unknown");
 
   virtual Result<void> doLoad(Backend& backend) noexcept = 0;
   virtual Result<void> doUnload(Backend& backend) noexcept = 0;
 
  private:
-  AssetIdType mAssetId;
+  u64 mSourceId;
   ResourceVariantIdType mVariantId;
   std::string mName;
   ResourceStatus mStatus;

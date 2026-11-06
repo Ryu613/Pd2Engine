@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pd/resource/resource.hpp"
+#include "pd/asset/asset_types.hpp"
 
 namespace pd {
 class TextureResource : public Resource {
@@ -21,9 +22,9 @@ class TextureResource : public Resource {
   Info mInfo;
   HwTextureHandle mTexture;
 
-  explicit TextureResource(AssetIdType assetId, ResourceVariantIdType variantId = defaultVariantId,
+  explicit TextureResource(u64 sourceId, ResourceVariantIdType variantId = defaultVariantId,
                            std::string name = "texture")
-      : Resource(assetId, variantId, std::move(name)) {}
+      : Resource(sourceId, variantId, std::move(name)) {}
 };
 
 template <>

@@ -1,5 +1,7 @@
 #include "pd/resource/resource/prefab_resource.hpp"
 
+#include "pd/resource/resource_ref.inl"
+
 namespace pd {
 
 Result<void> PrefabResource::doLoad(Backend& backend) noexcept {

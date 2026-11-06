@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pd/resource/resource.hpp"
+#include "pd/backend/backend_types.hpp"
 
 namespace pd {
 class BufferResource : public Resource {
@@ -31,9 +32,9 @@ class BufferResource : public Resource {
 
   UploadInfo mUploadInfo;
 
-  explicit BufferResource(AssetIdType assetId = invalidAssetId, ResourceVariantIdType variantId = defaultVariantId,
+  explicit BufferResource(u64 sourceId, ResourceVariantIdType variantId = defaultVariantId,
                           std::string name = "buffer")
-      : Resource(assetId, variantId, std::move(name)) {}
+      : Resource(sourceId, variantId, std::move(name)) {}
 };
 
 template <>

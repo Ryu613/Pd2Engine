@@ -24,9 +24,9 @@ class PrefabResource : public Resource {
   std::vector<ResourceRef<MeshResource_t>> mMeshes;
   std::vector<ResourceRef<TextureResource_t>> mTextures;
 
-  explicit PrefabResource(AssetIdType assetId, ResourceVariantIdType variantId = defaultVariantId,
+  explicit PrefabResource(u64 sourceId, ResourceVariantIdType variantId = defaultVariantId,
                           std::string name = "prefab")
-      : Resource(assetId, variantId, std::move(name)) {}
+      : Resource(sourceId, variantId, std::move(name)) {}
 };
 
 template <>

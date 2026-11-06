@@ -3,12 +3,10 @@
 #include <typeindex>
 
 #include "pd/core/utils/map.hpp"
-#include "pd/core/utils/set.hpp"
 #include "pd/core/utils/pool.hpp"
 
 #include "pd/backend/backend.hpp"
 
-#include "pd/resource/resource_ref.hpp"
 #include "pd/resource/resource/buffer_resource.hpp"
 #include "pd/resource/resource/texture_resource.hpp"
 #include "pd/resource/resource/mesh_resource.hpp"
@@ -54,17 +52,10 @@ class ResourceManager {
   inline static const std::type_index invalidPoolType = std::type_index(typeid(void));
 
   struct ResourceKey {
-    enum class SourceType : u8 {
-      Asset,
-      Runtime,
-      Unknown = u8_max,
-    };
-
     // 区分运行时动态还是资产创建
-    SourceType sourceType = SourceType::Unknown;
+    ResourceSourceType sourceType = ResourceSourceType::Invalid;
 
-    // 来自asset: 即asset id(u64)
-    // 来自runtime: handle id + gen(u32 + u32)
+    // source id
     u64 keyId = invalidResourceId;  // u64
     // 变体id标识，用于支持同一asset不同resource，可由资源创建者提供，默认0
     ResourceVariantIdType variantId = defaultVariantId;  // u32
@@ -72,24 +63,19 @@ class ResourceManager {
     std::type_index poolType = invalidPoolType;
 
     explicit operator bool() const noexcept {
-      return sourceType != SourceType::Unknown  //
-             && poolType != invalidPoolType     //
+      return sourceType != ResourceSourceType::Invalid  //
+             && poolType != invalidPoolType             //
              && keyId != invalidResourceId;
     }
 
     friend bool operator==(const ResourceKey&, const ResourceKey&) = default;
 
     // 资产guid + 池类型的type_index + 变体id(默认0)
-    [[nodiscard]] static ResourceKey makeKeyAsset(AssetIdType assetId, std::type_index poolType,
-                                                  ResourceVariantIdType variantId = defaultVariantId) noexcept {
-      return {SourceType::Asset, assetId, variantId, poolType};
-    }
-
-    // handle的id,gen + 池类型的type_index
-    [[nodiscard]] static ResourceKey makeKeyRuntime(ResourceIdType id, u32 gen, std::type_index poolType,
-                                                    u32 variantId = defaultVariantId) noexcept {
-      const u64 packedId = (static_cast<u64>(gen) << 32) | static_cast<u64>(id);
-      return {SourceType::Runtime, packedId, variantId, poolType};
+    [[nodiscard]] static ResourceKey makeKey(u64 sourceId, std::type_index poolType,
+                                             ResourceVariantIdType variantId = defaultVariantId) noexcept {
+      ResourceSourceType sourceType = GetSourceType(sourceId);
+       PD_ASSERT(sourceType != ResourceSourceType::Invalid);
+      return {sourceType, sourceId, variantId, poolType};
     }
   };
 
@@ -110,6 +96,7 @@ class ResourceManager {
   template <typename Tag>
   struct ResourceEntry {
     u32 refCount = 0;
+    u32 loadCount = 0;
     ResourceHandle<Tag> handle;
   };
 

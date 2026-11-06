@@ -24,10 +24,8 @@ inline Result<ResourceHandle<Tag>> ResourceManager::saveResource(std::unique_ptr
 template <typename Tag>
 inline Result<ResourceHandle<Tag>> ResourceManager::saveRegistry(ResourceHandle<Tag> handle) noexcept {
   PD_ASSERT(handle);
-  auto* resource = get<Tag>(handle);
-  PD_ASSERT(resource);
-  // auto resourceKey = getResourceKey<Tag>(*resource);
-  // PD_ASSERT(resourceKey.keyId != invalidResourceId);
+  auto resourceKey = getResourceKey<Tag>(handle);
+  PD_ASSERT(resourceKey.keyId != invalidResourceId);
 
   auto& registry = findRegistry<Tag>();
   const auto it = registry.find(resourceKey);
@@ -35,9 +33,10 @@ inline Result<ResourceHandle<Tag>> ResourceManager::saveRegistry(ResourceHandle<
     LOG_ERROR("duplicate register! id:{}", handle.data.id);
     return make_error<ResourceHandle<Tag>>(ErrorCode::ResourceRegisterFailed);
   }
-  ResourceEntry newEntry{
-      .handle = handle,
-      .refCount = 0,
+  ResourceEntry<Tag> newEntry{
+    .refCount = 0,
+    .loadCount = 0,
+    .handle = handle,
   };
   auto [saveIt, isSuccess] = registry.emplace(resourceKey, newEntry);
   PD_ASSERT(isSuccess);
@@ -126,8 +125,8 @@ inline Result<void> ResourceManager::load(ResourceHandle<Tag> handle) noexcept {
   if (auto res = loadInternal(handle); !res) {
     return res;
   }
-  auto resourceKey = getResourceKey(handle);
-  PD_ASSERT(resourceKey);
+  // auto resourceKey = getResourceKey(handle);
+  // PD_ASSERT(resourceKey);
 
   // mRequestedRoots.emplace(resourceKey);
 
@@ -147,15 +146,15 @@ inline Result<void> ResourceManager::loadInternal(ResourceHandle<Tag> handle) no
   if (!resourceEntry) {
     return {};
   }
-  return resource->load(mBackend);
+  return resource->load(mBackend, resourceEntry->loadCount);
 }
 
 template <typename Tag>
 inline Result<void> ResourceManager::unload(ResourceHandle<Tag> handle) noexcept {
-  auto resourceKey = getResourceKey(handle);
-  if (!resourceKey) {
-    return {};
-  }
+  // auto resourceKey = getResourceKey(handle);
+  // if (!resourceKey) {
+  //   return {};
+  // }
   // auto traverseChildren = [](ResourceKey key) { for () } ResourceKeySet requested;
   // ResourceKeySet otherRoots;
   // for (const auto entryId : mRequestedRoots) {
@@ -181,7 +180,7 @@ inline Result<void> ResourceManager::unloadInternal(ResourceHandle<Tag> handle) 
   if (!resource) {
     return {};
   }
-  return resource->unload(mBackend);
+  return resource->unload(mBackend, resourceEntry->loadCount);
 }
 
 template <typename Tag>
@@ -206,7 +205,7 @@ inline ResourceManager::ResourceKey ResourceManager::getResourceKey(ResourceHand
   // if (isRuntime(handle)) {
   //   return ResourceKey::makeKeyRuntime(handle.data.id, handle.data.gen, poolType);
   // }
-  return ResourceKey::makeKeyAsset(resource->assetId(), poolType, resource->variantId());
+  return ResourceKey::makeKey(resource->sourceId(), poolType, resource->variantId());
 }
 
 template <typename Tag>

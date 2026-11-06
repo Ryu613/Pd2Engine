@@ -2,6 +2,7 @@
 
 #include "pd/resource/resource.hpp"
 #include "pd/resource/resource_ref.hpp"
+#include "pd/asset/asset_types.hpp"
 #include "pd/resource/resource/buffer_resource.hpp"
 
 namespace pd {
@@ -43,9 +44,9 @@ class MeshResource : public Resource {
 
   std::vector<SubMesh> mSubMeshes;
 
-  explicit MeshResource(AssetIdType assetId, ResourceVariantIdType variantId = defaultVariantId,
+  explicit MeshResource(u64 sourceId, ResourceVariantIdType variantId = defaultVariantId,
                         std::string name = "mesh")
-      : Resource(assetId, variantId, std::move(name)) {}
+      : Resource(sourceId, variantId, std::move(name)) {}
 };
 
 template <>

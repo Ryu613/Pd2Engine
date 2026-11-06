@@ -19,7 +19,8 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
   // 1. 判重, 同一个资产只能注册一次，如果要生成独立的，需要给不同的variant
   // 重复注册算错误，不会返回引用也不会增加计数
   const auto poolType = getPoolType<PrefabResource_t>();
-  const auto resourceKey = ResourceKey::makeKeyAsset(assetId, poolType, createInfo.variantId);
+  auto sourceId = makeSourceId(ResourceSourceType::Asset, assetId);
+  const auto resourceKey = ResourceKey::makeKey(sourceId, poolType, createInfo.variantId);
   if (auto findResult = findRegisteredResource<PrefabResource_t>(resourceKey); findResult) {
     return make_error<ResourceRef<PrefabResource_t>>(ErrorCode::ResourceRegisterFailed);
   }
@@ -28,7 +29,7 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
 
   // create prefab resource
   auto prefabResource =
-      std::unique_ptr<PrefabResource>(new PrefabResource(assetId, createInfo.variantId, asset.info().name));
+      std::unique_ptr<PrefabResource>(new PrefabResource(sourceId, createInfo.variantId, asset.info().name));
   auto prefabHandleResult = saveResource<PrefabResource, PrefabResource_t>(std::move(prefabResource));
   PD_ASSERT(prefabHandleResult);
 
@@ -44,7 +45,8 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
     // create mesh resource
     for (const auto& mesh : asset.meshes()) {
       // 1 mesh -> 2 buffers
-      auto newMesh = std::unique_ptr<MeshResource>(new MeshResource(mesh.id, createInfo.variantId, mesh.name));
+      auto sourceId = makeSourceId(ResourceSourceType::Asset, mesh.id);
+      auto newMesh = std::unique_ptr<MeshResource>(new MeshResource(sourceId, createInfo.variantId, mesh.name));
 
       u32 firstIndexValue = 0;
       i32 vertexOffsetValue = 0;
@@ -73,7 +75,7 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
       meshCache.push_back(newMeshResult.value());
       // 当前版本一个mesh对一个buffer resource,但是架构上允许多个buffer resource对应同一个rhi buffer handle
       // 当前版本buffer不可复用,一个mesh2个buffer
-      auto newVertexBuffer = std::unique_ptr<BufferResource>(new BufferResource());
+      auto newVertexBuffer = std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
       newVertexBuffer->mInfo = {
           .size = mesh.verticesSize,
           .usage = BufferUsage::VertexBuffer,
@@ -85,7 +87,7 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
       }
       bufferCache.push_back(newVBufferResult.value());
 
-      auto newIndexBuffer = std::unique_ptr<BufferResource>(new BufferResource());
+      auto newIndexBuffer = std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
       newIndexBuffer->mInfo = {
           .size = mesh.indicesSize,
           .usage = BufferUsage::IndexBuffer,
