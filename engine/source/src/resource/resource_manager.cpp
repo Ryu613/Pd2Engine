@@ -75,7 +75,8 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
       meshCache.push_back(newMeshResult.value());
       // 当前版本一个mesh对一个buffer resource,但是架构上允许多个buffer resource对应同一个rhi buffer handle
       // 当前版本buffer不可复用,一个mesh2个buffer
-      auto newVertexBuffer = std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
+      auto newVertexBuffer =
+          std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
       newVertexBuffer->mInfo = {
           .size = mesh.verticesSize,
           .usage = BufferUsage::VertexBuffer,
@@ -87,7 +88,8 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
       }
       bufferCache.push_back(newVBufferResult.value());
 
-      auto newIndexBuffer = std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
+      auto newIndexBuffer =
+          std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
       newIndexBuffer->mInfo = {
           .size = mesh.indicesSize,
           .usage = BufferUsage::IndexBuffer,
@@ -159,7 +161,8 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
     LOG_ERROR("update prefab ref count error!{}", res.error().msg);
     return make_error<ResourceRef<PrefabResource_t>>(res.error().code);
   }
-  return {};
+
+  return ResourceRef<PrefabResource_t>{*this, prefabHandleResult.value()};
 }
 
 Result<void> ResourceManager::gc() noexcept {

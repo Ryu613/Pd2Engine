@@ -58,7 +58,15 @@ Result<void> ResourceRef<Tag>::load() noexcept {
   return mMgr->load(mHandle);
 }
 
-// template <typename Tag>
+template <typename Tag>
+Result<void> ResourceRef<Tag>::unload() noexcept {
+  if (!mMgr || !mHandle) {
+    return {};
+  }
+  return mMgr->unload(mHandle);
+}
+
+// template <typename Tag> 
 // TagInfo<Tag>::ResourceType* ResourceRef<Tag>::get() const noexcept {
 //   return mMgr ? mMgr->get(mHandle) : nullptr;
 // }

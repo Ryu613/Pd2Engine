@@ -17,7 +17,6 @@ Result<void> Resource::load(Backend& backend, u32& loadCount) noexcept {
       return res;
     }
     mStatus = ResourceStatus::Loaded;
-    return {};
   }
   loadCount++;
   LOG_DEBUG("resource is not loaded because the status is not [unload]: name={}", mName);

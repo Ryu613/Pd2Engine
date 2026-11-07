@@ -114,24 +114,76 @@ TEST_CASE("test_gltf_register", "resource") {
 
   ResourceManager rscMgr(backend);
 
-  SECTION("create one prefab") {
+  SECTION("one prefab") {
     auto gltfAssetRefRes = rscMgr.registerResourceFromAsset<GltfAsset, PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
         .pAsset = static_cast<const GltfAsset*>(asset),
         .variantId = 0,
     });
     REQUIRE(gltfAssetRefRes);
+    auto& gltfRef = gltfAssetRefRes.value();
+    auto gltfHandle = gltfRef.handle();
+    auto [prefabEntry, prefabPool] = rscMgr.getResourceDebugView<PrefabResource>(gltfHandle);
+    REQUIRE(prefabEntry.refCount == 1);
 
-    auto gltfRef = gltfAssetRefRes.value();
+    // first time load
+    auto loadRes = gltfRef.load();
+    REQUIRE(loadRes);
+    REQUIRE(prefabEntry.loadCount == 1);
+
+    auto* prefab = prefabPool.get(gltfHandle);
+    REQUIRE(prefab->status() == ResourceStatus::Loaded);
+    // load again
+    loadRes = gltfRef.load();
+    REQUIRE(loadRes);
+    REQUIRE(prefabEntry.loadCount == 2);
+    REQUIRE(prefabEntry.refCount == 1);
+
+    // copy
+    auto gltfRef2 = gltfRef;
+    REQUIRE(prefabEntry.refCount == 2);
+    auto load2Res = gltfRef2.load();
+    REQUIRE(loadRes);
+    REQUIRE(prefabEntry.loadCount == 3);
+
+    // unload
+    auto unloadRes = gltfRef.unload();
+    REQUIRE(unloadRes);
+    REQUIRE(prefabEntry.loadCount == 2);
+    REQUIRE(prefab->status() == ResourceStatus::Loaded);
+    unloadRes = gltfRef2.unload();
+    REQUIRE(unloadRes);
+    REQUIRE(prefabEntry.loadCount == 1);
+    REQUIRE(prefab->status() == ResourceStatus::Loaded);
+    unloadRes = gltfRef.unload();
+    REQUIRE(unloadRes);
+    REQUIRE(prefabEntry.loadCount == 0);
+    REQUIRE(prefab->status() == ResourceStatus::Unload);
+    unloadRes = gltfRef.unload();
+    REQUIRE(unloadRes);
+    REQUIRE(prefabEntry.loadCount == 0);
+    REQUIRE(prefab->status() == ResourceStatus::Unload);
+
+    // move
+    {
+      auto gltfRef3 = std::move(gltfRef);
+      auto gltfHandle = gltfRef3.handle();
+      auto acquireRes = rscMgr.acquire(gltfHandle);
+      REQUIRE(acquireRes);
+      REQUIRE(prefabEntry.refCount == 3);
+    }  // ~gltfRef2()
+
+    REQUIRE(prefabEntry.refCount == 1);
+
+    gltfRef.reset(); // gltfRef moved, not working(intended)
+    REQUIRE(prefabEntry.refCount == 1);
+    gltfRef2.reset();
+    REQUIRE(prefabEntry.refCount == 0);
+
+    gltfRef.reset();    // not working(intended) 
+    loadRes = gltfRef.load(); // not working(intended)
   }
-  SECTION("create two prefab with same asset") {
-    // one
-    auto gltfAssetRefRes = rscMgr.registerResourceFromAsset<GltfAsset, PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
-        .pAsset = static_cast<const GltfAsset*>(asset),
-        .variantId = 0,
-    });
-    REQUIRE(gltfAssetRefRes);
 
-    auto gltfRef = gltfAssetRefRes.value();
+  SECTION("two prefab with same asset") {
     // two
     auto gltfAssetRef1Res = rscMgr.registerResourceFromAsset<GltfAsset, PrefabResource_t>(ResourceCreateInfo<GltfAsset>{
         .pAsset = static_cast<const GltfAsset*>(asset),
@@ -139,6 +191,8 @@ TEST_CASE("test_gltf_register", "resource") {
     });
     REQUIRE(gltfAssetRef1Res);
     auto gltfRef1 = gltfAssetRef1Res.value();
+    auto loadRes = gltfRef1.load();
+    REQUIRE(loadRes);
   }
 
   REQUIRE(rscMgr.destroy());

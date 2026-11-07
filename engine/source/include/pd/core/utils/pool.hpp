@@ -5,7 +5,6 @@
 namespace pd {
 /**
  * @brief 类型安全的对象池
- * @note 值对象栈上分配
  *
  * @tparam T 类型
  * @tparam H 句柄标签

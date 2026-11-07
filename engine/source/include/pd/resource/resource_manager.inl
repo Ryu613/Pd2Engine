@@ -11,6 +11,12 @@ inline Result<ResourceRef<Tag>> ResourceManager::registerResourceFromAsset(
   static_assert(false && "not supported asset or resource");
 }
 
+template <typename Tag>
+inline Result<ResourceRef<Tag>> ResourceManager::acquire(ResourceHandle<Tag> handle) noexcept {
+  retain(handle);
+  return ResourceRef<Tag>{*this, handle};
+}
+
 template <DerivedResource TResource, typename Tag>
 inline Result<ResourceHandle<Tag>> ResourceManager::saveResource(std::unique_ptr<TResource> resource) noexcept {
   auto& pool = findPool<Tag>();
@@ -34,9 +40,9 @@ inline Result<ResourceHandle<Tag>> ResourceManager::saveRegistry(ResourceHandle<
     return make_error<ResourceHandle<Tag>>(ErrorCode::ResourceRegisterFailed);
   }
   ResourceEntry<Tag> newEntry{
-    .refCount = 0,
-    .loadCount = 0,
-    .handle = handle,
+      .refCount = 0,
+      .loadCount = 0,
+      .handle = handle,
   };
   auto [saveIt, isSuccess] = registry.emplace(resourceKey, newEntry);
   PD_ASSERT(isSuccess);
@@ -129,7 +135,6 @@ inline Result<void> ResourceManager::load(ResourceHandle<Tag> handle) noexcept {
   // PD_ASSERT(resourceKey);
 
   // mRequestedRoots.emplace(resourceKey);
-
   return {};
 }
 
@@ -151,19 +156,9 @@ inline Result<void> ResourceManager::loadInternal(ResourceHandle<Tag> handle) no
 
 template <typename Tag>
 inline Result<void> ResourceManager::unload(ResourceHandle<Tag> handle) noexcept {
-  // auto resourceKey = getResourceKey(handle);
-  // if (!resourceKey) {
-  //   return {};
-  // }
-  // auto traverseChildren = [](ResourceKey key) { for () } ResourceKeySet requested;
-  // ResourceKeySet otherRoots;
-  // for (const auto entryId : mRequestedRoots) {
-  // }
   if (auto res = unloadInternal(handle); !res) {
     return res;
   }
-  // mRequestedRoots.erase(resourceEntry->entryId);
-
   return {};
 }
 
@@ -173,7 +168,7 @@ inline Result<void> ResourceManager::unloadInternal(ResourceHandle<Tag> handle) 
     return {};
   }
   auto* resourceEntry = findEntry(handle);
-  if (!resourceEntry) {
+  if (!resourceEntry || resourceEntry->loadCount == 0) {
     return {};
   }
   auto* resource = get<Tag>(handle);
@@ -202,9 +197,6 @@ inline ResourceManager::ResourceKey ResourceManager::getResourceKey(ResourceHand
   auto* resource = get<Tag>(handle);
   PD_ASSERT(resource);
   const auto poolType = getPoolType<Tag>();
-  // if (isRuntime(handle)) {
-  //   return ResourceKey::makeKeyRuntime(handle.data.id, handle.data.gen, poolType);
-  // }
   return ResourceKey::makeKey(resource->sourceId(), poolType, resource->variantId());
 }
 

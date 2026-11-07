@@ -74,7 +74,7 @@ class ResourceManager {
     [[nodiscard]] static ResourceKey makeKey(u64 sourceId, std::type_index poolType,
                                              ResourceVariantIdType variantId = defaultVariantId) noexcept {
       ResourceSourceType sourceType = GetSourceType(sourceId);
-       PD_ASSERT(sourceType != ResourceSourceType::Invalid);
+      PD_ASSERT(sourceType != ResourceSourceType::Invalid);
       return {sourceType, sourceId, variantId, poolType};
     }
   };
@@ -168,6 +168,17 @@ class ResourceManager {
 
   template <typename Tag>
   [[nodiscard]] std::type_index getPoolType() const noexcept;
+
+#ifndef NDEBUG
+ public:
+  template <typename T, typename Tag>
+  std::pair<ResourceEntry<Tag>&, Pool<T, Tag>&> getResourceDebugView(ResourceHandle<Tag> handle) noexcept {
+    auto* entry = findEntry(handle);
+    auto& pool = findPool<Tag>();
+
+    return {*entry, pool};
+  }
+#endif
 };
 }  // namespace pd
 

@@ -18,6 +18,7 @@ class ResourceRef {
   void reset() noexcept;
 
   Result<void> load() noexcept;
+  Result<void> unload() noexcept;
 
   // 不打算给外部直接拿到本体
   //   TagInfo<Tag>::ResourceType* get() const noexcept;
