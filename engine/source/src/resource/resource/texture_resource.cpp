@@ -2,6 +2,6 @@
 
 namespace pd {
 
-Result<void> TextureResource::doLoad(Backend& backend) noexcept { return {}; }
-Result<void> TextureResource::doUnload(Backend& backend) noexcept { return {}; }
+Result<void> TextureResource::doLoad(LoadContext& ctx) noexcept { return {}; }
+Result<void> TextureResource::doUnload(LoadContext& ctx) noexcept { return {}; }
 }  // namespace pd

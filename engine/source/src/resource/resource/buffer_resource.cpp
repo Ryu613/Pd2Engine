@@ -1,45 +1,26 @@
 #include "pd/resource/resource/buffer_resource.hpp"
 
+#include "pd/backend/backend.hpp"
+
 namespace pd {
 
-Result<void> BufferResource::doLoad(Backend& backend) noexcept {
-  //   LOG_DEBUG("loading mesh resource: {}", name());
-  //   mVertexBuffer = mBackend->createBuffer({
-  //       .debugName = mMeshDesc.debugName,
-  //       .usage = BufferUsage::VertexBuffer,
-  //       .memoryUsage = MemoryUsage::GpuOnly,
-  //       .deviceSize = mMeshDesc.dataSize,
-  //   });
-  //   PD_ASSERT(mVertexBuffer);
-  //   mBackend->writeBuffer({
-  //       .buffer = mVertexBuffer,
-  //       .pData = mMeshDesc.pData,
-  //       .deviceSize = mMeshDesc.dataSize,
-  //       .offset = mMeshDesc.dataOffset,
-  //   });
-  //   mIndexBuffer = mBackend->createBuffer({
-  //       .debugName = mIndexDesc.debugName,
-  //       .usage = BufferUsage::IndexBuffer,
-  //       .memoryUsage = MemoryUsage::GpuOnly,
-  //       .deviceSize = mIndexDesc.dataSize,
-  //   });
-  //   PD_ASSERT(mIndexBuffer);
-  //   mBackend->writeBuffer({
-  //       .buffer = mIndexBuffer,
-  //       .pData = mIndexDesc.pData,
-  //       .deviceSize = mIndexDesc.dataSize,
-  //       .offset = mIndexDesc.dataOffset,
-  //   });
+Result<void> BufferResource::doLoad(LoadContext& ctx) noexcept {
+  LOG_DEBUG("loading buffer resource: {}", name());
+  mBuffer = ctx.backend.createBuffer({
+      .debugName = name(),
+      .usage = mInfo.usage,
+      .memoryUsage = MemoryUsage::GpuOnly,
+      .deviceSize = mInfo.size,
+  });
+  PD_ASSERT(mBuffer);
   return {};
 }
-Result<void> BufferResource::doUnload(Backend& backend) noexcept {
-  //   LOG_DEBUG("unloading mesh resource: {}", name());
-  //   if (mVertexBuffer) {
-  //     mBackend->destroyBuffer(mVertexBuffer);
-  //   }
-  //   if (mIndexBuffer) {
-  //     mBackend->destroyBuffer(mIndexBuffer);
-  //   }
+Result<void> BufferResource::doUnload(LoadContext& ctx) noexcept {
+  LOG_DEBUG("unloading buffer resource: {}", name());
+  if (mBuffer) {
+    ctx.backend.destroyBuffer(mBuffer);
+  }
+  mBuffer = {};
   return {};
 }
 }  // namespace pd

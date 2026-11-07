@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pd/resource/resource.hpp"
 #include "pd/backend/backend_types.hpp"
+#include "pd/resource/resource.hpp"
 
 namespace pd {
 class BufferResource : public Resource {
@@ -15,26 +15,20 @@ class BufferResource : public Resource {
   DEFAULT_MOVABLE(BufferResource);
 
  protected:
-  Result<void> doLoad(Backend& backend) noexcept override;
-  Result<void> doUnload(Backend& backend) noexcept override;
+  Result<void> doLoad(LoadContext& ctx) noexcept override;
+  Result<void> doUnload(LoadContext& ctx) noexcept override;
 
  private:
   friend class ResourceManager;
 
-  struct UploadInfo {
-    const void* pData = nullptr;
-    u32 dataSize = 0;
-    u32 offset = 0;
-  };
-
   Info mInfo;
+
   HwBufferHandle mBuffer;
 
-  UploadInfo mUploadInfo;
-
-  explicit BufferResource(u64 sourceId, ResourceVariantIdType variantId = defaultVariantId,
+  explicit BufferResource(u64 sourceId, Info bufferInfo, ResourceVariantIdType variantId = defaultVariantId,
                           std::string name = "buffer")
-      : Resource(sourceId, variantId, std::move(name)) {}
+      : Resource(sourceId, variantId, std::move(name)),
+        mInfo(std::move(bufferInfo)) {}
 };
 
 template <>

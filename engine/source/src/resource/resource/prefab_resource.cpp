@@ -4,7 +4,7 @@
 
 namespace pd {
 
-Result<void> PrefabResource::doLoad(Backend& backend) noexcept {
+Result<void> PrefabResource::doLoad(LoadContext& ctx) noexcept {
   LOG_INFO("loading prefab resource: name={}", name());
   for (auto& eachMesh : mMeshes) {
     auto loadRes = eachMesh.load();
@@ -17,7 +17,7 @@ Result<void> PrefabResource::doLoad(Backend& backend) noexcept {
   // todo: textures loading
   return {};
 }
-Result<void> PrefabResource::doUnload(Backend& backend) noexcept {
+Result<void> PrefabResource::doUnload(LoadContext& ctx) noexcept {
   LOG_INFO("unloading prefab resource: name={}", name());
   // unload不应该断掉引用，没有实际动作
 

@@ -15,8 +15,8 @@ class PrefabResource : public Resource {
   void addTextures(ResourceRef<TextureResource_t> ref) noexcept { mTextures.push_back(std::move(ref)); }
 
  protected:
-  Result<void> doLoad(Backend& backend) noexcept override;
-  Result<void> doUnload(Backend& backend) noexcept override;
+  Result<void> doLoad(LoadContext& ctx) noexcept override;
+  Result<void> doUnload(LoadContext& ctx) noexcept override;
 
  private:
   friend class ResourceManager;

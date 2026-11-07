@@ -151,7 +151,8 @@ inline Result<void> ResourceManager::loadInternal(ResourceHandle<Tag> handle) no
   if (!resourceEntry) {
     return {};
   }
-  return resource->load(mBackend, resourceEntry->loadCount);
+  auto loadContex = Resource::LoadContext{*this, mBackend, resourceEntry->loadCount};
+  return resource->load(loadContex);
 }
 
 template <typename Tag>
@@ -175,7 +176,28 @@ inline Result<void> ResourceManager::unloadInternal(ResourceHandle<Tag> handle) 
   if (!resource) {
     return {};
   }
-  return resource->unload(mBackend, resourceEntry->loadCount);
+  auto loadContex = Resource::LoadContext{*this, mBackend, resourceEntry->loadCount};
+  return resource->unload(loadContex);
+}
+
+template <typename Tag>
+void ResourceManager::unloadAll(bool force) noexcept {
+  auto& registry = findRegistry<Tag>();
+  for (auto it = registry.begin(); it != registry.end(); ++it) {
+    auto handle = it.value().handle;
+    auto* resource = get(handle);
+    if (resource) {
+      if (force) {
+        it.value().loadCount = 0;
+      }
+      auto loadContext = Resource::LoadContext{
+          .mgr = *this,
+          .backend = mBackend,
+          .loadCount = it.value().loadCount,
+      };
+      std::ignore = resource->unload(loadContext);
+    }
+  }
 }
 
 template <typename Tag>

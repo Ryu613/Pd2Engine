@@ -86,7 +86,7 @@ class Pool {
     if (!isValidHandle(handle)) {
       return;
     }
-    auto handleId = handle.id();
+    auto handleId = handle.data.id;
     mData[handleId].~T();
     mGens[handleId].gen++;
     mGens[handleId].isAlive = false;

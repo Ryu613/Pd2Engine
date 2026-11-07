@@ -9,33 +9,33 @@ Resource::Resource(u64 sourceId, ResourceVariantIdType variantId, std::string na
       mName(std::move(name)),
       mStatus(ResourceStatus::Unload) {}
 
-Result<void> Resource::load(Backend& backend, u32& loadCount) noexcept {
+Result<void> Resource::load(LoadContext& ctx) noexcept {
   if (mStatus == ResourceStatus::Unload) {
     mStatus = ResourceStatus::Loading;
-    if (auto res = doLoad(backend); !res) {
+    if (auto res = doLoad(ctx); !res) {
       mStatus = ResourceStatus::Unload;
       return res;
     }
     mStatus = ResourceStatus::Loaded;
   }
-  loadCount++;
+  ctx.loadCount++;
   LOG_DEBUG("resource is not loaded because the status is not [unload]: name={}", mName);
   return {};
 }
 
-Result<void> Resource::unload(Backend& backend, u32& loadCount) noexcept {
+Result<void> Resource::unload(LoadContext& ctx) noexcept {
   if (mStatus != ResourceStatus::Loaded) {
     return {};
   }
-  if(loadCount > 1) {
-    loadCount--;
+  if(ctx.loadCount > 1) {
+    ctx.loadCount--;
     return {};
   }
-  if (auto res = doUnload(backend); !res) {
+  if (auto res = doUnload(ctx); !res) {
     return res;
   }
   mStatus = ResourceStatus::Unload;
-  loadCount--;
+  ctx.loadCount--;
   return {};
 }
 }  // namespace pd

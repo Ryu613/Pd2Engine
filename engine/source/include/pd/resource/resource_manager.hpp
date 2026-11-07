@@ -43,6 +43,8 @@ class ResourceManager {
 
   Result<void> gc() noexcept;
 
+  Result<void> uploadBuffer(BufferHandle handle, const void* pData, u32 dataSize, u32 offset) noexcept;
+
  private:
   template <typename>
   friend class ResourceRef;
@@ -149,6 +151,9 @@ class ResourceManager {
 
   template <typename Tag>
   Result<void> unloadInternal(ResourceHandle<Tag> handle) noexcept;
+
+  template <typename Tag>
+  void unloadAll(bool force = false) noexcept;
 
   template <typename Tag>
   auto& findPool() noexcept;

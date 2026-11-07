@@ -31,8 +31,8 @@ class MeshResource : public Resource {
   const ResourceRef<BufferResource_t>& indexBuffer() const noexcept { return mIndexBuffer; }
 
  protected:
-  Result<void> doLoad(Backend& backend) noexcept override;
-  Result<void> doUnload(Backend& backend) noexcept override;
+  Result<void> doLoad(LoadContext& ctx) noexcept override;
+  Result<void> doUnload(LoadContext& ctx) noexcept override;
 
  private:
   friend class ResourceManager;

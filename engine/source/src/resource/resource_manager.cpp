@@ -9,7 +9,23 @@ ResourceManager::~ResourceManager() {}
 
 Result<void> ResourceManager::init() noexcept { return {}; }
 
-Result<void> ResourceManager::destroy() noexcept { return {}; }
+Result<void> ResourceManager::destroy() noexcept {
+  unloadAll<PrefabResource_t>(true);
+  unloadAll<MeshResource_t>(true);
+  unloadAll<TextureResource_t>(true);
+  unloadAll<BufferResource_t>(true);
+
+  mPrefabs.clear();
+  mMeshes.clear();
+  mTextures.clear();
+  mBuffers.clear();
+
+  mPrefabRegistry.clear();
+  mMeshRegistry.clear();
+  mTextureRegistry.clear();
+  mBufferRegistry.clear();
+  return {};
+}
 
 template <>
 Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset(
@@ -75,8 +91,12 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
       meshCache.push_back(newMeshResult.value());
       // 当前版本一个mesh对一个buffer resource,但是架构上允许多个buffer resource对应同一个rhi buffer handle
       // 当前版本buffer不可复用,一个mesh2个buffer
+      BufferResource::Info bufferInfo{
+          .size = mesh.verticesSize,
+          .usage = BufferUsage::VertexBuffer,
+      };
       auto newVertexBuffer =
-          std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
+          std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime), bufferInfo));
       newVertexBuffer->mInfo = {
           .size = mesh.verticesSize,
           .usage = BufferUsage::VertexBuffer,
@@ -88,8 +108,12 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
       }
       bufferCache.push_back(newVBufferResult.value());
 
+      BufferResource::Info iBufferInfo{
+          .size = mesh.indicesSize,
+          .usage = BufferUsage::IndexBuffer,
+      };
       auto newIndexBuffer =
-          std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime)));
+          std::unique_ptr<BufferResource>(new BufferResource(makeSourceId(ResourceSourceType::Runtime), iBufferInfo));
       newIndexBuffer->mInfo = {
           .size = mesh.indicesSize,
           .usage = BufferUsage::IndexBuffer,
@@ -170,6 +194,22 @@ Result<void> ResourceManager::gc() noexcept {
   // 2. mesh
   // 3. texture
   // 4. buffer
+
+  return {};
+}
+
+Result<void> ResourceManager::uploadBuffer(BufferHandle handle, const void* pData, u32 dataSize, u32 offset) noexcept {
+  PD_ASSERT(handle && pData && dataSize > 0);
+  auto* buffer = get(handle);
+  if (!buffer) {
+    return make_error<void>(ErrorCode::ResourceNotFound);
+  }
+  mBackend.writeBuffer({
+      .buffer = buffer->mBuffer,
+      .pData = pData,
+      .deviceSize = dataSize,
+      .offset = offset,
+  });
 
   return {};
 }

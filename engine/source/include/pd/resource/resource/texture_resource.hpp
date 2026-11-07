@@ -13,8 +13,8 @@ class TextureResource : public Resource {
   DEFAULT_MOVABLE(TextureResource);
 
  protected:
-  Result<void> doLoad(Backend& backend) noexcept override;
-  Result<void> doUnload(Backend& backend) noexcept override;
+  Result<void> doLoad(LoadContext& ctx) noexcept override;
+  Result<void> doUnload(LoadContext& ctx) noexcept override;
 
  private:
   friend class ResourceManager;
