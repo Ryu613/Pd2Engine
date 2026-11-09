@@ -25,10 +25,11 @@ class ResourceRegistry {
   void init() noexcept;
   void destroy() noexcept;
 
-  pd::HwPipelineLayoutHandle createPipelineLayout(const pd::PipelineLayoutDesc& desc) noexcept;
-  void destroyPipelineLayout(pd::HwPipelineLayoutHandle) noexcept;
+  pd::HwPipelineLayoutHandle createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept;
+  void destroyPipelineLayout(pd::HwPipelineLayoutHandle handle) noexcept;
+
   pd::HwGraphicsPipelineHandle createGraphicsPipeline(const pd::GraphicsPipelineCreateDesc& desc) noexcept;
-  void destroyGraphicsPipeline(const pd::GraphicsPipelineDestroyDesc& desc) noexcept;
+  void destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle handle) noexcept;
 
   pd::HwBufferHandle createBuffer(const pd::BufferCreateDesc& desc) noexcept;
   void writeBuffer(const pd::BufferWriteDesc& desc) noexcept;

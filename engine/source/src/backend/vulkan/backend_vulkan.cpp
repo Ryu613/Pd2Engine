@@ -62,16 +62,20 @@ class Backend::Impl {
 
   void waitIdle() noexcept { mVulkanDevice.waitIdle(); }
 
-  PipelineData createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept {
-    auto layoutHandle = mResourceRegistry.createPipelineLayout({});
-    auto newDesc = desc;
-    newDesc.layout = layoutHandle;
-    auto pipelineHandle = mResourceRegistry.createGraphicsPipeline(newDesc);
-    return {layoutHandle, pipelineHandle};
+  HwPipelineLayoutHandle createPipelineLayout(const PipelineLayoutCreateDesc& pipelineLayoutDesc) noexcept {
+    return mResourceRegistry.createPipelineLayout(pipelineLayoutDesc);
   }
 
-  void destroyGraphicsPipeline(const GraphicsPipelineDestroyDesc& desc) noexcept {
-    mResourceRegistry.destroyGraphicsPipeline(desc);
+  HwGraphicsPipelineHandle createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept {
+    return mResourceRegistry.createGraphicsPipeline(desc);
+  }
+
+  void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept {
+    mResourceRegistry.destroyGraphicsPipeline(handle);
+  }
+
+  void destroyPipelineLayout(HwPipelineLayoutHandle handle) noexcept {
+    mResourceRegistry.destroyPipelineLayout(handle);
   }
 
   HwBufferHandle createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept {
@@ -122,13 +126,19 @@ void Backend::endFrame(CommandRecorder recorder) noexcept { mImpl->endFrame(reco
 
 void Backend::waitIdle() noexcept { mImpl->waitIdle(); }
 
-PipelineData Backend::createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept {
+HwPipelineLayoutHandle Backend::createPipelineLayout(const PipelineLayoutCreateDesc& pipelineLayoutDesc) noexcept {
+  return mImpl->createPipelineLayout(pipelineLayoutDesc);
+}
+
+HwGraphicsPipelineHandle Backend::createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept {
   return mImpl->createGraphicsPipeline(desc);
 }
 
-void Backend::destroyGraphicsPipeline(const GraphicsPipelineDestroyDesc& desc) noexcept {
-  mImpl->destroyGraphicsPipeline(desc);
+void Backend::destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept {
+  mImpl->destroyGraphicsPipeline(handle);
 }
+
+void Backend::destroyPipelineLayout(HwPipelineLayoutHandle handle) noexcept { mImpl->destroyPipelineLayout(handle); }
 
 HwBufferHandle Backend::createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept {
   return mImpl->createBuffer(bufferCreateDesc);

@@ -55,8 +55,46 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
       .spirCode = std::as_bytes(std::span{shaderData.spirvCode}),
   });
 
+  // pipeline layout
+  auto layout = backend.createPipelineLayout({
+      .debugName = "pyramid layout",
+      .pushConstantRanges = {PushConstantRange{
+          .offset = 0,
+          .size = sizeof(math::mat4),
+          .shaderStages = {ShaderStage::Vertex},
+      }},
+  });
+  REQUIRE(layout);
+
   GraphicsPipelineCreateDesc pipelineDesc{
       .debugName = "pyramid",
+      .layout = layout,
+      .vertexOptions =
+          {
+              .vertexLayouts = {{
+                  .binding = 0,
+                  .stride = sizeof(pd::Vertex),
+              }},
+              .attributes =
+                  {
+                      {.location = 0,
+                       .binding = 0,
+                       .format = VertexFormat::RGB32Sfloat,
+                       .offset = offsetof(pd::Vertex, position)},
+                      {.location = 1,
+                       .binding = 0,
+                       .format = VertexFormat::RG32Sfloat,
+                       .offset = offsetof(pd::Vertex, uv)},
+                      {.location = 2,
+                       .binding = 0,
+                       .format = VertexFormat::RGB32Sfloat,
+                       .offset = offsetof(pd::Vertex, normal)},
+                      {.location = 3,
+                       .binding = 0,
+                       .format = VertexFormat::RG32Sfloat,
+                       .offset = offsetof(pd::Vertex, tangent)},
+                  },
+          },
   };
   pipelineDesc.shaderModules.push_back(vertFragShader);
   pipelineDesc.shaderPrograms.push_back({
@@ -69,6 +107,9 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
       .stage = ShaderStage::Fragment,
       .entryPoint = "fragMain",
   });
+
+  auto pipeline = backend.createGraphicsPipeline(pipelineDesc);
+  REQUIRE(pipeline);
 
   // buffers
   // front face color is red!
@@ -128,8 +169,6 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
       .offset = 0,
   });
 
-  // pipeline data contains pipeline, layout handles, and other infos
-  auto pipelineData = backend.createGraphicsPipeline(pipelineDesc);
   Camera camera{
       .aspectRatio = platformCfg.window.width / (float)platformCfg.window.height,
   };
@@ -151,7 +190,7 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
     recorder.addCmd(BeginRenderingArgs{});
     recorder.addCmd(SetViewportArgs{});
     recorder.addCmd(BindPipelineArgs{
-        .pipeline = pipelineData.pipeline,
+        .pipeline = pipeline,
     });
     recorder.addCmd(BindGeometryArgs{
         .vertexBuffer = vertexBuffer,
@@ -175,7 +214,8 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {
 
   backend.destroyShaderModule(vertFragShader);
   // destroy resources
-  backend.destroyGraphicsPipeline({pipelineData.layout, pipelineData.pipeline});
+  backend.destroyGraphicsPipeline(pipeline);
+  backend.destroyPipelineLayout(layout);
   backend.destroyBuffer(indexBuffer);
   backend.destroyBuffer(vertexBuffer);
 

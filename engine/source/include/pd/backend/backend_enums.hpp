@@ -7,6 +7,7 @@ enum class ShaderLang : u8 {
 enum class ShaderStage : u8 {
   Vertex,
   Fragment,
+  All,
 };
 
 enum class VertexRate : u8 {
@@ -14,11 +15,16 @@ enum class VertexRate : u8 {
   Instance,
 };
 
-enum class TextureFormat : u8 {
+enum class Format : u8 {
   Undefined,
   RGBA8Unorm,
   RGBA8SRGB,
+  RG32Sfloat,
+  RGB32Sfloat,
 };
+
+using VertexFormat = Format;
+using TextureFormat = Format;
 
 enum class TextureType : u8 {
   TextureType1D = 0,

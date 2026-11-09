@@ -40,6 +40,7 @@ enum class ErrorCode : u16 {
   WindowCreateFailed,
   ShaderError = 800,
   ShaderCompileError,
+  BackendError = 900,
   UnknownError = u16_max,
 };
 
@@ -103,7 +104,7 @@ constexpr std::string_view default_msg(ErrorCode code) noexcept {
     case ResourceError:
       return "resource error";
     case ResourceTypeNotSupported:
-      return "resource type not supported!";
+      return "resource type not supported";
     case ResourceRegisterFailed:
       return "resource register failed";
     case ResourceLoadFailed:
@@ -124,6 +125,8 @@ constexpr std::string_view default_msg(ErrorCode code) noexcept {
       return "shader error";
     case ShaderCompileError:
       return "shader compile error";
+    case BackendError:
+      return "backend error";
     case UnknownError:
       return "Unknown error";
   }

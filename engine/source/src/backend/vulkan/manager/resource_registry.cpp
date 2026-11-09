@@ -50,18 +50,26 @@ void ResourceRegistry::destroyShaderModule(pd::HwShaderModuleHandle handle) noex
   destroyResource(handle);
 }
 
-pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::PipelineLayoutDesc& desc) noexcept {
-  VkPushConstantRange pushConstantRange{
-      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-      .size = sizeof(VkDeviceAddress),
-  };
+pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept {
+  assert(desc.pushConstantRanges.size() > 0);
+  std::vector<VkPushConstantRange> vkPushConstantRanges;
+  vkPushConstantRanges.reserve(desc.pushConstantRanges.size());
+  for (auto& pushconstantRange : desc.pushConstantRanges) {
+    VkPushConstantRange vkPushConstantRange{
+        .stageFlags = util::toVkShaderStageFlagBits(pushconstantRange.shaderStages),
+        .offset = pushconstantRange.offset,
+        .size = pushconstantRange.size,
+    };
+    vkPushConstantRanges.emplace_back(vkPushConstantRange);
+  }
   VkPipelineLayoutCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 0,
       .pSetLayouts = 0,
-      .pushConstantRangeCount = 1,
-      .pPushConstantRanges = &pushConstantRange,
+      .pushConstantRangeCount = static_cast<uint32_t>(vkPushConstantRanges.size()),
+      .pPushConstantRanges = vkPushConstantRanges.data(),
   };
+
   VkPipelineLayout layout = 0;
   checkResult(vkCreatePipelineLayout(mDevice->getDevice(), &createInfo, 0, &layout));
   assert(layout);
@@ -82,6 +90,20 @@ pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::Pipe
               .gen = 0,
           }};
 }
+
+void ResourceRegistry::destroyPipelineLayout(pd::HwPipelineLayoutHandle handle) noexcept {
+  if (!handle) {
+    return;
+  }
+  const auto& vkDevice = mDevice->getDevice();
+  auto layout = getResource(handle);
+  assert(layout->handle);
+
+  vkDestroyPipelineLayout(vkDevice, layout->handle, 0);
+
+  destroyResource(handle);
+}
+
 pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
     const pd::GraphicsPipelineCreateDesc& desc) noexcept {
   const auto& vkDevice = mDevice->getDevice();
@@ -104,45 +126,36 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
     stages[i].pName = shaderProgram.entryPoint.data();
   };
 
-  std::array<VkVertexInputAttributeDescription, 4> vertexAttrs;
-  vertexAttrs[0] = {
-      .location = 0,
-      .binding = 0,
-      .format = VK_FORMAT_R32G32B32_SFLOAT,
-      .offset = offsetof(pd::Vertex, position),
-  };
-  vertexAttrs[1] = {
-      .location = 1,
-      .binding = 0,
-      .format = VK_FORMAT_R32G32B32_SFLOAT,
-      .offset = offsetof(pd::Vertex, uv),
-  };
-  vertexAttrs[2] = {
-      .location = 2,
-      .binding = 0,
-      .format = VK_FORMAT_R32G32B32_SFLOAT,
-      .offset = offsetof(pd::Vertex, normal),
-  };
-  vertexAttrs[3] = {
-      .location = 3,
-      .binding = 0,
-      .format = VK_FORMAT_R32G32_SFLOAT,
-      .offset = offsetof(pd::Vertex, tangent),
-  };
+  std::vector<VkVertexInputAttributeDescription> vertexAttrs;
+  vertexAttrs.reserve(desc.vertexOptions.attributes.size());
 
-  VkVertexInputBindingDescription vertexBinding{
-      .binding = 0,
-      .stride = sizeof(pd::Vertex),
-      .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-  };
+  for (const auto& vAttr : desc.vertexOptions.attributes) {
+    vertexAttrs.emplace_back(VkVertexInputAttributeDescription{
+        .location = vAttr.location,
+        .binding = vAttr.binding,
+        .format = util::toVkFormat(vAttr.format),
+        .offset = vAttr.offset,
+    });
+  }
+
+  std::vector<VkVertexInputBindingDescription> vertexBindings;
+  vertexBindings.reserve(desc.vertexOptions.vertexLayouts.size());
+  for (const auto& vLayout : desc.vertexOptions.vertexLayouts) {
+    vertexBindings.emplace_back(VkVertexInputBindingDescription{
+        .binding = vLayout.binding,
+        .stride = vLayout.stride,
+        .inputRate = util::toVkInputRate(vLayout.inputRate),
+    });
+  }
 
   VkPipelineVertexInputStateCreateInfo vertexInput{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-      .vertexBindingDescriptionCount = 1,
-      .pVertexBindingDescriptions = &vertexBinding,
-      .vertexAttributeDescriptionCount = vertexAttrs.size(),
+      .vertexBindingDescriptionCount = static_cast<uint32_t>(vertexBindings.size()),
+      .pVertexBindingDescriptions = vertexBindings.data(),
+      .vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttrs.size()),
       .pVertexAttributeDescriptions = vertexAttrs.data(),
   };
+
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
       .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
@@ -237,22 +250,17 @@ pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
           }};
 }
 
-void ResourceRegistry::destroyGraphicsPipeline(const pd::GraphicsPipelineDestroyDesc& desc) noexcept {
+void ResourceRegistry::destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle handle) noexcept {
+  if (!handle) {
+    return;
+  }
   auto vkDevice = mDevice->getDevice();
-  auto pipeline = getResource(desc.pipeline);
+  auto pipeline = getResource(handle);
   assert(pipeline->handle);
+
   vkDestroyPipeline(vkDevice, pipeline->handle, 0);
 
-  destroyResource(desc.pipeline);
-
-  if (desc.layout) {
-    auto layout = getResource(desc.layout);
-    assert(layout->handle);
-
-    vkDestroyPipelineLayout(vkDevice, layout->handle, 0);
-
-    destroyResource(desc.layout);
-  }
+  destroyResource(handle);
 }
 
 pd::HwBufferHandle ResourceRegistry::createBuffer(const pd::BufferCreateDesc& desc) noexcept {
@@ -321,7 +329,7 @@ pd::HwTextureHandle ResourceRegistry::createTexture(const pd::TextureCreateDesc&
   VkImageCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
       .imageType = VK_IMAGE_TYPE_2D,
-      .format = util::toVkImageFormat(textureCreateDesc.format),
+      .format = util::toVkFormat(textureCreateDesc.format),
       .extent = extent,
       .mipLevels = 1,
       .arrayLayers = 1,

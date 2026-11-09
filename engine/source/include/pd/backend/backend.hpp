@@ -25,18 +25,23 @@ class Backend {
   void waitIdle() noexcept;
 
   // resources
-  PipelineData createGraphicsPipeline(const GraphicsPipelineCreateDesc& desc) noexcept;
-  void destroyGraphicsPipeline(const GraphicsPipelineDestroyDesc& desc) noexcept;
+
+  // create
+  HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
+  HwPipelineLayoutHandle createPipelineLayout(const PipelineLayoutCreateDesc& pipelineLayoutDesc) noexcept;
+  HwGraphicsPipelineHandle createGraphicsPipeline(const GraphicsPipelineCreateDesc& pipelineDesc) noexcept;
 
   HwBufferHandle createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept;
-  void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept;
-  void destroyBuffer(HwBufferHandle handle) noexcept;
-
-  HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
-  void destroyShaderModule(HwShaderModuleHandle handle) noexcept;
-
   HwTextureHandle createTexture(const TextureCreateDesc& textureCreateDesc) noexcept;
+
+  // destroy
+  void destroyBuffer(HwBufferHandle handle) noexcept;
+  void destroyPipelineLayout(HwPipelineLayoutHandle handle) noexcept;
+  void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept;
+  void destroyShaderModule(HwShaderModuleHandle handle) noexcept;
   void destroyTexture(HwTextureHandle handle) noexcept;
+
+  void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept;
 
  private:
   class Impl;

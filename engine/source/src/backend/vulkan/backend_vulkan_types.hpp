@@ -5,6 +5,16 @@
 
 namespace vk1 {
 namespace util {
+
+template <typename VkFlagsT, typename EnumT, typename ConvertFn>
+inline VkFlagsT toVkFlags(std::span<const EnumT> values, ConvertFn&& convert) {
+  VkFlagsT result = 0;
+  for (const auto v : values) {
+    result |= static_cast<VkFlagsT>(convert(v));
+  }
+  return result;
+}
+
 inline VkShaderStageFlagBits toVkShaderStageFlagBits(pd::ShaderStage stage) {
   switch (stage) {
     using enum pd::ShaderStage;
@@ -12,9 +22,16 @@ inline VkShaderStageFlagBits toVkShaderStageFlagBits(pd::ShaderStage stage) {
       return VK_SHADER_STAGE_VERTEX_BIT;
     case Fragment:
       return VK_SHADER_STAGE_FRAGMENT_BIT;
-    default:
-      PD_ASSERT_MSG(false, "shader stage enum not supported!");
+    case All:
+      return VK_SHADER_STAGE_ALL;
   }
+  PD_ASSERT_MSG(false, "shader stage enum not supported!");
+
+  return {};
+}
+
+inline VkShaderStageFlags toVkShaderStageFlagBits(std::span<const pd::ShaderStage> stages) {
+  return toVkFlags<VkShaderStageFlags>(stages, [](pd::ShaderStage s) { return toVkShaderStageFlagBits(s); });
 }
 
 inline VkBufferUsageFlags ToVkBufferUsage(pd::BufferUsage usage) noexcept {
@@ -98,18 +115,34 @@ inline VkImageUsageFlags toVkImageUsage(pd::TextureUsage usage) noexcept {
   }
 }
 
-inline VkFormat toVkImageFormat(pd::TextureFormat format) noexcept {
+inline VkFormat toVkFormat(pd::Format format) noexcept {
   switch (format) {
     using enum pd::TextureFormat;
     case RGBA8Unorm:
       return VK_FORMAT_R8G8B8A8_UNORM;
     case RGBA8SRGB:
       return VK_FORMAT_R8G8B8A8_SRGB;
+    case RGB32Sfloat:
+      return VK_FORMAT_R32G32B32_SFLOAT;
+    case RG32Sfloat:
+      return VK_FORMAT_R32G32_SFLOAT;
     case Undefined:
       return VK_FORMAT_UNDEFINED;
-    default:
-      PD_ASSERT_MSG(false, "texture format not supported yet!");
   }
+  PD_ASSERT_MSG(false, "texture format not supported yet!");
+  return {};
+}
+
+inline VkVertexInputRate toVkInputRate(pd::VertexRate inputRate) noexcept {
+  switch (inputRate) {
+    using enum pd::VertexRate;
+    case Vertex:
+      return VK_VERTEX_INPUT_RATE_VERTEX;
+    case Instance:
+      return VK_VERTEX_INPUT_RATE_INSTANCE;
+  }
+  PD_ASSERT_MSG(false, "vertex input rate not supported yet!");
+  return {};
 }
 }  // namespace util
 }  // namespace vk1

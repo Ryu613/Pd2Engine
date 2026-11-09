@@ -16,6 +16,7 @@ using HwHandle = TypedHandle<T>;
 struct Buffer_t;
 struct Texture_t;
 struct PipelineLayout_t;
+struct PipelineCache_t;
 struct GraphicsPipeline_t;
 struct ShaderModule_t;
 
@@ -24,6 +25,7 @@ using HwTextureHandle = HwHandle<Texture_t>;
 using HwPipelineLayoutHandle = HwHandle<PipelineLayout_t>;
 using HwGraphicsPipelineHandle = HwHandle<GraphicsPipeline_t>;
 using HwShaderModuleHandle = HwHandle<ShaderModule_t>;
+using HwPipelineCacheHandle = HwHandle<PipelineCache_t>;
 
 // commands
 struct BeginRenderingArgs {
@@ -111,8 +113,16 @@ struct VertexDesc {
   Attribute attribute;
 };
 
-struct PipelineLayoutDesc {
+struct PushConstantRange {
+  u32 offset = 0;
+  u32 size = 0;
+  std::vector<ShaderStage> shaderStages;
+};
+
+struct PipelineLayoutCreateDesc {
   std::string_view debugName;
+  // std::vector<BindGroupLayout> bindGroupLayouts;
+  std::vector<PushConstantRange> pushConstantRanges;
 };
 
 struct ShaderModuleCreateDesc {
@@ -142,10 +152,34 @@ struct FrameConstantsDesc {
   math::mat4 viewMat{1.0f};
 };
 
+struct VertexBufferLayout {
+  u32 binding = u32_max;
+  u32 stride = u32_max;
+  VertexRate inputRate = VertexRate::Vertex;
+};
+
+struct VertexAttribute {
+  u32 location = u32_max;
+  u32 binding = u32_max;
+  VertexFormat format = VertexFormat::RGBA8Unorm;
+  u32 offset = 0;
+};
+
+struct VertexOptions {
+  std::vector<VertexBufferLayout> vertexLayouts;
+  std::vector<VertexAttribute> attributes;
+};
+
 struct PrimitiveOptions {
   CullMode cullMode = CullMode::Back;
   FrontFace frontFace = FrontFace::CounterClockwise;
 };
+
+struct DepthStencilOptions {};
+
+struct MultisampleOptions {};
+
+struct DynamicStateOptions {};
 
 struct Extent {
   u32 width = 0;
@@ -156,7 +190,12 @@ struct Extent {
 struct GraphicsPipelineCreateDesc {
   std::string_view debugName;
   HwPipelineLayoutHandle layout;
+  VertexOptions vertexOptions;
   PrimitiveOptions primitiveOptions;
+  DepthStencilOptions depthStencilOptions;
+  MultisampleOptions multisampleOptions;
+  DynamicStateOptions dynamicStateOptions;
+  HwPipelineCacheHandle pipelineCache;
   std::vector<HwShaderModuleHandle> shaderModules;
   std::vector<ShaderProgram> shaderPrograms;
 };
