@@ -2,20 +2,20 @@
 
 == texture basic functions
 
+* [ ] rhi bind group layout
 * [ ] vulkan descriptor set/layout/pool
 * [ ] vulkan texture
-* [ ] rhi bind group layout
 * [ ] resource mananger: texture resource
 
 == pbr renderer
 
 * [ ] material system
 * [ ] pbr material
-* [ ] render graph
 
 == multithreadify
 
 * [ ] mt cmd recording
+* [ ] threaded backend
 
 == advanced renderer
 
