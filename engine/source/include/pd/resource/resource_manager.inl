@@ -118,6 +118,13 @@ inline Result<void> ResourceManager::retain(ResourceHandle<Tag> handle) noexcept
 
 template <typename Tag>
 inline Result<void> ResourceManager::release(ResourceHandle<Tag> handle) noexcept {
+  if (!handle) {
+    return {};
+  }
+  auto* resource = get<Tag>(handle);
+  if (!resource) {
+    return {};
+  }
   auto* resourceEntry = findEntry(handle);
   if (!resourceEntry) {
     return make_error<void>(ErrorCode::ResourceNotFound);

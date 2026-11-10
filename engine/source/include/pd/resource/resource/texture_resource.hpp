@@ -26,9 +26,4 @@ class TextureResource : public Resource {
                            std::string name = "texture")
       : Resource(sourceId, variantId, std::move(name)) {}
 };
-
-template <>
-struct TagInfo<TextureResource_t> {
-  using ResourceType = TextureResource;
-};
 }  // namespace pd

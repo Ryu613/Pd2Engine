@@ -30,6 +30,8 @@ class MeshResource : public Resource {
   const ResourceRef<BufferResource_t>& vertexBuffer() const noexcept { return mVertexBuffer; }
   const ResourceRef<BufferResource_t>& indexBuffer() const noexcept { return mIndexBuffer; }
 
+  std::span<SubMesh> submeshes() noexcept { return mSubMeshes; }
+
  protected:
   Result<void> doLoad(LoadContext& ctx) noexcept override;
   Result<void> doUnload(LoadContext& ctx) noexcept override;
@@ -44,13 +46,7 @@ class MeshResource : public Resource {
 
   std::vector<SubMesh> mSubMeshes;
 
-  explicit MeshResource(u64 sourceId, ResourceVariantIdType variantId = defaultVariantId,
-                        std::string name = "mesh")
+  explicit MeshResource(u64 sourceId, ResourceVariantIdType variantId = defaultVariantId, std::string name = "mesh")
       : Resource(sourceId, variantId, std::move(name)) {}
-};
-
-template <>
-struct TagInfo<MeshResource_t> {
-  using ResourceType = MeshResource;
 };
 }  // namespace pd

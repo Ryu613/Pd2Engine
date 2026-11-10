@@ -12,7 +12,6 @@ Result<void> PrefabResource::doLoad(LoadContext& ctx) noexcept {
       LOG_ERROR("resource id: {} load failed", eachMesh.handle().data.id);
       return make_error<void>(ErrorCode::ResourceLoadFailed);
     }
-    // fallback policy?
   }
   // todo: textures loading
   return {};

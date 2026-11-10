@@ -15,7 +15,10 @@
 
 == multithreadify
 
+* [ ] mt cmd recording
+
 == advanced renderer
 
+* [ ] shader reflection
 * [ ] rander graph
 * [ ] deferred rendering

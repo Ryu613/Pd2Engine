@@ -14,6 +14,8 @@ class BufferResource : public Resource {
   DELETE_COPY(BufferResource);
   DEFAULT_MOVABLE(BufferResource);
 
+  HwBufferHandle buffer() noexcept { return mBuffer; }
+
  protected:
   Result<void> doLoad(LoadContext& ctx) noexcept override;
   Result<void> doUnload(LoadContext& ctx) noexcept override;
@@ -29,10 +31,5 @@ class BufferResource : public Resource {
                           std::string name = "buffer")
       : Resource(sourceId, variantId, std::move(name)),
         mInfo(std::move(bufferInfo)) {}
-};
-
-template <>
-struct TagInfo<BufferResource_t> {
-  using ResourceType = BufferResource;
 };
 }  // namespace pd

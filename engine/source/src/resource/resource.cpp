@@ -19,7 +19,6 @@ Result<void> Resource::load(LoadContext& ctx) noexcept {
     mStatus = ResourceStatus::Loaded;
   }
   ctx.loadCount++;
-  LOG_DEBUG("resource is not loaded because the status is not [unload]: name={}", mName);
   return {};
 }
 
@@ -27,7 +26,7 @@ Result<void> Resource::unload(LoadContext& ctx) noexcept {
   if (mStatus != ResourceStatus::Loaded) {
     return {};
   }
-  if(ctx.loadCount > 1) {
+  if (ctx.loadCount > 1) {
     ctx.loadCount--;
     return {};
   }

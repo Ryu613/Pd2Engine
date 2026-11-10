@@ -54,9 +54,23 @@ inline ResourceSourceType GetSourceType(u64 sourceId) {
   return static_cast<ResourceSourceType>(sourceId >> sourceTypeShift);
 }
 
+class TextureResource;
+class MeshResource;
+class BufferResource;
 template <typename Tag>
 struct TagInfo {
   using ResourceType = std::nullopt_t;
 };
-
+template <>
+struct TagInfo<TextureResource_t> {
+  using ResourceType = TextureResource;
+};
+template <>
+struct TagInfo<MeshResource_t> {
+  using ResourceType = MeshResource;
+};
+template <>
+struct TagInfo<BufferResource_t> {
+  using ResourceType = BufferResource;
+};
 }  // namespace pd

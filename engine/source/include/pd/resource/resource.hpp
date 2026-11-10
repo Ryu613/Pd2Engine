@@ -22,9 +22,6 @@ class Resource {
   DELETE_COPY(Resource);
   DEFAULT_MOVABLE(Resource);
 
-  Result<void> load(LoadContext& ctx) noexcept;
-  Result<void> unload(LoadContext& ctx) noexcept;
-
   ResourceIdType variantId() const noexcept { return mVariantId; }
   u64 sourceId() const noexcept { return mSourceId; };
   const std::string& name() const noexcept { return mName; }
@@ -37,10 +34,15 @@ class Resource {
   virtual Result<void> doUnload(LoadContext& ctx) noexcept = 0;
 
  private:
+  friend class ResourceManager;
+
   u64 mSourceId;
   ResourceVariantIdType mVariantId;
   std::string mName;
   ResourceStatus mStatus;
+
+  Result<void> load(LoadContext& ctx) noexcept;
+  Result<void> unload(LoadContext& ctx) noexcept;
 };
 
 template <typename T>

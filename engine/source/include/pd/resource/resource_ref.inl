@@ -66,8 +66,8 @@ Result<void> ResourceRef<Tag>::unload() noexcept {
   return mMgr->unload(mHandle);
 }
 
-// template <typename Tag> 
-// TagInfo<Tag>::ResourceType* ResourceRef<Tag>::get() const noexcept {
-//   return mMgr ? mMgr->get(mHandle) : nullptr;
-// }
+template <typename Tag>
+TagInfo<Tag>::ResourceType* ResourceRef<Tag>::get() const noexcept {
+  return mMgr ? mMgr->get(mHandle) : nullptr;
+}
 }  // namespace pd
