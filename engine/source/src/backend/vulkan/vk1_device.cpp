@@ -123,6 +123,8 @@ void Vk1Device::createSurface(void* nativeWindowHandle) {
   };
   vkCreateWin32SurfaceKHR(mContext.getInstance(), &createInfo, nullptr, &mSurface);
   assert(mSurface);
+#else
+#error "platform not supported!"
 #endif
 }
 

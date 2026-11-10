@@ -15,6 +15,7 @@ using HwHandle = TypedHandle<T>;
 // 类型别名，方便外部引用，与实际类型解耦
 struct Buffer_t;
 struct Texture_t;
+struct BindingLayout_t;
 struct PipelineLayout_t;
 struct PipelineCache_t;
 struct GraphicsPipeline_t;
@@ -22,6 +23,7 @@ struct ShaderModule_t;
 
 using HwBufferHandle = HwHandle<Buffer_t>;
 using HwTextureHandle = HwHandle<Texture_t>;
+using HwBindingLayoutHandle = HwHandle<BindingLayout_t>;
 using HwPipelineLayoutHandle = HwHandle<PipelineLayout_t>;
 using HwGraphicsPipelineHandle = HwHandle<GraphicsPipeline_t>;
 using HwShaderModuleHandle = HwHandle<ShaderModule_t>;
@@ -123,6 +125,18 @@ struct PipelineLayoutCreateDesc {
   std::string_view debugName;
   // std::vector<BindGroupLayout> bindGroupLayouts;
   std::vector<PushConstantRange> pushConstantRanges;
+};
+
+struct BindingLayoutResource {
+  u32 slot;
+  u32 count = 1;
+  ResourceBindingType resourceType;
+  std::vector<ShaderStage> shaderStages;
+};
+
+struct BindingLayoutCreateDesc {
+  std::string_view debugName;
+  std::vector<BindingLayoutResource> bindings;
 };
 
 struct ShaderModuleCreateDesc {

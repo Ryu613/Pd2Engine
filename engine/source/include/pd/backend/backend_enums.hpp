@@ -6,7 +6,10 @@ enum class ShaderLang : u8 {
 };
 enum class ShaderStage : u8 {
   Vertex,
+  Geometry,
   Fragment,
+  Compute,
+  AllGraphics,
   All,
 };
 
@@ -87,5 +90,19 @@ enum class MemoryUsage : u8 {
   GpuToCpu,
   CpuCopy,
   GpuLazilyAllocated,
+};
+
+enum class ResourceBindingType : u8 {
+  Sampler,
+  CombinedImageSampler,
+  SampledImage,
+  StorageImage,
+  UniformTexelBuffer,
+  StorageTexelBuffer,
+  UniformBuffer,
+  StorageBuffer,
+  DynamicUniformBuffer,
+  DynamicStorageBuffer,
+  InputAttachment,
 };
 }  // namespace pd

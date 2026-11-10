@@ -15,7 +15,7 @@
 #define ASSET_DIR ./
 #endif
 
-TEST_CASE("core_render_cmds", "[.]backend_vulkan") {  // skip
+TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   using namespace pd;
   PlatformConfig platformCfg{
       .window =
@@ -56,6 +56,8 @@ TEST_CASE("core_render_cmds", "[.]backend_vulkan") {  // skip
   auto vertFragShader = backend.createShaderModule({
       .spirCode = std::as_bytes(std::span{shaderData.spirvCode}),
   });
+
+  // bind group layout
 
   // pipeline layout
   auto layout = backend.createPipelineLayout({
@@ -226,7 +228,7 @@ TEST_CASE("core_render_cmds", "[.]backend_vulkan") {  // skip
   REQUIRE(platform.destroy());
 }
 
-TEST_CASE("test_textured_box", "backend_vulkan") {
+TEST_CASE("test_textured_box", "[.]backend_vulkan") {
   using namespace pd;
 
   PlatformConfig platformCfg{

@@ -28,6 +28,7 @@ class Backend {
 
   // create
   HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
+  HwBindingLayoutHandle createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept;
   HwPipelineLayoutHandle createPipelineLayout(const PipelineLayoutCreateDesc& pipelineLayoutDesc) noexcept;
   HwGraphicsPipelineHandle createGraphicsPipeline(const GraphicsPipelineCreateDesc& pipelineDesc) noexcept;
 

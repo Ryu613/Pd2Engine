@@ -20,13 +20,18 @@ inline VkShaderStageFlagBits toVkShaderStageFlagBits(pd::ShaderStage stage) {
     using enum pd::ShaderStage;
     case Vertex:
       return VK_SHADER_STAGE_VERTEX_BIT;
+    case Geometry:
+      return VK_SHADER_STAGE_GEOMETRY_BIT;
     case Fragment:
       return VK_SHADER_STAGE_FRAGMENT_BIT;
+    case Compute:
+      return VK_SHADER_STAGE_COMPUTE_BIT;
+    case AllGraphics:
+      return VK_SHADER_STAGE_ALL_GRAPHICS;
     case All:
       return VK_SHADER_STAGE_ALL;
   }
   PD_ASSERT_MSG(false, "shader stage enum not supported!");
-
   return {};
 }
 
@@ -142,6 +147,36 @@ inline VkVertexInputRate toVkInputRate(pd::VertexRate inputRate) noexcept {
       return VK_VERTEX_INPUT_RATE_INSTANCE;
   }
   PD_ASSERT_MSG(false, "vertex input rate not supported yet!");
+  return {};
+}
+
+inline VkDescriptorType toVkDescriptorType(pd::ResourceBindingType bindingType) noexcept {
+  switch (bindingType) {
+    using enum pd::ResourceBindingType;
+    case Sampler:
+      return VK_DESCRIPTOR_TYPE_SAMPLER;
+    case CombinedImageSampler:
+      return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    case SampledImage:
+      return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    case StorageImage:
+      return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    case UniformTexelBuffer:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    case StorageTexelBuffer:
+      return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+    case UniformBuffer:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    case StorageBuffer:
+      return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    case DynamicUniformBuffer:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    case DynamicStorageBuffer:
+      return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+    case InputAttachment:
+      return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+  }
+  PD_ASSERT_MSG(false, "descriptor type not supported!");
   return {};
 }
 }  // namespace util

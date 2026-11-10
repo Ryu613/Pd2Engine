@@ -50,6 +50,36 @@ void ResourceRegistry::destroyShaderModule(pd::HwShaderModuleHandle handle) noex
   destroyResource(handle);
 }
 
+pd::HwBindingLayoutHandle ResourceRegistry::createBindingLayout(const pd::BindingLayoutCreateDesc& desc) noexcept {
+  auto vkDevice = mDevice->getDevice();
+
+  std::vector<VkDescriptorSetLayoutBinding> bindings;
+  for (const auto& binding : desc.bindings) {
+    VkDescriptorSetLayoutBinding newBinding{
+        .binding = binding.slot,
+        .descriptorType = util::toVkDescriptorType(binding.resourceType),
+        .descriptorCount = binding.count,
+        .stageFlags = util::toVkShaderStageFlagBits(binding.shaderStages),
+        .pImmutableSamplers = 0,
+    };
+    // immutable samplers?
+
+    bindings.emplace_back(newBinding);
+  }
+
+  // binding flags
+  std::vector<VkDescriptorBindingFlags> bindingFlags(bindings.size());
+
+  VkDescriptorSetLayoutCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(bindings.size()),
+      .pBindings = bindings.data(),
+  };
+
+  VkDescriptorSetLayout setLayout = 0;
+  vkCreateDescriptorSetLayout(vkDevice, &createInfo, 0, &setLayout);
+}
+
 pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept {
   assert(desc.pushConstantRanges.size() > 0);
   std::vector<VkPushConstantRange> vkPushConstantRanges;

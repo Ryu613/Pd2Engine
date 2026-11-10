@@ -25,6 +25,8 @@ class ResourceRegistry {
   void init() noexcept;
   void destroy() noexcept;
 
+  pd::HwBindingLayoutHandle createBindingLayout(const pd::BindingLayoutCreateDesc& desc) noexcept;
+
   pd::HwPipelineLayoutHandle createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept;
   void destroyPipelineLayout(pd::HwPipelineLayoutHandle handle) noexcept;
 
