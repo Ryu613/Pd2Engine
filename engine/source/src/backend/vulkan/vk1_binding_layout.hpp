@@ -4,7 +4,7 @@
 
 namespace vk1 {
 
-struct BindingLayout {
+struct Vk1BindingLayout {
   VkDescriptorSetLayout handle;
   std::vector<VkDescriptorSetLayoutBinding> bindings;
 };

@@ -8,6 +8,7 @@
 #include "../vk1_pipeline.hpp"
 #include "../vk1_buffer.hpp"
 #include "../vk1_shader_module.hpp"
+#include "../vk1_binding_layout.hpp"
 
 namespace vk1 {
 class ResourceRegistry {
@@ -26,6 +27,7 @@ class ResourceRegistry {
   void destroy() noexcept;
 
   pd::HwBindingLayoutHandle createBindingLayout(const pd::BindingLayoutCreateDesc& desc) noexcept;
+  void destroyBindingLayout(pd::HwBindingLayoutHandle handle) noexcept;
 
   pd::HwPipelineLayoutHandle createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept;
   void destroyPipelineLayout(pd::HwPipelineLayoutHandle handle) noexcept;
@@ -70,6 +72,7 @@ class ResourceRegistry {
   template <typename Tag, typename T>
   using DataPool = pd::util::RobinMap<pd::HandleIdType, Slot<Tag, T>>;
 
+  DataPool<pd::BindingLayout_t, Vk1BindingLayout> mBindingLayouts;
   DataPool<pd::PipelineLayout_t, Vk1PipelineLayout> mPipelineLayouts;
   DataPool<pd::GraphicsPipeline_t, Vk1Pipeline> mGraphicsPipelines;
   DataPool<pd::Buffer_t, Vk1Buffer> mBuffers;
@@ -106,6 +109,8 @@ inline auto& ResourceRegistry::findPool() noexcept {
     return mPipelineLayouts;
   } else if constexpr (std::is_same_v<Tag, pd::GraphicsPipeline_t>) {
     return mGraphicsPipelines;
+  } else if constexpr (std::is_same_v<Tag, pd::BindingLayout_t>) {
+    return mBindingLayouts;
   } else if constexpr (std::is_same_v<Tag, pd::Buffer_t>) {
     return mBuffers;
   } else if constexpr (std::is_same_v<Tag, pd::ShaderModule_t>) {

@@ -179,5 +179,26 @@ inline VkDescriptorType toVkDescriptorType(pd::ResourceBindingType bindingType) 
   PD_ASSERT_MSG(false, "descriptor type not supported!");
   return {};
 }
+
+inline VkDescriptorBindingFlags toVkDescriptorBindingFlag(pd::ResourceBindingFlag flag) noexcept {
+  switch (flag) {
+    using enum pd::ResourceBindingFlag;
+    case UpdateAfterBind:
+      return VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+    case UpdateUnusedWhilePending:
+      return VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
+    case PartiallyBound:
+      return VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT;
+    case VariableBindGroupEntriesCount:
+      return VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+  }
+  PD_ASSERT_MSG(false, "descriptor binding flag not supported!");
+  return {};
+}
+
+inline VkDescriptorBindingFlags toVkDescriptorBindingFlagBits(std::span<const pd::ResourceBindingFlag> flags) {
+  return toVkFlags<VkDescriptorBindingFlags>(flags,
+                                             [](pd::ResourceBindingFlag f) { return toVkDescriptorBindingFlag(f); });
+}
 }  // namespace util
 }  // namespace vk1

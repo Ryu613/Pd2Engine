@@ -58,6 +58,15 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   });
 
   // bind group layout
+  auto setLayout = backend.createBindingLayout({
+      .debugName = "box binding",
+      .bindings = {{
+          .slot = 0,
+          .count = 1,
+          .resourceType = ResourceBindingType::CombinedImageSampler,
+          .shaderStages = {ShaderStage::Vertex},
+      }},
+  });
 
   // pipeline layout
   auto layout = backend.createPipelineLayout({

@@ -62,13 +62,10 @@ pd::HwBindingLayoutHandle ResourceRegistry::createBindingLayout(const pd::Bindin
         .stageFlags = util::toVkShaderStageFlagBits(binding.shaderStages),
         .pImmutableSamplers = 0,
     };
-    // immutable samplers?
+    // todo: immutable samplers
 
     bindings.emplace_back(newBinding);
   }
-
-  // binding flags
-  std::vector<VkDescriptorBindingFlags> bindingFlags(bindings.size());
 
   VkDescriptorSetLayoutCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -76,8 +73,60 @@ pd::HwBindingLayoutHandle ResourceRegistry::createBindingLayout(const pd::Bindin
       .pBindings = bindings.data(),
   };
 
+  if (desc.bindless) {
+    createInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+
+    // 允许每个 Binding 中没有被 Shader 实际使用的 Descriptor 保持未初始化
+    // 必须已经启用 descriptorBindingPartiallyBound 功能
+    std::vector<VkDescriptorBindingFlags> bindingFlags(bindings.size(), VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
+
+    for (size_t i = 0; i < bindings.size(); ++i) {
+      bindingFlags[i] |=
+          VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
+    }
+
+    VkDescriptorSetLayoutBindingFlagsCreateInfo nextInfo{
+        .bindingCount = static_cast<uint32_t>(bindings.size()),
+        .pBindingFlags = bindingFlags.data(),
+    };
+
+    createInfo.pNext = &nextInfo;
+  }
+
   VkDescriptorSetLayout setLayout = 0;
-  vkCreateDescriptorSetLayout(vkDevice, &createInfo, 0, &setLayout);
+  checkResult(vkCreateDescriptorSetLayout(vkDevice, &createInfo, 0, &setLayout));
+  assert(setLayout);
+
+  Slot<pd::BindingLayout_t, Vk1BindingLayout> slot{
+      .gen = 0,
+      .resource =
+          {
+              .handle = setLayout,
+              .bindings = bindings,
+          },
+  };
+  auto newId = nextId<pd::BindingLayout_t>();
+  mBindingLayouts.emplace(newId, slot);
+
+  setObjectName(mDevice->getDevice(), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, setLayout, desc.debugName);
+
+  return {.data = {
+              .id = newId,
+              .gen = 0,
+          }};
+}
+
+void ResourceRegistry::destroyBindingLayout(pd::HwBindingLayoutHandle handle) noexcept {
+  if (!handle) {
+    return;
+  }
+  const auto& vkDevice = mDevice->getDevice();
+  auto setLayout = getResource(handle);
+  assert(setLayout->handle);
+
+  vkDestroyDescriptorSetLayout(vkDevice, setLayout->handle, 0);
+
+  destroyResource(handle);
 }
 
 pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept {

@@ -17,6 +17,21 @@
 . gui作为子模块
 . 材质系统作为子模块
 
+== set,binding约定
+
+. set 0: 帧级数据
+.. binding 0: 相机 ubo
+.. binding 1: 设置项 ubo
+. set 1: 场景级数据
+.. binding 0: 物体实例数据 ssbo
+.. binding 1: 光线数据 ssbo
+. set 2: pass参数
+. set 3: 材质参数
+.. binding 0: base color texture
+.. binding 1: normal texture
+.. binding 2: sampler
+. push constant: drawcall小数据
+
 == 功能
 
 . render pass

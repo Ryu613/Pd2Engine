@@ -87,13 +87,15 @@ class Backend::Impl {
 
   void destroyBuffer(HwBufferHandle handle) noexcept { mResourceRegistry.destroyBuffer(handle); }
 
+  HwBindingLayoutHandle createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept {
+    return mResourceRegistry.createBindingLayout(desc);
+  }
+
+  void destroyBindingLayout(HwBindingLayoutHandle handle) noexcept { mResourceRegistry.destroyBindingLayout(handle); }
+
   HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept {
     auto handle = mResourceRegistry.createShaderModule(shaderModuleCreateDesc);
     return handle;
-  }
-
-  HwBindingLayoutHandle createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept {
-    return mResourceRegistry.createBindingLayout(desc);
   }
   void destroyShaderModule(HwShaderModuleHandle handle) noexcept { mResourceRegistry.destroyShaderModule(handle); }
 
@@ -150,12 +152,16 @@ HwBufferHandle Backend::createBuffer(const BufferCreateDesc& bufferCreateDesc) n
 void Backend::writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept { mImpl->writeBuffer(bufferWriteDesc); }
 void Backend::destroyBuffer(HwBufferHandle handle) noexcept { mImpl->destroyBuffer(handle); }
 
-HwShaderModuleHandle Backend::createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept {
-  return mImpl->createShaderModule(shaderModuleCreateDesc);
-}
-
 HwBindingLayoutHandle Backend::createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept {
   return mImpl->createBindingLayout(desc);
+}
+
+void Backend::destroyBindingLayout(HwBindingLayoutHandle handle) noexcept {
+  return mImpl->destroyBindingLayout(handle);
+}
+
+HwShaderModuleHandle Backend::createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept {
+  return mImpl->createShaderModule(shaderModuleCreateDesc);
 }
 
 void Backend::destroyShaderModule(HwShaderModuleHandle handle) noexcept { mImpl->destroyShaderModule(handle); }

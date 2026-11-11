@@ -104,5 +104,13 @@ enum class ResourceBindingType : u8 {
   DynamicUniformBuffer,
   DynamicStorageBuffer,
   InputAttachment,
+
+};
+
+enum class ResourceBindingFlag : u8 {
+  UpdateAfterBind,
+  UpdateUnusedWhilePending,
+  PartiallyBound,
+  VariableBindGroupEntriesCount,
 };
 }  // namespace pd

@@ -132,10 +132,12 @@ struct BindingLayoutResource {
   u32 count = 1;
   ResourceBindingType resourceType;
   std::vector<ShaderStage> shaderStages;
+  //   std::vector<ResourceBindingFlag> bindingFlags;
 };
 
 struct BindingLayoutCreateDesc {
   std::string_view debugName;
+  bool bindless = true;
   std::vector<BindingLayoutResource> bindings;
 };
 

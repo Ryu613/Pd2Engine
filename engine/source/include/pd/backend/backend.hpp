@@ -25,7 +25,6 @@ class Backend {
   void waitIdle() noexcept;
 
   // resources
-
   // create
   HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
   HwBindingLayoutHandle createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept;
@@ -36,12 +35,15 @@ class Backend {
   HwTextureHandle createTexture(const TextureCreateDesc& textureCreateDesc) noexcept;
 
   // destroy
-  void destroyBuffer(HwBufferHandle handle) noexcept;
+  void destroyBindingLayout(HwBindingLayoutHandle handle) noexcept;
   void destroyPipelineLayout(HwPipelineLayoutHandle handle) noexcept;
   void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept;
   void destroyShaderModule(HwShaderModuleHandle handle) noexcept;
+
+  void destroyBuffer(HwBufferHandle handle) noexcept;
   void destroyTexture(HwTextureHandle handle) noexcept;
 
+  // operations
   void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept;
 
  private:

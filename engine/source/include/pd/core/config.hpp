@@ -18,6 +18,8 @@ struct BackendConfig {
   u32 width = 1024;
   u32 height = 768;
   bool enableDebug = true;
+  bool enableBindless = true;
+  bool enableDynamicRendering = true;
 };
 struct EngineConfig {
   std::string appName = "default";
