@@ -86,6 +86,7 @@ pd::HwBindingLayoutHandle ResourceRegistry::createBindingLayout(const pd::Bindin
     }
 
     VkDescriptorSetLayoutBindingFlagsCreateInfo nextInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
         .bindingCount = static_cast<uint32_t>(bindings.size()),
         .pBindingFlags = bindingFlags.data(),
     };

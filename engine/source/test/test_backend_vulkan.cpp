@@ -60,7 +60,7 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   // bind group layout
   // set0: ubo
   auto setLayout = backend.createBindingLayout({
-      .debugName = "box binding",
+      .debugName = "box binding ubo",
       .bindings = {{
           .slot = 0,
           .count = 1,
@@ -70,7 +70,7 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   });
   // set1: ssbo
   auto setLayoutSSBO = backend.createBindingLayout({
-      .debugName = "box binding",
+      .debugName = "box binding ssbo",
       .bindings = {{
           .slot = 0,
           .count = 1,
@@ -237,6 +237,8 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   // destroy resources
   backend.destroyGraphicsPipeline(pipeline);
   backend.destroyPipelineLayout(layout);
+  backend.destroyBindingLayout(setLayoutSSBO);
+  backend.destroyBindingLayout(setLayout);
   backend.destroyBuffer(indexBuffer);
   backend.destroyBuffer(vertexBuffer);
 
