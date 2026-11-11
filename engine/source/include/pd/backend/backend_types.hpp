@@ -123,7 +123,7 @@ struct PushConstantRange {
 
 struct PipelineLayoutCreateDesc {
   std::string_view debugName;
-  // std::vector<BindGroupLayout> bindGroupLayouts;
+  std::vector<HwBindingLayoutHandle> bindGroupLayouts;
   std::vector<PushConstantRange> pushConstantRanges;
 };
 

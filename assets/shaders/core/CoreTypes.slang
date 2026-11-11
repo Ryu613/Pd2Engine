@@ -1,4 +1,4 @@
-module Core.io;
+module CoreTypes;
 
 public struct VSInput {
   [[vk::location(0)]]

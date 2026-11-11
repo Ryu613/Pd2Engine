@@ -58,12 +58,23 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   });
 
   // bind group layout
+  // set0: ubo
   auto setLayout = backend.createBindingLayout({
       .debugName = "box binding",
       .bindings = {{
           .slot = 0,
           .count = 1,
-          .resourceType = ResourceBindingType::CombinedImageSampler,
+          .resourceType = ResourceBindingType::UniformBuffer,
+          .shaderStages = {ShaderStage::Vertex},
+      }},
+  });
+  // set1: ssbo
+  auto setLayoutSSBO = backend.createBindingLayout({
+      .debugName = "box binding",
+      .bindings = {{
+          .slot = 0,
+          .count = 1,
+          .resourceType = ResourceBindingType::StorageBuffer,
           .shaderStages = {ShaderStage::Vertex},
       }},
   });
@@ -71,11 +82,7 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   // pipeline layout
   auto layout = backend.createPipelineLayout({
       .debugName = "pyramid layout",
-      .pushConstantRanges = {PushConstantRange{
-          .offset = 0,
-          .size = sizeof(math::mat4),
-          .shaderStages = {ShaderStage::Vertex},
-      }},
+      .bindGroupLayouts = {setLayout, setLayoutSSBO},
   });
   REQUIRE(layout);
 

@@ -1,6 +1,6 @@
-module Scene.Bindings;
+module SceneBindings;
 
-import Scene.Structs;
+import Scene.SceneTypes;
 
 // set = 0, binding = 0
 [[vk::binding(0, 0)]]

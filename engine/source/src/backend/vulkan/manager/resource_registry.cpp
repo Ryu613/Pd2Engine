@@ -130,24 +130,36 @@ void ResourceRegistry::destroyBindingLayout(pd::HwBindingLayoutHandle handle) no
 }
 
 pd::HwPipelineLayoutHandle ResourceRegistry::createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept {
-  assert(desc.pushConstantRanges.size() > 0);
-  std::vector<VkPushConstantRange> vkPushConstantRanges;
-  vkPushConstantRanges.reserve(desc.pushConstantRanges.size());
-  for (auto& pushconstantRange : desc.pushConstantRanges) {
-    VkPushConstantRange vkPushConstantRange{
-        .stageFlags = util::toVkShaderStageFlagBits(pushconstantRange.shaderStages),
-        .offset = pushconstantRange.offset,
-        .size = pushconstantRange.size,
-    };
-    vkPushConstantRanges.emplace_back(vkPushConstantRange);
-  }
   VkPipelineLayoutCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-      .setLayoutCount = 0,
-      .pSetLayouts = 0,
-      .pushConstantRangeCount = static_cast<uint32_t>(vkPushConstantRanges.size()),
-      .pPushConstantRanges = vkPushConstantRanges.data(),
   };
+  // push constants
+  std::vector<VkPushConstantRange> vkPushConstantRanges;
+  if (!desc.pushConstantRanges.empty()) {
+    vkPushConstantRanges.reserve(desc.pushConstantRanges.size());
+    for (auto& pushconstantRange : desc.pushConstantRanges) {
+      VkPushConstantRange vkPushConstantRange{
+          .stageFlags = util::toVkShaderStageFlagBits(pushconstantRange.shaderStages),
+          .offset = pushconstantRange.offset,
+          .size = pushconstantRange.size,
+      };
+      vkPushConstantRanges.emplace_back(vkPushConstantRange);
+    }
+  }
+  createInfo.pushConstantRangeCount = static_cast<uint32_t>(vkPushConstantRanges.size());
+  createInfo.pPushConstantRanges = vkPushConstantRanges.data();
+
+  // descriptor set layouts
+  std::vector<VkDescriptorSetLayout> setLayouts;
+  if (!desc.bindGroupLayouts.empty()) {
+    for (const auto& setLayout : desc.bindGroupLayouts) {
+      const auto* resource = getResource(setLayout);
+      assert(resource);
+      setLayouts.push_back(resource->handle);
+    }
+  }
+  createInfo.setLayoutCount = setLayouts.size();
+  createInfo.pSetLayouts = setLayouts.data();
 
   VkPipelineLayout layout = 0;
   checkResult(vkCreatePipelineLayout(mDevice->getDevice(), &createInfo, 0, &layout));

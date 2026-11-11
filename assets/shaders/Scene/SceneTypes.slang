@@ -1,4 +1,4 @@
-module Scene.Structs;
+module SceneStructs;
 
 public struct CameraData {
   public float4x4 view;

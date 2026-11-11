@@ -93,9 +93,9 @@ inline VkCullModeFlags toVkCullMode(pd::CullMode cullMode) noexcept {
       return VK_CULL_MODE_FRONT_BIT;
     case Back:
       return VK_CULL_MODE_BACK_BIT;
-    default:
-      PD_ASSERT_MSG(false, "cull mode error!");
   }
+  PD_ASSERT_MSG(false, "cull mode error!");
+  return {};
 }
 
 inline VkFrontFace toVkFrontFace(pd::FrontFace frontFace) noexcept {
@@ -105,9 +105,9 @@ inline VkFrontFace toVkFrontFace(pd::FrontFace frontFace) noexcept {
       return VK_FRONT_FACE_CLOCKWISE;
     case CounterClockwise:
       return VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    default:
-      PD_ASSERT_MSG(false, "cull mode error!");
   }
+  PD_ASSERT_MSG(false, "cull mode error!");
+  return {};
 }
 
 inline VkImageUsageFlags toVkImageUsage(pd::TextureUsage usage) noexcept {
@@ -115,9 +115,9 @@ inline VkImageUsageFlags toVkImageUsage(pd::TextureUsage usage) noexcept {
     using enum pd::TextureUsage;
     case DefaultUsage:
       return VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    default:
-      PD_ASSERT_MSG(false, "texture usage not supported yet!");
   }
+  PD_ASSERT_MSG(false, "texture usage not supported yet!");
+  return {};
 }
 
 inline VkFormat toVkFormat(pd::Format format) noexcept {
