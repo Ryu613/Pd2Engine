@@ -154,9 +154,14 @@ Result<void> Engine::stop() noexcept {
   if (auto res = mSceneManager.unloadScene(); !res) {
     return setErrorStatus(mStatus, res);
   }
-  // todo: clear cached resources
   // todo: clear cached materials
-  // todo: clear cached assets
+
+  if (auto res = mResourceManager.destroy(); !res) {
+    return setErrorStatus(mStatus, res);
+  }
+  if (auto res = mAssetManager.destroy(); !res) {
+    return setErrorStatus(mStatus, res);
+  }
   mStatus = EngineStatus::Stopped;
   return {};
 }
