@@ -178,17 +178,49 @@
 
 == slang
 
+=== 模块化
+
+=== 反射
+
 == pbr
 
 == ibl
 
-== shadow技术
+== shadow
 
-== tonemap
+== tonemapping
 
 == mipmap, miplevel
 
 == bindless
+
+. ref: link:https://medium.com/traverse-research/bindless-rendering-setup-afeb678d77fc[bindless rendering系列(Vulkanise 2023)]
+
+=== 问题背景
+
+传统的方式成为"bindful(绑定式)"，这种方式的做法是: 在每次draw call时，显式绑定资源，要调用一堆vkCmdBindDescritporSets, vkCmdUpdateDescriptorSet，繁琐代码多，绑定时需要的提供管线信息多，还容易出错，而且绑定操作本身，有一定性能开销(绑定操作是：将描述符从 CPU 描述符堆暂存到较小的 GPU 描述符堆，然后设置根签名，最后绑定正确的管道状态。每一步都有一些性能开销)
+
+而"bindless(无绑定)"，能消除繁琐代码，不易出错，实现灵活，降低绑定操作的性能开销
+
+=== 什么是bindless
+
+用索引来指向一块描述资源的内存，shader访问资源时，使用这个索引来找到资源，不需要显式调用绑定命令。
+
+开发者只需要指定索引对应的资源是哪个，不需要关心绑定操作，而且由于资源布局是统一的，在管线上也更容易复用同一个布局。开发者的心智成本也会被降低
+
+=== bindless技术方案
+
+. descriptor indexing: 从vulkan1.2开始支持，目前设备支持算是较为完善和广泛
+. descriptor buffer: heap的过渡产物，不宜再考虑
+. descriptor heap: 开发和使用对Vulkan SDK 及驱动版本要求较高，设备支持和兼容性要求高，目前属于过新的特性
+
+=== bindless在引擎中的实现方法
+
+. 先在VkPhysicalDeviceDescriptorIndexingFeatures确认物理设备是否具有此项特性的能力并开启
+. 开启descriptor indexing相关特性，在vulkan1.2 core里
+. 创建descriptor pool, 把要bindless的资源类型和预估数量给出足够大的空间
+. 创建descriptor set layout,把binding flag填写上去(参考上面链接)
+. 创建pipeline layout, 把push constant的槽位给出，用push constant来获取资源的索引
 
 == in-frame memory management, memory alignment
 

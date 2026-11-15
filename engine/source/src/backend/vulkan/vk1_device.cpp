@@ -28,11 +28,11 @@ void Vk1Device::init() {
   VkPhysicalDeviceVulkan12Features enabledVk12Features{
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
       .pNext = &enableVk11Features,
-      .descriptorIndexing = true,
-      .shaderSampledImageArrayNonUniformIndexing = true,  // related to descriptor indexing
-      .descriptorBindingVariableDescriptorCount = true,   // related to descriptor indexing
-      .runtimeDescriptorArray = true,                     // related to descriptor indexing
-      .bufferDeviceAddress = true,
+      .descriptorIndexing = true,                         // descriptor indexing
+      .shaderSampledImageArrayNonUniformIndexing = true,  // descriptor indexing
+      .descriptorBindingVariableDescriptorCount = true,   // descriptor indexing
+      .runtimeDescriptorArray = true,                     // descriptor indexing
+      .bufferDeviceAddress = true,                        // BDA
   };
   VkPhysicalDeviceVulkan13Features enabledVk13Features{
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
