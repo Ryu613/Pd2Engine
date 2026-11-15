@@ -39,7 +39,7 @@ class ResourceRegistry {
   void writeBuffer(const pd::BufferWriteDesc& desc) noexcept;
   void destroyBuffer(pd::HwBufferHandle buffer) noexcept;
 
-  pd::HwTextureHandle createTexture(const pd::TextureCreateDesc& textureCreateDesc) noexcept;
+  pd::HwTextureHandle createTexture(const pd::TextureCreateDesc& desc) noexcept;
   void destroyTexture(pd::HwTextureHandle handle) noexcept;
 
   pd::HwShaderModuleHandle createShaderModule(const pd::ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;

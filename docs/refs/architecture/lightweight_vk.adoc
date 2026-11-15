@@ -1,0 +1,132 @@
+= lightweight-vk
+
+== 简介
+
+此项目来源于书籍《Vulkan 3D graphics Rendering Cookbook》，出版于2025年2月，是比较新的Vulkan渲染技术书籍，作者:
+. Sergey Kosarevsky: 育碧前渲染主管，现Meta Vulkan开发主管，职业经历丰富
+. Alexey Medvedev: Meta的AR技术主管，有多个游戏大厂的工作经历
+. Viktor Latypov: C/C++ 3D图形，嵌入式，图形视觉开发，经验丰富
+
+lightweight-vk fork了meta的igl框架，重构并用vulkan1.3实现了bindless
+
+=== 项目情况
+
+. 项目定位: 原型参考级项目，轻薄封装
+. 使用python拉取三方库和示例资产
+.. 优点
+... python作为脚本相对简单，可复用
+.. 缺点 
+... 实际效果类似submodule或者fetch content,只需写好cmake其实可以搞定
+... 直接依赖了大型资产库，没有按需下载, 没有vendoring, 占空间, 下载慢，构建慢, 且大量资产没有实际使用
+... 不直接支持vscode，只能用vs
+
+== 潜在参考点
+
+. taskflow: 实现多线程frame graph和命令缓冲
+. BC7纹理压缩方案, KTX
+. 示例资产库
+. 具体功能实现的原型参考
+.. staging buffer(VulkanStagingDevice)
+.. texture
+.. descriptor indexing
+
+== 整体架构
+
+主要对象声明，涉及的参数，枚举等，都放在LVK.h中，对象的封装非常扁平直观，没有很深的封装嵌套，没有过度的访问控制，核心对象都继承自运行时确定的接口，接口用虚函数实现
+
+用宏来负责平台，所用三方库的隔离，宏挺多，但好在扁平，基本只有一层，所以也算好读
+
+优点是集中管理，直观，没有过度封装，缺点是职责过于集中，改动和维护都得动这个文件
+
+目前在架构上，我感觉已经没太多可参考的点了,主要区别在于功能实现的完善度
+
+我觉得此代码的设计理念在于精简，没有过度封装和设计，作为一个定位为lightweight的项目，我是比较认同的
+
+但是其在窗口系统，平台差异在代码里大量用宏，影响阅读体验，但是胜在减少了额外的封装
+
+[plantuml]
+....
+class ICommandBuffer {
+    命令缓冲接口
+    ==
+}
+class IContext {
+    backend接口，对所有gapi后端操作进行封装，以句柄返回
+    ==
+
+    虚函数, result是调用情况枚举，类似错误码
+    Holder是handle + IContext指针的封装, 析构时会销毁handle对应的资源，不能拷贝，相当于强引用，类似unique_ptr
+    --
+    + virtual Holder<BufferHandle> createBuffer(const BufferDesc& desc, const char* debugName, Result* result) = 0;
+    --
+    ... 类似函数 ...
+    --
+}
+
+class
+
+class VulkanContext extends IContext {
+    vulkan context具体实现
+    扁平化设计，所有vulkan参数，存储，实现都基本在此类几种
+    大量用宏区分库，平台，支持的特性等差异
+    内部对象大多是public的，没有封装访问，但是使用方便
+    ==
+    ... 具体Context实现 ...
+    ==
+    部分操作比较多的对象做了封装，用unique_ptr实现raii
+    + unique_ptr<VulkanSwapchain> swapchain_
+    ==
+    池化存储,T1是handle tag, T2是创建时参数(vulkan原生)
+    底层数据结构就是std vector, index就是freelist
+    + Pool<RenderPipeline, RenderPipelineState> renderPipelinesPool_
+}
+
+class VulkanApp {
+    - unique_ptr<IContext> ctx_
+    - LVKWindow* window_
+    ... 其他资源 ...
+}
+
+struct XxxDesc {
+    Context操作参数
+    ==
+}
+struct XxxState {
+    Desc对应的vulkan参数,包含XxxDesc
+    ==
+    XxxDesc desc_
+}
+
+VulkanApp *-- IContext
+XxxState o-- XxxDesc
+....
+
+== 核心调用流程
+
+也没太多可借鉴的，属于渲染器标准流程代码，还是一堆宏用于区分不同的窗口系统和平台，封装很薄，直接，确实很light weight
+
+shader代码写到了同一个cpp里，有glsl和slang
+
+[plantuml]
+....
+User -> VulkanApp: create
+VulkanApp -> LVK: initWindow()
+LVK <-- VulkanApp: LVKWindow*
+VulkanApp -> LVK: createVulkanContextWithSwapchain()
+LVK -> VulkanContext: create
+VulkanContext -> VulkanContext: pick device
+VulkanContext -> VulkanContext: init device
+VulkanContext -> VulkanSwapchain: create and init swapchain
+VulkanApp <-- VulkanContext: initialized VulkanContext
+User -> VulkanApp: get Context
+User <-- VulkanContext: Context*
+User -> User: operate vulkan stuff
+User -> VulkanApp: run()
+loop per-frame
+    VulkanApp -> VulkanApp: poll window events
+    VulkanApp -> VulkanApp: drawFrame(), execute user recorded commands
+    VulkanApp -> VulkanContext: submit(buffer, swapchain image)
+end
+User <-- VulkanApp: ~VulkanApp()
+....
+

@@ -58,9 +58,9 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   });
 
   // bind group layout
-  // set0: ubo
+  // set0: frame resources
   auto setLayout = backend.createBindingLayout({
-      .debugName = "box binding ubo",
+      .debugName = "set0:ubo",
       .bindings = {{
           .slot = 0,
           .count = 1,
@@ -68,9 +68,9 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
           .shaderStages = {ShaderStage::Vertex},
       }},
   });
-  // set1: ssbo
+  // set1: scene resources
   auto setLayoutSSBO = backend.createBindingLayout({
-      .debugName = "box binding ssbo",
+      .debugName = "set1:ssbo",
       .bindings = {{
           .slot = 0,
           .count = 1,
@@ -130,6 +130,8 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
 
   auto pipeline = backend.createGraphicsPipeline(pipelineDesc);
   REQUIRE(pipeline);
+
+  // create bind group
 
   // buffers
   // front face color is red!

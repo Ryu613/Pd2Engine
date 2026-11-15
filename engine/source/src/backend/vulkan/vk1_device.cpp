@@ -33,6 +33,7 @@ void Vk1Device::init() {
       .descriptorBindingVariableDescriptorCount = true,   // descriptor indexing
       .runtimeDescriptorArray = true,                     // descriptor indexing
       .bufferDeviceAddress = true,                        // BDA
+
   };
   VkPhysicalDeviceVulkan13Features enabledVk13Features{
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
@@ -41,6 +42,18 @@ void Vk1Device::init() {
       .dynamicRendering = true,
   };
   std::vector<const char*> extensions{1, VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  /*
+    // 1.2 以上不用加
+    // descriptor indexing的依赖扩展
+    // ref: https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_maintenance1.html
+    extensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME);
+    // ref: https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_maintenance3.html
+    extensions.push_back(VK_KHR_MAINTENANCE3_EXTENSION_NAME);
+    // 从1.2开始ds indexing进入核心，但是如果设备支持1.2，但此扩展没声明，ds indexing不一定可用
+    // 故最好显式给
+    extensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+  */
+
   float priority = 1.f;
   VkDeviceQueueCreateInfo queueCreateInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -79,6 +92,22 @@ void Vk1Device::init() {
   };
   checkResult(vmaCreateAllocator(&allocatorCI, &mAllocator));
   assert(mAllocator);
+
+  // create bindless descriptor pool
+  std::array<VkDescriptorPoolSize, 2> bindlessPool{
+      VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, global::maxDescriptorPoolSize},
+      VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, global::maxDescriptorPoolSize},
+  };
+  VkDescriptorPoolCreateInfo dsBindlessPoolCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT,
+      .maxSets = global::maxBindlessResources * bindlessPool.size(),
+      .poolSizeCount = bindlessPool.size(),
+      .pPoolSizes = bindlessPool.data(),
+  };
+
+  checkResult(vkCreateDescriptorPool(mDevice, &dsBindlessPoolCreateInfo, 0, &mDsPool));
+  assert(mDsPool);
 }
 
 void Vk1Device::destroy() {
