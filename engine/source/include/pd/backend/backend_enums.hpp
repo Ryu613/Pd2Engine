@@ -30,20 +30,17 @@ using VertexFormat = Format;
 using TextureFormat = Format;
 
 enum class TextureType : u8 {
-  TextureType1D = 0,
   TextureType2D,
   TextureType3D,
-  TextureTypeCube = 3,
+  TextureTypeCube,
 };
 
 enum class TextureUsage : u8 {
-  //   None,
-  //   ColorAttachment,
-  //   DepthAttachment,
-  //   StencilAttachment,
-  //   Sampleable,
-  //   Uploadable,
-  DefaultUsage
+  ColorAttachment,
+  DepthAttachment,
+  StencilAttachment,
+  Sampleable,
+  Uploadable,
 };
 
 enum class CullMode : u8 {

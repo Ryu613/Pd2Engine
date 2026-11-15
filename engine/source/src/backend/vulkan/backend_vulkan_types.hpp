@@ -200,5 +200,33 @@ inline VkDescriptorBindingFlags toVkDescriptorBindingFlagBits(std::span<const pd
   return toVkFlags<VkDescriptorBindingFlags>(flags,
                                              [](pd::ResourceBindingFlag f) { return toVkDescriptorBindingFlag(f); });
 }
+
+inline VkImageType toVkImageType(pd::TextureType type) noexcept {
+  switch (type) {
+    using enum pd::TextureType;
+    case TextureType2D:
+      return VK_IMAGE_TYPE_2D;
+    case TextureType3D:
+      return VK_IMAGE_TYPE_3D;
+    case TextureTypeCube:
+      return VK_IMAGE_TYPE_2D;
+  }
+  PD_ASSERT_MSG(false, "image type not supported!");
+  return {};
+}
+
+inline VkImageViewType toVkImageViewType(pd::TextureType type, uint32_t numLayers) noexcept {
+  switch (type) {
+    using enum pd::TextureType;
+    case TextureType2D:
+      return numLayers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
+    case TextureType3D:
+      return VK_IMAGE_VIEW_TYPE_3D;
+    case TextureTypeCube:
+      return numLayers > 1 ? VK_IMAGE_VIEW_TYPE_CUBE_ARRAY : VK_IMAGE_VIEW_TYPE_CUBE;
+  }
+  PD_ASSERT_MSG(false, "image view type not supported!");
+  return {};
+}
 }  // namespace util
 }  // namespace vk1

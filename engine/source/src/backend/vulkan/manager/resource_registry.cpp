@@ -410,23 +410,23 @@ void ResourceRegistry::destroyBuffer(pd::HwBufferHandle buffer) noexcept {
   destroyResource(buffer);
 }
 
-pd::HwTextureHandle ResourceRegistry::createTexture(const pd::TextureCreateDesc& textureCreateDesc) noexcept {
+pd::HwTextureHandle ResourceRegistry::createTexture(const pd::TextureCreateDesc& desc) noexcept {
   const auto vkDevice = mDevice->getDevice();
   VkExtent3D extent = {
-      .width = textureCreateDesc.extent.width,
-      .height = textureCreateDesc.extent.height,
-      .depth = textureCreateDesc.extent.depth,
+      .width = desc.extent.width,
+      .height = desc.extent.height,
+      .depth = desc.extent.depth,
   };
   VkImageCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-      .imageType = VK_IMAGE_TYPE_2D,
-      .format = util::toVkFormat(textureCreateDesc.format),
+      .imageType = util::toVkImageType(desc.type),
+      .format = util::toVkFormat(desc.format),
       .extent = extent,
-      .mipLevels = 1,
-      .arrayLayers = 1,
+      .mipLevels = desc.mipLevel,
+      .arrayLayers = desc.arrayLeyers,
       .samples = VK_SAMPLE_COUNT_1_BIT,
       .tiling = VK_IMAGE_TILING_OPTIMAL,
-      .usage = util::toVkImageUsage(textureCreateDesc.usage),
+      .usage = util::toVkImageUsage(desc.usage),
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
   };
@@ -444,14 +444,14 @@ pd::HwTextureHandle ResourceRegistry::createTexture(const pd::TextureCreateDesc&
                              &image.allocationInfo));
   assert(image.handle);
 
+  setObjectName(vkDevice, VK_OBJECT_TYPE_IMAGE, image.handle, desc.debugName);
+
   Slot<pd::Texture_t, Vk1Image> slot{
       .gen = 0,
-      .resource = image,
+      .resource = std::move(image),
   };
   auto newId = nextId<pd::Texture_t>();
   mImages.emplace(newId, slot);
-
-  setObjectName(vkDevice, VK_OBJECT_TYPE_IMAGE, image.handle, textureCreateDesc.debugName);
 
   return {{
       newId,

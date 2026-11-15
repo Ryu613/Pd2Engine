@@ -228,8 +228,9 @@ struct TextureCreateDesc {
   Extent extent;
   uint32_t mipLevel = 1;
   uint32_t arrayLeyers = 1;
-  TextureUsage usage = TextureUsage::DefaultUsage;
+  TextureUsage usage = TextureUsage::ColorAttachment;
   uint32_t samples = 1;
+  void* pData = nullptr;
   //   TextureLayout initialLayout = TextureLayout::Undefined;
 };
 

@@ -10,6 +10,8 @@ namespace vk1 {
 namespace global {
 inline constexpr uint32_t invalidIndex = UINT32_MAX;
 inline constexpr size_t maxInflightFrames = 2;
+inline constexpr uint32_t maxDescriptorPoolSize = 128;
+inline constexpr uint32_t maxBindlessResources = 1024;
 }  // namespace global
 
 struct ImageState {
