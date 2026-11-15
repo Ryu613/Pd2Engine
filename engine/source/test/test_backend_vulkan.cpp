@@ -239,6 +239,8 @@ TEST_CASE("core_render_cmds", "backend_vulkan") {  // skip
   // destroy resources
   backend.destroyGraphicsPipeline(pipeline);
   backend.destroyPipelineLayout(layout);
+  backend.destroyBindingLayout(setLayoutSSBO);
+  backend.destroyBindingLayout(setLayout);
   backend.destroyBuffer(indexBuffer);
   backend.destroyBuffer(vertexBuffer);
 
