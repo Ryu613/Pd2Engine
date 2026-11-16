@@ -25,6 +25,10 @@ class Vk1Initializer {
       mConfig.enableSurface = flag;
       return *this;
     }
+    Builder& enableBindless(bool flag = true) {
+      mConfig.enableBindless = flag;
+      return *this;
+    }
     Vk1Device build();
 
    private:

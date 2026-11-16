@@ -26,5 +26,6 @@ struct Config {
   std::vector<const char*> instanceExtensions;
   bool enableSurface = false;
   bool enableDebug = false;
+  bool enableBindless = false;
 };
 }  // namespace vk1
