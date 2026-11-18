@@ -9,12 +9,22 @@ class Vk1Initializer {
  public:
   class Builder {
    public:
-    Builder& enableLayers(std::span<const char*> layerNames) {
-      mConfig.instanceLayers.assign(layerNames.begin(), layerNames.end());
+    Builder& requestInstanceLayers(const std::unordered_map<std::string, RequestMode>& layers) {
+      for (const auto& each : layers) {
+        mConfig.instanceLayers.emplace(each);
+      }
       return *this;
     }
-    Builder& enableExtensions(std::span<const char*> extNames) {
-      mConfig.instanceExtensions.assign(extNames.begin(), extNames.end());
+    Builder& requestInstanceExtensions(const std::unordered_map<std::string, RequestMode>& exts) {
+      for (const auto& each : exts) {
+        mConfig.instanceExtensions.emplace(each);
+      }
+      return *this;
+    }
+    Builder& requestDeviceExtensions(const std::unordered_map<std::string, RequestMode>& exts) {
+      for (const auto& each : exts) {
+        mConfig.deviceExtensions.emplace(each);
+      }
       return *this;
     }
     Builder& enableDebug(bool flag = true) {
@@ -23,6 +33,10 @@ class Vk1Initializer {
     }
     Builder& enableSurface(bool flag = true) {
       mConfig.enableSurface = flag;
+      return *this;
+    }
+    Builder& enableHeadless(bool flag = true) {
+      mConfig.enableHeadless = flag;
       return *this;
     }
     Builder& enableBindless(bool flag = true) {

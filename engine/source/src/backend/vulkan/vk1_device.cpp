@@ -92,22 +92,6 @@ void Vk1Device::init() {
   };
   checkResult(vmaCreateAllocator(&allocatorCI, &mAllocator));
   assert(mAllocator);
-
-  // create bindless descriptor pool
-  std::array<VkDescriptorPoolSize, 2> bindlessPool{
-      VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, global::maxDescriptorPoolSize},
-      VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, global::maxDescriptorPoolSize},
-  };
-  VkDescriptorPoolCreateInfo dsBindlessPoolCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT,
-      .maxSets = global::maxBindlessResources * bindlessPool.size(),
-      .poolSizeCount = bindlessPool.size(),
-      .pPoolSizes = bindlessPool.data(),
-  };
-
-  checkResult(vkCreateDescriptorPool(mDevice, &dsBindlessPoolCreateInfo, 0, &mDsPool));
-  assert(mDsPool);
 }
 
 void Vk1Device::destroy() {

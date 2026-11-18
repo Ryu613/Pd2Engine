@@ -30,6 +30,7 @@ class Backend {
   HwBindingLayoutHandle createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept;
   HwPipelineLayoutHandle createPipelineLayout(const PipelineLayoutCreateDesc& pipelineLayoutDesc) noexcept;
   HwGraphicsPipelineHandle createGraphicsPipeline(const GraphicsPipelineCreateDesc& pipelineDesc) noexcept;
+  HwBindingGroupHandle createBindingGroup(const BindingGroupCreateDesc& desc) noexcept;
 
   HwBufferHandle createBuffer(const BufferCreateDesc& bufferCreateDesc) noexcept;
   HwTextureHandle createTexture(const TextureCreateDesc& textureCreateDesc) noexcept;
@@ -39,6 +40,7 @@ class Backend {
   void destroyPipelineLayout(HwPipelineLayoutHandle handle) noexcept;
   void destroyGraphicsPipeline(HwGraphicsPipelineHandle handle) noexcept;
   void destroyShaderModule(HwShaderModuleHandle handle) noexcept;
+  void destroyBindingGroup(HwBindingGroupHandle handle) noexcept;
 
   void destroyBuffer(HwBufferHandle handle) noexcept;
   void destroyTexture(HwTextureHandle handle) noexcept;

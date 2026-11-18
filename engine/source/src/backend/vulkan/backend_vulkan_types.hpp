@@ -113,8 +113,16 @@ inline VkFrontFace toVkFrontFace(pd::FrontFace frontFace) noexcept {
 inline VkImageUsageFlags toVkImageUsage(pd::TextureUsage usage) noexcept {
   switch (usage) {
     using enum pd::TextureUsage;
-    case DefaultUsage:
-      return VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    case ColorAttachment:
+      return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    case DepthAttachment:
+      return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    case StencilAttachment:
+      return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    case Sampleable:
+      return VK_IMAGE_USAGE_SAMPLED_BIT;
+    case Uploadable:
+      return VK_IMAGE_USAGE_TRANSFER_DST_BIT;
   }
   PD_ASSERT_MSG(false, "texture usage not supported yet!");
   return {};

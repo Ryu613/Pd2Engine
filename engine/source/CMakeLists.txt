@@ -110,6 +110,7 @@ endif()
 if(${PD2_BACKEND} STREQUAL "VULKAN")
 target_sources(engine_lib
     PRIVATE
+        # rhi vulkan implement
         src/backend/vulkan/backend_vulkan.cpp
         # vk1: vulkan framework
         src/backend/vulkan/vk1_common.hpp
@@ -127,6 +128,7 @@ target_sources(engine_lib
         src/backend/vulkan/vk1_binding_layout.hpp
         src/backend/vulkan/vk1_pipeline_layout.hpp
         src/backend/vulkan/vk1_pipeline.hpp
+        # backend middleware
         src/backend/vulkan/manager/frame_manager.hpp
         src/backend/vulkan/manager/frame_manager.cpp
         src/backend/vulkan/manager/Resource_registry.cpp

@@ -16,6 +16,7 @@ using HwHandle = TypedHandle<T>;
 struct Buffer_t;
 struct Texture_t;
 struct BindingLayout_t;
+struct BindingGroup_t;
 struct PipelineLayout_t;
 struct PipelineCache_t;
 struct GraphicsPipeline_t;
@@ -24,6 +25,7 @@ struct ShaderModule_t;
 using HwBufferHandle = HwHandle<Buffer_t>;
 using HwTextureHandle = HwHandle<Texture_t>;
 using HwBindingLayoutHandle = HwHandle<BindingLayout_t>;
+using HwBindingGroupHandle = HwHandle<BindingGroup_t>;
 using HwPipelineLayoutHandle = HwHandle<PipelineLayout_t>;
 using HwGraphicsPipelineHandle = HwHandle<GraphicsPipeline_t>;
 using HwShaderModuleHandle = HwHandle<ShaderModule_t>;
@@ -216,6 +218,25 @@ struct GraphicsPipelineCreateDesc {
   std::vector<ShaderProgram> shaderPrograms;
 };
 
+struct ImageBinding {
+  HwTextureHandle texture;
+};
+
+struct BindGroupResource {
+  u32 bindingSlot;
+  ResourceBindingType resourceBindingType;
+  union ResourceBinding {
+    ImageBinding image;
+  };
+  ResourceBinding resourceBinding;
+};
+struct BindingGroupCreateDesc {
+  std::string_view debugName;
+  HwBindingLayoutHandle layout;
+  std::vector<BindGroupResource> resources;
+  u32 maxArrayLength = 0;
+};
+
 struct GraphicsPipelineDestroyDesc {
   HwPipelineLayoutHandle layout;
   HwGraphicsPipelineHandle pipeline;
@@ -232,11 +253,6 @@ struct TextureCreateDesc {
   uint32_t samples = 1;
   void* pData = nullptr;
   //   TextureLayout initialLayout = TextureLayout::Undefined;
-};
-
-struct PipelineData {
-  HwPipelineLayoutHandle layout;
-  HwGraphicsPipelineHandle pipeline;
 };
 
 struct Vertex {

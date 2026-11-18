@@ -37,37 +37,22 @@ Vk1Context::Vk1Context(const Config& config)
 Vk1Context::~Vk1Context() { destroy(); }
 
 void Vk1Context::init() {
-  // create instance
-
+  initLayersAndExts();
   // only support 1.3
   VkApplicationInfo appInfo{
       .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+      .pApplicationName = mConfig.appName.c_str(),
+      .pEngineName = "vk1",
       .apiVersion = VK_API_VERSION_1_3,
   };
-
-  // todo: layers & extensions validation and enable them
-  std::vector<const char*> extensions;
-  extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-#if defined(_WIN32)
-  extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#else
-#error "platform not supported"
-#endif
-  // 1.1以上, 用于方便查询设备特性，属性
-  extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-  std::vector<const char*> layers;
-  if (mConfig.enableDebug) {
-    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    layers.push_back("VK_LAYER_KHRONOS_validation");
-  }
 
   VkInstanceCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
       .pApplicationInfo = &appInfo,
-      .enabledLayerCount = static_cast<uint32_t>(layers.size()),
-      .ppEnabledLayerNames = layers.data(),
-      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-      .ppEnabledExtensionNames = extensions.data(),
+      .enabledLayerCount = static_cast<uint32_t>(mInfo.enabledInstanceLayers.size()),
+      .ppEnabledLayerNames = mInfo.enabledInstanceLayers.data(),
+      .enabledExtensionCount = static_cast<uint32_t>(mInfo.enabledInstanceExtensions.size()),
+      .ppEnabledExtensionNames = mInfo.enabledInstanceExtensions.data(),
   };
 
   if (mConfig.enableDebug) {
@@ -86,8 +71,6 @@ void Vk1Context::init() {
   assert(mInstance);
   // fill up info
   mInfo.appInfo = appInfo;
-  mInfo.enabledInstanceExtensions = extensions;
-  mInfo.enabledInstanceLayers = layers;
 }
 void Vk1Context::destroy() {
   if (mDebugMsgr) {
@@ -126,4 +109,99 @@ void Vk1Context::setDebugUtilsMessenger() {
   assert(mDebugMsgr);
 }
 
+void Vk1Context::initLayersAndExts() {
+  // basic
+  mConfig.instanceExtensions[VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME] = RequestMode::Required;
+  // by configurations
+  if (mConfig.enableSurface) {
+    mConfig.instanceExtensions[VK_KHR_SURFACE_EXTENSION_NAME] = RequestMode::Required;
+#if defined(_WIN32)
+    mConfig.instanceExtensions[VK_KHR_WIN32_SURFACE_EXTENSION_NAME] = RequestMode::Required;
+#else
+#error "platform not supported"
+#endif
+    mConfig.deviceExtensions[VK_KHR_SWAPCHAIN_EXTENSION_NAME] = RequestMode::Required;
+  }
+  if (mConfig.shaderLang == ShaderLang::Slang) {
+    mConfig.deviceExtensions[VK_KHR_SPIRV_1_4_EXTENSION_NAME] = RequestMode::Required;
+    mConfig.deviceExtensions[VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME] = RequestMode::Required;
+    mConfig.deviceExtensions[VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME] = RequestMode::Required;
+  }
+  if (mConfig.enableDebug) {
+    mConfig.instanceLayers["VK_LAYER_KHRONOS_validation"] = RequestMode::Required;
+    mConfig.instanceExtensions[VK_EXT_DEBUG_UTILS_EXTENSION_NAME] = RequestMode::Required;
+  }
+
+  // check requests
+  uint32_t requestedApiVersion = VK_API_VERSION_1_3;
+  uint32_t instanceApiVersion = 0;
+  checkResult(vkEnumerateInstanceVersion(&instanceApiVersion));
+  assert(instanceApiVersion >= requestedApiVersion);
+
+  uint32_t instanceLayerCount = 0;
+  checkResult(vkEnumerateInstanceLayerProperties(&instanceLayerCount, 0));
+  assert(instanceLayerCount > 0);
+  std::vector<VkLayerProperties> instanceLayers{instanceLayerCount};
+  checkResult(vkEnumerateInstanceLayerProperties(&instanceLayerCount, instanceLayers.data()));
+
+  for (const auto& eachLayer : mConfig.instanceLayers) {
+    if (!enableLayer(eachLayer.first, instanceLayers)) {
+      assert(eachLayer.second == RequestMode::Optional);
+    }
+  }
+
+  uint32_t instanceExtsCount = 0;
+  checkResult(vkEnumerateInstanceExtensionProperties(0, &instanceExtsCount, 0));
+  assert(instanceExtsCount > 0);
+  std::vector<VkExtensionProperties> instanceExts{instanceExtsCount};
+  checkResult(vkEnumerateInstanceExtensionProperties(0, &instanceExtsCount, instanceExts.data()));
+
+  auto validationLayerContains = std::ranges::any_of(mInfo.enabledInstanceLayers, [](const char* rangeValue) {
+    return strcmp(rangeValue, "VK_LAYER_KHRONOS_validation") == 0;
+  });
+  if (validationLayerContains) {
+    const std::string validationLayerName = "VK_LAYER_KHRONOS_validation";
+    uint32_t validationLayerInstanceExtsCount;
+    checkResult(
+        vkEnumerateInstanceExtensionProperties(validationLayerName.c_str(), &validationLayerInstanceExtsCount, 0));
+    std::vector<VkExtensionProperties> validationExts{validationLayerInstanceExtsCount};
+    checkResult(vkEnumerateInstanceExtensionProperties(validationLayerName.c_str(), &validationLayerInstanceExtsCount,
+                                                       validationExts.data()));
+    instanceExts.insert(instanceExts.end(), validationExts.begin(), validationExts.end());
+  }
+
+  for (const auto& ext : mConfig.instanceExtensions) {
+    if (!enableExt(ext.first, instanceExts)) {
+      assert(ext.second == RequestMode::Optional);
+    }
+  }
+}
+
+bool Vk1Context::enableLayer(const std::string& requestLayer, const std::vector<VkLayerProperties>& availableLayers) {
+  bool isAvailable = std::ranges::any_of(availableLayers, [&requestLayer](const auto& availableLayer) {
+    return requestLayer == availableLayer.layerName;
+  });
+  if (isAvailable) {
+    bool isEnabled = std::ranges::any_of(mInfo.enabledInstanceLayers, [&requestLayer](const auto& enabledLayer) {
+      return requestLayer == enabledLayer;
+    });
+    if (!isEnabled) {
+      mInfo.enabledInstanceLayers.emplace_back(requestLayer.c_str());
+    }
+  }
+  return isAvailable;
+}
+
+bool Vk1Context::enableExt(const std::string& requestExt, const std::vector<VkExtensionProperties>& availableExts) {
+  bool isAvailable = std::ranges::any_of(
+      availableExts, [&requestExt](const auto& availableExt) { return requestExt == availableExt.extensionName; });
+  if (isAvailable) {
+    bool isEnabled = std::ranges::any_of(mInfo.enabledInstanceExtensions,
+                                         [&requestExt](auto const& enabledExt) { return requestExt == enabledExt; });
+    if (!isEnabled) {
+      mInfo.enabledInstanceExtensions.emplace_back(requestExt.c_str());
+    }
+  }
+  return isAvailable;
+}
 }  // namespace vk1

@@ -110,7 +110,6 @@ class Vk1Device {
   VkQueue mQueue = VK_NULL_HANDLE;
   VmaAllocator mAllocator = VK_NULL_HANDLE;
   Vk1Swapchain mSwapchain;
-  VkDescriptorPool mDsPool = VK_NULL_HANDLE;
 
   void init();
   void destroy();

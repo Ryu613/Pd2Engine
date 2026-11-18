@@ -214,10 +214,12 @@
 . descriptor buffer: heap的过渡产物，不宜再考虑
 . descriptor heap: 开发和使用对Vulkan SDK 及驱动版本要求较高，设备支持和兼容性要求高，目前属于过新的特性
 
-=== bindless在引擎中的实现方法
+=== bindless在引擎中的用途
+
+==== 步骤
 
 . 先在VkPhysicalDeviceDescriptorIndexingFeatures确认物理设备是否具有此项特性的能力并开启
-. 开启descriptor indexing相关特性，在vulkan1.2 core里
+. 开启descriptor indexing相关特性，在vulkan1.2 core里，1.2以上无需显式指定启用扩展，但是特性要开
 . 创建descriptor pool, 把要bindless的资源类型和预估数量给出足够大的空间
 . 创建descriptor set layout,把binding flag填写上去(参考上面链接)
 . 创建pipeline layout, 把push constant的槽位给出，用push constant来获取资源的索引

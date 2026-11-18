@@ -64,5 +64,10 @@ class Vk1Context {
 
   void init();
   void destroy();
+
+  void initLayersAndExts();
+
+  bool enableLayer(const std::string& requestLayer, const std::vector<VkLayerProperties>& availableLayers);
+  bool enableExt(const std::string& requestExt, const std::vector<VkExtensionProperties>& availableExts);
 };
 }  // namespace vk1

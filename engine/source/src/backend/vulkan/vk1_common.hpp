@@ -21,11 +21,25 @@ struct ImageState {
   VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 };
 
+enum RequestMode : uint8_t {
+  Required,
+  Optional,
+};
+
+enum ShaderLang : uint8_t {
+  Slang,
+};
+
 struct Config {
-  std::vector<const char*> instanceLayers;
-  std::vector<const char*> instanceExtensions;
+  std::string appName = "vk1";
+  std::unordered_map<std::string, RequestMode> instanceLayers;
+  std::unordered_map<std::string, RequestMode> instanceExtensions;
+  std::unordered_map<std::string, RequestMode> deviceExtensions;
+  ShaderLang shaderLang = ShaderLang::Slang;
   bool enableSurface = false;
   bool enableDebug = false;
+  bool enableHeadless = false;
   bool enableBindless = false;
 };
+
 }  // namespace vk1

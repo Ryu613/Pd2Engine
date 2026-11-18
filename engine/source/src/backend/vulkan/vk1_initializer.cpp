@@ -5,7 +5,9 @@
 
 namespace vk1 {
 Vk1Device Vk1Initializer::Builder::build() {
-  volkInitialize();
+  VkResult result = volkInitialize();
+  assert(!result);
+
   Vk1Context ctx(mConfig);
   volkLoadInstance(ctx.getInstance());
   if (mConfig.enableDebug) {
