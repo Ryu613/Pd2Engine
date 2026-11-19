@@ -136,6 +136,36 @@ target_sources(engine_lib
 )
 
 target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)
+
+# for samples use
+add_library(vk1_lib)
+target_sources(vk1_lib
+    PUBLIC
+        src/backend/vulkan/vk1_common.hpp
+        src/backend/vulkan/vk1_context.hpp
+        src/backend/vulkan/vk1_device.hpp
+        src/backend/vulkan/vk1_initializer.hpp
+        src/backend/vulkan/vk1_helper.hpp
+        src/backend/vulkan/vk1_swapchain.hpp
+        src/backend/vulkan/vk1_buffer.hpp
+        src/backend/vulkan/vk1_image.hpp
+        src/backend/vulkan/vk1_binding_layout.hpp
+        src/backend/vulkan/vk1_pipeline_layout.hpp
+        src/backend/vulkan/vk1_pipeline.hpp
+    PRIVATE
+        src/backend/vulkan/vk1_context.cpp
+        src/backend/vulkan/vk1_device.cpp
+        src/backend/vulkan/vk1_initializer.cpp
+        src/backend/vulkan/vk1_swapchain.cpp
+)
+target_link_libraries(vk1_lib
+    PUBLIC
+        Vulkan::Headers
+		GPUOpen::VulkanMemoryAllocator
+		volk::volk
+)
+
+target_include_directories(vk1_lib PUBLIC src/backend/vulkan)
 endif()
 
 if(${PD2_SHADER_LANG} STREQUAL "SLANG")

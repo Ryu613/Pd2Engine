@@ -81,6 +81,7 @@ void Vk1Swapchain::destroy() {
   }
   vkDestroySwapchainKHR(vkDevice, mSwapchain, 0);
   mInfo = {};
+  mSwapchain = VK_NULL_HANDLE;
 }
 
 uint32_t Vk1Swapchain::acquireNextImage(VkSemaphore semaphore) {

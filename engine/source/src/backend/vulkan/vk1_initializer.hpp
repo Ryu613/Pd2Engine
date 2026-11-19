@@ -53,4 +53,5 @@ class Vk1Initializer {
   Vk1Initializer() = default;
   ~Vk1Initializer() = default;
 };
+
 }  // namespace vk1

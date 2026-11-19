@@ -37,6 +37,7 @@ class Vk1Device {
   VkPhysicalDevice getPhysicalDevice() { return mPhysicalDevice; }
   VkSurfaceKHR getSurface() { return mSurface; }
   const QueueInfo& getQueueInfo() const { return mQueueInfo; }
+  VkSwapchainKHR getSwapchain() { return mSwapchain.getSwapchain(); }
 
   VmaAllocator getAllocator() { return mAllocator; }
 

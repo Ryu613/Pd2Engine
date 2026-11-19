@@ -4,7 +4,12 @@
 #include <span>
 
 namespace vk1 {
-inline void checkResult(VkResult result) { PD_ASSERT_MSG(result == VK_SUCCESS, string_VkResult(result)); }
+inline void checkResult(VkResult result) {
+  if (result != VK_SUCCESS) {
+    LOG_ERROR(string_VkResult(result));
+    std::terminate();
+  }
+}
 
 namespace helper {
 template <typename RawHandle>

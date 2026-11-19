@@ -103,12 +103,14 @@ void Vk1Device::destroy() {
   if (mDevice == VK_NULL_HANDLE) {
     return;
   }
+  mSwapchain.destroy();
   vmaDestroyAllocator(mAllocator);
   vkDestroyDevice(mDevice, 0);
   destroySurface();
 
   mQueueInfo = {};
   mInfo = {};
+  mDevice = VK_NULL_HANDLE;
   mPhysicalDevice = VK_NULL_HANDLE;
 }
 
@@ -147,7 +149,7 @@ void Vk1Device::createSurface(void* nativeWindowHandle) {
       .hinstance = GetModuleHandle(0),
       .hwnd = (HWND)nativeWindowHandle,
   };
-  vkCreateWin32SurfaceKHR(mContext.getInstance(), &createInfo, nullptr, &mSurface);
+  checkResult(vkCreateWin32SurfaceKHR(mContext.getInstance(), &createInfo, nullptr, &mSurface));
   assert(mSurface);
 #else
 #error "platform not supported!"

@@ -6,7 +6,25 @@
 #include "vulkan/vk_enum_string_helper.h"
 #include "vk_mem_alloc.h"
 
+#include <vector>
+#include <array>
+#include <unordered_map>
+#include <string>
+#include <cassert>
+#include <memory>
+#include <algorithm>
+
+#ifdef ENABLE_LOG
+#include <print>
+#define LOG_TRACE(...) std::println("trace: {}", __VA_ARGS__);
+#define LOG_DEBUG(...) std::println("debug: {}", __VA_ARGS__);
+#define LOG_INFO(...) std::println("info: {}", __VA_ARGS__);
+#define LOG_WARN(...) std::println("warn: {}", __VA_ARGS__);
+#define LOG_ERROR(...) std::println("error: {}", __VA_ARGS__);
+#endif
+
 namespace vk1 {
+
 namespace global {
 inline constexpr uint32_t invalidIndex = UINT32_MAX;
 inline constexpr size_t maxInflightFrames = 2;

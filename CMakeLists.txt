@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.31)
 include(cmake/ProjectBase.cmake)
 
 option(PD2_BUILD_TESTS "build unit test" ON)
-option(PD2_BUILD_SAMPLES "build engine samples" OFF)
+option(PD2_BUILD_SAMPLES "build engine samples" ON)
 option(PD2_BUILD_LIBS "build libs" OFF)
 option(PD2_BUILD_DOCS "Build documentation" OFF)
 
