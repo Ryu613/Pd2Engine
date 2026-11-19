@@ -138,176 +138,176 @@ int main() {
   }
   void* nativeWindowHandle =
       SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-      
-  {
-    vk1::Vk1Device device = vk1::Vk1Initializer::Builder()  //
-                                .enableDebug()
-                                .enableSurface()
-                                .enableBindless()
-                                .build();
 
-    device.createSwapchain(nativeWindowHandle, width, height);
+  vk1::Vk1Device device = vk1::Vk1Initializer::Builder()  //
+                              .enableDebug()
+                              .enableSurface()
+                              .enableBindless()
+                              .build();
 
-    auto vkDevice = device.getDevice();
-    auto vkSwapchain = device.getSwapchain();
+  device.createSwapchain(nativeWindowHandle, width, height);
 
-    VkCommandPool cmdPool = device.createCommandPool();
-    assert(cmdPool);
+  auto vkDevice = device.getDevice();
+  auto vkSwapchain = device.getSwapchain();
 
-    VkCommandBufferAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = cmdPool,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = 1,
-    };
-    VkCommandBuffer cmdBuffer = 0;
-    vkAllocateCommandBuffers(vkDevice, &allocInfo, &cmdBuffer);
+  VkCommandPool cmdPool = device.createCommandPool();
+  assert(cmdPool);
 
-    auto renderpass = device.createRenderPass();
-    auto frameBuffers = device.createFramebuffers(renderpass);
+  VkCommandBufferAllocateInfo allocInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = cmdPool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = 1,
+  };
+  VkCommandBuffer cmdBuffer = 0;
+  vkAllocateCommandBuffers(vkDevice, &allocInfo, &cmdBuffer);
 
-    VkShaderModule triangleVert = loadShaderModule(vkDevice, ASSET_DIR "shaders/triangle.vert.spv");
-    assert(triangleVert);
-    VkShaderModule triangleFrag = loadShaderModule(vkDevice, ASSET_DIR "shaders/triangle.frag.spv");
-    assert(triangleFrag);
+  auto renderpass = device.createRenderPass();
+  auto frameBuffers = device.createFramebuffers(renderpass);
 
-    VkPipelineCache pipelineCache = 0;
+  VkShaderModule triangleVert = loadShaderModule(vkDevice, ASSET_DIR "shaders/triangle.vert.spv");
+  assert(triangleVert);
+  VkShaderModule triangleFrag = loadShaderModule(vkDevice, ASSET_DIR "shaders/triangle.frag.spv");
+  assert(triangleFrag);
 
-    VkPipelineLayout layout = createPipelineLayout(vkDevice);
+  VkPipelineCache pipelineCache = 0;
 
-    VkPipeline trianglePipeline =
-        createGraphicsPipeline(vkDevice, pipelineCache, layout, renderpass, triangleVert, triangleFrag);
+  VkPipelineLayout layout = createPipelineLayout(vkDevice);
 
-    VkSemaphore acquireSemaphore = device.createSemaphore();
-    assert(acquireSemaphore);
-    VkSemaphore releaseSemaphore = device.createSemaphore();
-    assert(releaseSemaphore);
+  VkPipeline trianglePipeline =
+      createGraphicsPipeline(vkDevice, pipelineCache, layout, renderpass, triangleVert, triangleFrag);
 
-    uint32_t uWidth = width;
-    uint32_t uheight = height;
-    auto presentQueue = device.getQueueInfo().presentQueue;
+  vkDestroyShaderModule(vkDevice, triangleVert, 0);
+  vkDestroyShaderModule(vkDevice, triangleFrag, 0);
 
-    bool windowClose = false;
-    while (!windowClose) {
-      for (SDL_Event event; SDL_PollEvent(&event);) {
-        // quit window
-        if (event.type == SDL_EVENT_QUIT) {
+  VkSemaphore acquireSemaphore = device.createSemaphore();
+  assert(acquireSemaphore);
+
+  auto presentSemaphores = device.getSwapchainInfo().presentSemaphores;
+
+  uint32_t uWidth = width;
+  uint32_t uheight = height;
+  auto presentQueue = device.getQueueInfo().presentQueue;
+
+  bool windowClose = false;
+  while (!windowClose) {
+    for (SDL_Event event; SDL_PollEvent(&event);) {
+      // quit window
+      if (event.type == SDL_EVENT_QUIT) {
+        windowClose = true;
+        break;
+      }
+      if (event.type == SDL_EVENT_KEY_DOWN) {
+        // 按下esc退出
+        if (event.key.key == SDLK_ESCAPE) {
           windowClose = true;
           break;
         }
-        if (event.type == SDL_EVENT_KEY_DOWN) {
-          // 按下esc退出
-          if (event.key.key == SDLK_ESCAPE) {
-            windowClose = true;
-            break;
-          }
-        }
       }
-      VkAcquireNextImageInfoKHR acquireInfo{
-          .sType = VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR,
-          .swapchain = vkSwapchain,
-      };
-      uint32_t imageIndex = device.acquireNextImage(acquireSemaphore);
-      vk1::checkResult(vkResetCommandPool(vkDevice, cmdPool, 0));
-
-      VkCommandBufferBeginInfo BufferBeginInfo{
-          .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-          .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-      };
-      vk1::checkResult(vkBeginCommandBuffer(cmdBuffer, &BufferBeginInfo));
-
-      VkClearValue color{
-          // in my rtx 4070s driver, this is bgra
-          .color = {36.0f / 255.0f, 10.0f / 255.0f, 48.0f / 255.0f, 1.0f},
-      };
-
-      VkRenderPassBeginInfo beginInfo{
-          .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-          .renderPass = renderpass,
-          .framebuffer = frameBuffers[imageIndex],
-          .renderArea =
-              {
-                  .offset =
-                      {
-                          .x = 0,
-                          .y = 0,
-                      },
-                  .extent =
-                      {
-                          .width = uWidth,
-                          .height = uheight,
-                      },
-
-              },
-          .clearValueCount = 1,
-          .pClearValues = &color,
-      };
-
-      vkCmdBeginRenderPass(cmdBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-      VkViewport viewport{
-          .x = 0,
-          .y = static_cast<float>(height),
-          .width = static_cast<float>(width),
-          .height = -static_cast<float>(height),
-          .minDepth = 0,
-          .maxDepth = 1,
-      };
-      VkRect2D scissor{
-          .offset =
-              {
-                  .x = 0,
-                  .y = 0,
-              },
-          .extent =
-              {
-                  .width = uWidth,
-                  .height = uheight,
-              },
-
-      };
-
-      vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
-      vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
-      // draw calls
-      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, trianglePipeline);
-      vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
-
-      vkCmdEndRenderPass(cmdBuffer);
-
-      vk1::checkResult(vkEndCommandBuffer(cmdBuffer));
-
-      VkPipelineStageFlags submitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-      VkSubmitInfo submitInfo{
-          .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-          .waitSemaphoreCount = 1,
-          .pWaitSemaphores = &acquireSemaphore,  // 提交前要等待的semaphore，此处意思就是需要swapchain
-                                                 // acquire image signal才能提交
-          .pWaitDstStageMask = &submitStageMask,
-          .commandBufferCount = 1,
-          .pCommandBuffers = &cmdBuffer,
-          .signalSemaphoreCount = 1,
-          .pSignalSemaphores = &releaseSemaphore,  // 提交后要通知的semaphore，此处意思是让cmd
-                                                   // buffer提交完成以后要通知的semaphore
-      };
-      vkQueueSubmit(presentQueue, 1, &submitInfo, 0);
-
-      device.present(imageIndex, releaseSemaphore);
-
-      device.waitIdle();
     }
+    VkAcquireNextImageInfoKHR acquireInfo{
+        .sType = VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR,
+        .swapchain = vkSwapchain,
+    };
+    uint32_t imageIndex = device.acquireNextImage(acquireSemaphore);
+    vk1::checkResult(vkResetCommandPool(vkDevice, cmdPool, 0));
 
-    device.destroySemaphore(releaseSemaphore);
-    device.destroySemaphore(acquireSemaphore);
-    device.destroyPipeline(trianglePipeline);
-    device.destroyPipelineLayout(layout);
-    for (auto eachframeBuffer : frameBuffers) {
-      device.destroyFramebuffer(eachframeBuffer);
-    }
-    device.destroyRenderPass(renderpass);
-    device.destroyCommandPool(cmdPool);
+    VkCommandBufferBeginInfo BufferBeginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+    vk1::checkResult(vkBeginCommandBuffer(cmdBuffer, &BufferBeginInfo));
+
+    VkClearValue color{
+        // in my rtx 4070s driver, this is bgra
+        .color = {36.0f / 255.0f, 10.0f / 255.0f, 48.0f / 255.0f, 1.0f},
+    };
+
+    VkRenderPassBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .renderPass = renderpass,
+        .framebuffer = frameBuffers[imageIndex],
+        .renderArea =
+            {
+                .offset =
+                    {
+                        .x = 0,
+                        .y = 0,
+                    },
+                .extent =
+                    {
+                        .width = uWidth,
+                        .height = uheight,
+                    },
+
+            },
+        .clearValueCount = 1,
+        .pClearValues = &color,
+    };
+
+    vkCmdBeginRenderPass(cmdBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    VkViewport viewport{
+        .x = 0,
+        .y = static_cast<float>(height),
+        .width = static_cast<float>(width),
+        .height = -static_cast<float>(height),
+        .minDepth = 0,
+        .maxDepth = 1,
+    };
+    VkRect2D scissor{
+        .offset =
+            {
+                .x = 0,
+                .y = 0,
+            },
+        .extent =
+            {
+                .width = uWidth,
+                .height = uheight,
+            },
+
+    };
+
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+    // draw calls
+    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, trianglePipeline);
+    vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+
+    vkCmdEndRenderPass(cmdBuffer);
+
+    vk1::checkResult(vkEndCommandBuffer(cmdBuffer));
+
+    VkPipelineStageFlags submitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+    VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &acquireSemaphore,  // 提交前要等待的semaphore，此处意思就是需要swapchain
+                                               // acquire image signal才能提交
+        .pWaitDstStageMask = &submitStageMask,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmdBuffer,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &presentSemaphores[imageIndex],  // 提交后要通知的semaphore，此处意思是让cmd
+                                                              // buffer提交完成以后要通知的semaphore
+    };
+    vkQueueSubmit(presentQueue, 1, &submitInfo, 0);
+
+    device.present(imageIndex, presentSemaphores[imageIndex]);
+
+    device.waitIdle();
   }
+
+  device.destroySemaphore(acquireSemaphore);
+  device.destroyPipeline(trianglePipeline);
+  device.destroyPipelineLayout(layout);
+  for (auto eachframeBuffer : frameBuffers) {
+    device.destroyFramebuffer(eachframeBuffer);
+  }
+  device.destroyRenderPass(renderpass);
+  device.destroyCommandPool(cmdPool);
 
   SDL_DestroyWindow(window);
 

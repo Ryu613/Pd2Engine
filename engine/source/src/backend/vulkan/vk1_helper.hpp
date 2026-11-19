@@ -6,7 +6,7 @@
 namespace vk1 {
 inline void checkResult(VkResult result) {
   if (result != VK_SUCCESS) {
-    LOG_ERROR(string_VkResult(result));
+    LOG_ERROR("{}", string_VkResult(result));
     std::terminate();
   }
 }
