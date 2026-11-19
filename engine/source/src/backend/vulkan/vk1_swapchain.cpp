@@ -15,13 +15,14 @@ void Vk1Swapchain::create(uint32_t width, uint32_t height) {
   auto& queueInfo = mDevice.getQueueInfo();
   // TODO(author): no resize()
   // shortcut
-  mInfo.extent.width = width;
-  mInfo.extent.height = height;
   auto device = mDevice.getDevice();
+  auto minImageCount = std::clamp(2U,                               //
+                                  mInfo.surfaceCaps.minImageCount,  //
+                                  (mInfo.surfaceCaps.maxImageCount != 0) ? mInfo.surfaceCaps.maxImageCount : 2U);
   VkSwapchainCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
       .surface = surface,
-      .minImageCount = 2,
+      .minImageCount = minImageCount,
       .imageFormat = mInfo.format,
       .imageColorSpace = mInfo.colorSpace,
       .imageExtent =
