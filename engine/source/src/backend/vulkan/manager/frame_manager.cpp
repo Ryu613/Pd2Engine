@@ -115,7 +115,7 @@ void FrameManager::endFrame(const pd::CommandRecorder& recorder) noexcept {
   // submit commands
   auto& swapchainInfo = mDevice->getSwapchainInfo();
   {
-    auto vkQueue = mDevice->getQueue();
+    const auto& queueInfo = mDevice->getQueueInfo();
     VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
     const std::array commandBufferInfos = {VkCommandBufferSubmitInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
@@ -142,7 +142,7 @@ void FrameManager::endFrame(const pd::CommandRecorder& recorder) noexcept {
     };
     mDevice->resetFences(frame.frameFence);
     advanceFrameIndex(frameIndex);
-    vkQueueSubmit2(vkQueue, 1, &submitInfo, frame.frameFence);
+    vkQueueSubmit2(queueInfo.presentQueue, 1, &submitInfo, frame.frameFence);
   }
 
   mDevice->present(imageIndex, swapchainInfo.presentSemaphores[imageIndex]);

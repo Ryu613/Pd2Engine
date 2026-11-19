@@ -75,8 +75,12 @@ void Vk1Context::init() {
 void Vk1Context::destroy() {
   if (mDebugMsgr) {
     vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugMsgr, 0);
+    mDebugMsgr = VK_NULL_HANDLE;
   }
   if (mInstance) {
+    mPhysicalDevices.clear();
+    mInfo = {};
+    mConfig = {};
     vkDestroyInstance(mInstance, 0);
     mInstance = VK_NULL_HANDLE;
   }
@@ -115,6 +119,7 @@ void Vk1Context::initLayersAndExts() {
   // by configurations
   if (mConfig.enableSurface) {
     mConfig.instanceExtensions[VK_KHR_SURFACE_EXTENSION_NAME] = RequestMode::Required;
+    mConfig.deviceExtensions[VK_KHR_SWAPCHAIN_EXTENSION_NAME] = RequestMode::Required;
 #if defined(_WIN32)
     mConfig.instanceExtensions[VK_KHR_WIN32_SURFACE_EXTENSION_NAME] = RequestMode::Required;
 #else

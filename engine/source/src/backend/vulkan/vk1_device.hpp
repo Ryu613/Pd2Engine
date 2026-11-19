@@ -9,31 +9,35 @@
 namespace vk1 {
 class Vk1Device {
  public:
+  struct Info {
+    std::vector<const char*> enabledExtensions;
+  };
+  struct QueueInfo {
+    uint32_t graphicsQueueFamilyIndex = global::invalidIndex;
+    VkQueue graphicsQueue{VK_NULL_HANDLE};
+    uint32_t presentQueueFamilyIndex = global::invalidIndex;
+    VkQueue presentQueue{VK_NULL_HANDLE};
+  };
   explicit Vk1Device(Vk1Context&& ctx);
   ~Vk1Device();
   Vk1Device(const Vk1Device&) = delete;
   Vk1Device& operator=(const Vk1Device&) = delete;
   Vk1Device(Vk1Device&& rhs) noexcept
       : mContext(std::move(rhs.mContext)),
-        mGraphicsQueueFamilyIndex(std::exchange(rhs.mGraphicsQueueFamilyIndex, global::invalidIndex)),
+        mPhysicalDevice(std::exchange(rhs.mPhysicalDevice, VK_NULL_HANDLE)),
+        mInfo(std::exchange(rhs.mInfo, {})),
+        mQueueInfo(std::exchange(rhs.mQueueInfo, {})),
         mDevice(std::exchange(rhs.mDevice, VK_NULL_HANDLE)),
         mSurface(std::exchange(rhs.mSurface, VK_NULL_HANDLE)),
-        mQueue(std::exchange(rhs.mQueue, VK_NULL_HANDLE)),
         mSwapchain(std::move(rhs.mSwapchain)) {}
 
-  Vk1Device& operator=(Vk1Device&& rhs) noexcept {
-    if (this != &rhs) {
-      std::swap(mContext, rhs.mContext);
-      std::swap(mGraphicsQueueFamilyIndex, rhs.mGraphicsQueueFamilyIndex);
-      std::swap(mDevice, rhs.mDevice);
-      std::swap(mQueue, rhs.mQueue);
-      mSwapchain = std::move(rhs.mSwapchain);
-    }
-    return *this;
-  }
+  Vk1Device& operator=(Vk1Device&& rhs) noexcept = delete;
 
   VkDevice getDevice() { return mDevice; }
-  VkQueue getQueue() { return mQueue; }
+  VkPhysicalDevice getPhysicalDevice() { return mPhysicalDevice; }
+  VkSurfaceKHR getSurface() { return mSurface; }
+  const QueueInfo& getQueueInfo() const { return mQueueInfo; }
+
   VmaAllocator getAllocator() { return mAllocator; }
 
   void createSwapchain(void* nativeWindowHandle, uint32_t width, uint32_t height);
@@ -104,17 +108,20 @@ class Vk1Device {
  private:
   Vk1Context mContext;
   VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
-  uint32_t mGraphicsQueueFamilyIndex = global::invalidIndex;
+  Info mInfo;
+  QueueInfo mQueueInfo;
   VkDevice mDevice = VK_NULL_HANDLE;
   VkSurfaceKHR mSurface = VK_NULL_HANDLE;
-  VkQueue mQueue = VK_NULL_HANDLE;
   VmaAllocator mAllocator = VK_NULL_HANDLE;
   Vk1Swapchain mSwapchain;
 
   void init();
   void destroy();
   void pickPhysicalDevice();
+  void initDeviceInfo();
   void createSurface(void* nativeWindowHandle);
   void destroySurface();
+
+  bool enableExt(const std::string& requestExt, const std::vector<VkExtensionProperties>& availableExts);
 };
 }  // namespace vk1

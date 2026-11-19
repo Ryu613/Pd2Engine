@@ -7,9 +7,11 @@ class Vk1Device;
 class Vk1Swapchain {
  public:
   struct Info {
-    // VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
     VkExtent2D extent{};
     VkFormat format = VK_FORMAT_UNDEFINED;
+    VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+    VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
+    VkSurfaceCapabilitiesKHR surfaceCaps{};
     std::vector<VkImage> images;
     std::vector<VkImageView> imageViews;
     std::vector<ImageState> imageStates;
@@ -19,10 +21,14 @@ class Vk1Swapchain {
   ~Vk1Swapchain();
   Vk1Swapchain(const Vk1Swapchain&) = delete;
   Vk1Swapchain& operator=(const Vk1Swapchain&) = delete;
-  Vk1Swapchain(Vk1Swapchain&& rhs) noexcept = default;
-  Vk1Swapchain& operator=(Vk1Swapchain&& rhs) noexcept = default;
+  Vk1Swapchain(Vk1Swapchain&& rhs) noexcept
+      : mDevice(rhs.mDevice),
+        mInfo(std::exchange(rhs.mInfo, {})),
+        mSwapchain(std::exchange(rhs.mSwapchain, VK_NULL_HANDLE)) {}
 
-  void create(VkSurfaceKHR surface, uint32_t queueFamilyIndex, uint32_t width, uint32_t height);
+  Vk1Swapchain& operator=(Vk1Swapchain&& rhs) noexcept = delete;
+
+  void create(uint32_t width, uint32_t height);
   void destroy();
 
   const Info& getInfo() const { return mInfo; }
@@ -32,8 +38,13 @@ class Vk1Swapchain {
   void present(uint32_t imageIndex, VkSemaphore waitSemaphore);
 
  private:
+  Vk1Device& mDevice;
   Info mInfo;
-  Vk1Device* mpDevice = nullptr;
   VkSwapchainKHR mSwapchain = VK_NULL_HANDLE;
+
+  void initSwapchainInfo(uint32_t width, uint32_t height);
+
+  std::vector<VkSurfaceFormatKHR> getSupportedSurfaceFormats();
+  std::vector<VkPresentModeKHR> getSupportedPresentModes();
 };
 }  // namespace vk1

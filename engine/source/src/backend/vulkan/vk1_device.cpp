@@ -17,7 +17,8 @@ Vk1Device::~Vk1Device() { destroy(); }
 void Vk1Device::init() {
   // pick physical device
   pickPhysicalDevice();
-  // create device
+  initDeviceInfo();
+  // create device(vulkan 1.3)
   VkPhysicalDeviceFeatures deviceFeatures{
       .samplerAnisotropy = VK_TRUE,  // better texture filtering
   };
@@ -41,7 +42,6 @@ void Vk1Device::init() {
       .synchronization2 = true,
       .dynamicRendering = true,
   };
-  std::vector<const char*> extensions{1, VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   /*
     // 1.2 以上不用加
     // descriptor indexing的依赖扩展
@@ -55,9 +55,12 @@ void Vk1Device::init() {
   */
 
   float priority = 1.f;
+  assert(mQueueInfo.graphicsQueueFamilyIndex != global::invalidIndex);
+  // for now, graphics queue and present queue are the same!
+  assert(mQueueInfo.graphicsQueueFamilyIndex == mQueueInfo.presentQueueFamilyIndex);
   VkDeviceQueueCreateInfo queueCreateInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      .queueFamilyIndex = mGraphicsQueueFamilyIndex,
+      .queueFamilyIndex = mQueueInfo.graphicsQueueFamilyIndex,
       .queueCount = 1,
       .pQueuePriorities = &priority,
   };
@@ -66,16 +69,18 @@ void Vk1Device::init() {
       .pNext = &enabledVk13Features,
       .queueCreateInfoCount = 1,
       .pQueueCreateInfos = &queueCreateInfo,
-      .enabledExtensionCount = 1,
-      .ppEnabledExtensionNames = extensions.data(),
+      .enabledExtensionCount = static_cast<uint32_t>(mInfo.enabledExtensions.size()),
+      .ppEnabledExtensionNames = mInfo.enabledExtensions.data(),
       .pEnabledFeatures = &deviceFeatures,
   };
 
   checkResult(vkCreateDevice(mPhysicalDevice, &createInfo, 0, &mDevice));
 
   // get queue
-  vkGetDeviceQueue(mDevice, mGraphicsQueueFamilyIndex, 0, &mQueue);
-  assert(mQueue);
+  vkGetDeviceQueue(mDevice, mQueueInfo.graphicsQueueFamilyIndex, 0, &mQueueInfo.graphicsQueue);
+  assert(mQueueInfo.graphicsQueue);
+  vkGetDeviceQueue(mDevice, mQueueInfo.presentQueueFamilyIndex, 0, &mQueueInfo.presentQueue);
+  assert(mQueueInfo.presentQueue);
 
   // init vma
   VmaVulkanFunctions vkFunctions{
@@ -95,9 +100,16 @@ void Vk1Device::init() {
 }
 
 void Vk1Device::destroy() {
+  if (mDevice == VK_NULL_HANDLE) {
+    return;
+  }
   vmaDestroyAllocator(mAllocator);
   vkDestroyDevice(mDevice, 0);
   destroySurface();
+
+  mQueueInfo = {};
+  mInfo = {};
+  mPhysicalDevice = VK_NULL_HANDLE;
 }
 
 void Vk1Device::pickPhysicalDevice() {
@@ -115,9 +127,10 @@ void Vk1Device::pickPhysicalDevice() {
     vkGetPhysicalDeviceQueueFamilyProperties(gpu, &qfCount, qfprops.data());
     for (size_t i = 0; i < qfprops.size(); ++i) {
       if ((qfprops[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
-        mGraphicsQueueFamilyIndex = i;
         mPhysicalDevice = gpu;
-        return;
+        mQueueInfo.graphicsQueueFamilyIndex = i;
+        // for now, same as graphics queue family index
+        mQueueInfo.presentQueueFamilyIndex = i;
       }
     }
   }
@@ -150,7 +163,7 @@ void Vk1Device::destroySurface() {
 
 void Vk1Device::createSwapchain(void* nativeWindowHandle, uint32_t width, uint32_t height) {
   createSurface(nativeWindowHandle);
-  mSwapchain.create(mSurface, mGraphicsQueueFamilyIndex, width, height);
+  mSwapchain.create(width, height);
 }
 void Vk1Device::destroySwapchain() { mSwapchain.destroy(); }
 
@@ -191,7 +204,7 @@ VkCommandPool Vk1Device::createCommandPool() {
   VkCommandPoolCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
       // .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex = mGraphicsQueueFamilyIndex,
+      .queueFamilyIndex = mQueueInfo.graphicsQueueFamilyIndex,
   };
   VkCommandPool commandPool = 0;
   vkCreateCommandPool(mDevice, &createInfo, 0, &commandPool);
@@ -470,5 +483,34 @@ VkDescriptorPool Vk1Device::createDescriptorPool() {
   vkCreateDescriptorPool(mDevice, &createInfo, 0, &desPool);
   assert(desPool);
   return desPool;
+}
+
+void Vk1Device::initDeviceInfo() {
+  uint32_t extCount = 0;
+  checkResult(vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extCount, nullptr));
+  assert(extCount > 0);
+  std::vector<VkExtensionProperties> exts(extCount);
+  checkResult(vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extCount, exts.data()));
+
+  auto& requestExts = mContext.getConfig().deviceExtensions;
+
+  for (const auto& ext : requestExts) {
+    if (!enableExt(ext.first, exts)) {
+      assert(ext.second == RequestMode::Optional);
+    }
+  }
+}
+
+bool Vk1Device::enableExt(const std::string& requestExt, const std::vector<VkExtensionProperties>& availableExts) {
+  bool isAvailable = std::ranges::any_of(
+      availableExts, [&requestExt](const auto& availableExt) { return requestExt == availableExt.extensionName; });
+  if (isAvailable) {
+    bool isEnabled = std::ranges::any_of(mInfo.enabledExtensions,
+                                         [&requestExt](auto const& enabledExt) { return requestExt == enabledExt; });
+    if (!isEnabled) {
+      mInfo.enabledExtensions.emplace_back(requestExt.c_str());
+    }
+  }
+  return isAvailable;
 }
 }  // namespace vk1

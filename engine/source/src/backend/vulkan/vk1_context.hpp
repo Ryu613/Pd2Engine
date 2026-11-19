@@ -29,21 +29,7 @@ class Vk1Context {
         mDebugMsgr(std::exchange(rhs.mDebugMsgr, VK_NULL_HANDLE)),
         mPhysicalDevices(std::exchange(rhs.mPhysicalDevices, {})) {}
 
-  Vk1Context& operator=(Vk1Context&& rhs) noexcept {
-    if (this != &rhs) {
-      swap(*this, rhs);
-    }
-    return *this;
-  }
-
-  friend void swap(Vk1Context& lhs, Vk1Context& rhs) noexcept {
-    using std::swap;
-    swap(lhs.mPhysicalDevices, rhs.mPhysicalDevices);
-    swap(lhs.mInstance, rhs.mInstance);
-    swap(lhs.mDebugMsgr, rhs.mDebugMsgr);
-    swap(lhs.mInfo, rhs.mInfo);
-    swap(lhs.mConfig, rhs.mConfig);
-  }
+  Vk1Context& operator=(Vk1Context&& rhs) noexcept = delete;
 
   VkInstance getInstance() const { return mInstance; }
 
