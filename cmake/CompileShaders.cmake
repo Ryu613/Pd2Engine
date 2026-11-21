@@ -1,12 +1,11 @@
 # use to compile shaders
-set(shaderDir "${PD2_ROOT_DIR}/assets/shaders")
 function(CompileShader lang target shader output)
 if(lang STREQUAL "SLANG")
     find_program(SLANGC_EXECUTABLE slangc REQUIRED)
     add_custom_command(
         OUTPUT ${output}
-        DEPENDS ${shaderDir}/${shader}
-        COMMAND ${SLANGC_EXECUTABLE} ${shaderDir}/${shader} -target spirv -profile spirv_1_4 -entry vertMain -entry fragMain -o ${shaderDir}/${output}
+        DEPENDS ${PD2_SHADER_DIR}/${shader}
+        COMMAND ${SLANGC_EXECUTABLE} ${PD2_SHADER_DIR}/${shader} -target spirv -profile spirv_1_4 -entry vertMain -entry fragMain -o ${shaderDir}/${output}
         COMMENT "Compile Slang shader ${shader} using slangc"
     )
     add_custom_target(

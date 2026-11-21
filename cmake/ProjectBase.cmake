@@ -1,6 +1,8 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(PD2_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(PD2_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE PATH "project root dir")
+set(PD2_ASSET_DIR "${PD2_ROOT_DIR}/assets" CACHE PATH "project asset dir")
+set(PD2_SHADER_DIR "${PD2_ASSET_DIR}/shaders" CACHE PATH "project shader dir")
 
 add_compile_options("/utf-8")
 
