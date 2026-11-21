@@ -7,18 +7,24 @@
 * [ ] vulkan texture
 * [ ] resource mananger: texture resource
 
+== tracing, profiling, debugging tools
+
 == pbr renderer
 
 * [ ] material system
 * [ ] pbr material
+* [ ] render passes/rendering pipeline
+
+== scene module
+
+* [] scene management, ecs intergration
 
 == multithreadify
 
 * [ ] mt cmd recording
 * [ ] threaded backend
 
-== advanced renderer
+== advanced rendering module
 
 * [ ] shader reflection
-* [ ] rander graph
-* [ ] deferred rendering
+* [ ] render graph
