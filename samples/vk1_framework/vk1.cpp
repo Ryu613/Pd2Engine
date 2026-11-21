@@ -125,6 +125,27 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineCache cache, VkPipe
   return pipeline;
 }
 
+VkImageMemoryBarrier imageBarrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+                                  VkImageLayout oldLayout, VkImageLayout newLayout) {
+  VkImageMemoryBarrier result{
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      .srcAccessMask = srcAccessMask,
+      .dstAccessMask = dstAccessMask,
+      .oldLayout = oldLayout,
+      .newLayout = newLayout,
+      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .image = image,
+      .subresourceRange =
+          {
+              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+              .levelCount = VK_REMAINING_MIP_LEVELS,    // entire image, all mip levels, all array layers
+              .layerCount = VK_REMAINING_ARRAY_LAYERS,  // some android device not support this constant
+          },
+  };
+  return result;
+}
+
 int main() {
   if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO)) {
     return -1;
@@ -183,7 +204,8 @@ int main() {
   VkSemaphore acquireSemaphore = device.createSemaphore();
   assert(acquireSemaphore);
 
-  auto presentSemaphores = device.getSwapchainInfo().presentSemaphores;
+  auto& presentSemaphores = device.getSwapchainInfo().presentSemaphores;
+  auto& swapchainImages = device.getSwapchainInfo().images;
 
   uint32_t uWidth = width;
   uint32_t uheight = height;
@@ -217,6 +239,13 @@ int main() {
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
     vk1::checkResult(vkBeginCommandBuffer(cmdBuffer, &BufferBeginInfo));
+
+    // VkImageMemoryBarrier renderBeginBarrier =
+    //     imageBarrier(swapchainImages[imageIndex], 0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+    //                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    // // before rendering image, first do transition image layout
+    // vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    //                      VK_DEPENDENCY_BY_REGION_BIT, 0, 0, 0, 0, 1, &renderBeginBarrier);
 
     VkClearValue color{
         // in my rtx 4070s driver, this is bgra
@@ -276,6 +305,13 @@ int main() {
     vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
 
     vkCmdEndRenderPass(cmdBuffer);
+
+    
+    // VkImageMemoryBarrier renderEndBarrier = imageBarrier(
+    //     swapchainImages[imageIndex], VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+    //     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    // vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+    //                      VK_DEPENDENCY_BY_REGION_BIT, 0, 0, 0, 0, 1, &renderEndBarrier);
 
     vk1::checkResult(vkEndCommandBuffer(cmdBuffer));
 

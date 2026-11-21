@@ -2,7 +2,9 @@
 
 == pipeline barriers, between render passes(https://www.youtube.com/watch?v=_VU-G5rglnA&t=2663s)
 
-* tile cache, l1 tex cache, l2 tex cache
+* tile cache, l1 tex cache, l2 tex cache, tiler concept
 * flush tile cache, invalidate tex cache, different gpus do different cache management
 * delay fragment work util writes complete
-* between draw calls, there's indeed in paralled in modern gpus,almost all of them have a lot of barriers between draw calls
+* between draw calls, there's indeed in paralled in modern gpus, not run serially, almost all of them have a lot of barriers between draw calls
+* the way of setting pipeline barriers are vital for performance, don't simply set it between passes
+* barrier stuff has no validation layer, complex and hard to get right

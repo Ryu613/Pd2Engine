@@ -7,6 +7,16 @@
 
 namespace vk1 {
 
+namespace {
+bool supportPresentation(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex) {
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+  return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
+#else
+#error "platform not supported!"
+#endif
+}
+}  // namespace
+
 Vk1Device::Vk1Device(Vk1Context&& ctx)
     : mContext(std::move(ctx)),
       mSwapchain(*this) {
@@ -117,23 +127,42 @@ void Vk1Device::destroy() {
 void Vk1Device::pickPhysicalDevice() {
   auto gpus = mContext.enumeratePhysicalDevices();
   assert(!gpus.empty());
-  for (auto gpu : gpus) {
-    VkPhysicalDeviceProperties props;
-    vkGetPhysicalDeviceProperties(gpu, &props);
-    VkPhysicalDeviceFeatures features;
-    vkGetPhysicalDeviceFeatures(gpu, &features);
-
+  auto checkPhysicalDeviceQueueFamlySupport = [](VkPhysicalDevice physicalDevice, VkQueueFlags supportFlag) {
     uint32_t qfCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(gpu, &qfCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &qfCount, nullptr);
+    assert(qfCount > 0);
     std::vector<VkQueueFamilyProperties> qfprops{qfCount};
-    vkGetPhysicalDeviceQueueFamilyProperties(gpu, &qfCount, qfprops.data());
-    for (size_t i = 0; i < qfprops.size(); ++i) {
-      if ((qfprops[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
-        mPhysicalDevice = gpu;
-        mQueueInfo.graphicsQueueFamilyIndex = i;
-        // for now, same as graphics queue family index
-        mQueueInfo.presentQueueFamilyIndex = i;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &qfCount, qfprops.data());
+    for (int i = 0; i < qfprops.size(); ++i) {
+      if (i == VK_QUEUE_FAMILY_IGNORED || !supportPresentation(physicalDevice, i)) {
+        continue;
       }
+      if ((qfprops[i].queueFlags & supportFlag) != 0) {
+        return std::make_pair(true, i);
+      }
+    }
+    return std::make_pair(false, -1);
+  };
+  for (const auto& eachGpu : gpus) {
+    // prefer discrete gpu
+    if (eachGpu.props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+      if (auto [support, familyIndex] =
+              checkPhysicalDeviceQueueFamlySupport(eachGpu.physicalDevice, VK_QUEUE_GRAPHICS_BIT);
+          support) {
+        mPhysicalDevice = eachGpu.physicalDevice;
+        mQueueInfo.graphicsQueueFamilyIndex = familyIndex;
+        mQueueInfo.presentQueueFamilyIndex = familyIndex;
+        return;
+      }
+    }
+    // if no discrete gpu, choose first supported physical device
+    if (auto [support, familyIndex] =
+            checkPhysicalDeviceQueueFamlySupport(eachGpu.physicalDevice, VK_QUEUE_GRAPHICS_BIT);
+        support) {
+      mPhysicalDevice = eachGpu.physicalDevice;
+      mQueueInfo.graphicsQueueFamilyIndex = familyIndex;
+      mQueueInfo.presentQueueFamilyIndex = familyIndex;
+      return;
     }
   }
   assert(mPhysicalDevice != VK_NULL_HANDLE);

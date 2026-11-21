@@ -7,7 +7,6 @@ struct Vk1PhysicalDevice {
   VkPhysicalDevice physicalDevice = 0;
   VkPhysicalDeviceProperties props{};
   VkPhysicalDeviceFeatures features{};
-  uint32_t graphicsQueueFamilyIndex = 0;
 };
 
 class Vk1Context {
@@ -39,14 +38,14 @@ class Vk1Context {
 
   void setDebugUtilsMessenger();
 
-  const std::vector<VkPhysicalDevice>& enumeratePhysicalDevices();
+  const std::vector<Vk1PhysicalDevice>& enumeratePhysicalDevices();
 
  private:
   Config mConfig;
   Info mInfo;
   VkInstance mInstance = VK_NULL_HANDLE;
   VkDebugUtilsMessengerEXT mDebugMsgr{VK_NULL_HANDLE};
-  std::vector<VkPhysicalDevice> mPhysicalDevices;
+  std::vector<Vk1PhysicalDevice> mPhysicalDevices;
 
   void init();
   void destroy();

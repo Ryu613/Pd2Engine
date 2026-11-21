@@ -2,4 +2,4 @@ include(BuildSamples)
 
 #pd2_add_sample(sandbox)
 
-add_subdirectory(vk1)
+add_subdirectory(vk1_framework)

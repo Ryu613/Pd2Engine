@@ -86,14 +86,22 @@ void Vk1Context::destroy() {
   }
 }
 
-const std::vector<VkPhysicalDevice>& Vk1Context::enumeratePhysicalDevices() {
+const std::vector<Vk1PhysicalDevice>& Vk1Context::enumeratePhysicalDevices() {
   if (mPhysicalDevices.empty()) {
     // get gpus
     uint32_t count = 0;
     vkEnumeratePhysicalDevices(mInstance, &count, nullptr);
     assert(count != 0);
-    mPhysicalDevices.resize(count);
-    vkEnumeratePhysicalDevices(mInstance, &count, mPhysicalDevices.data());
+    std::vector<VkPhysicalDevice> physicalDevices(count);
+    vkEnumeratePhysicalDevices(mInstance, &count, physicalDevices.data());
+    for (int i = 0; i < physicalDevices.size(); ++i) {
+      Vk1PhysicalDevice newPDevice{
+          .physicalDevice = physicalDevices[i],
+      };
+      vkGetPhysicalDeviceProperties(physicalDevices[i], &newPDevice.props);
+      vkGetPhysicalDeviceFeatures(physicalDevices[i], &newPDevice.features);
+      mPhysicalDevices.emplace_back(newPDevice);
+    }
   }
 
   return mPhysicalDevices;
