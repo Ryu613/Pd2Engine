@@ -7,9 +7,9 @@ option(PD2_BUILD_SAMPLES "build engine samples" ON)
 option(PD2_BUILD_LIBS "build libs" OFF)
 option(PD2_BUILD_DOCS "Build documentation" OFF)
 
-set(PD2_BACKEND "VULKAN")
-set(PD2_WINDOW "SDL3")
-set(PD2_SHADER_LANG "SLANG")
+set(PD2_BACKEND "VULKAN" CACHE STRING "use Vulkan backend" FORCE)
+set(PD2_WINDOW "SDL3" CACHE STRING "use SDL3 window system" FORCE)
+set(PD2_SHADER_LANG "SLANG" CACHE STRING "use slang shader language" FORCE)
 
 message(STATUS "BUILD_TESTS:${PD2_BUILD_TESTS}")
 message(STATUS "BUILD_SAMPLES:${PD2_BUILD_SAMPLES}")
