@@ -91,6 +91,10 @@ class Backend::Impl {
     return mResourceRegistry.createBindingLayout(desc);
   }
 
+  HwBindingGroupHandle createBindingGroup(const BindingGroupCreateDesc& desc) noexcept {
+    return mResourceRegistry.createBindingGroup(desc);
+  }
+
   void destroyBindingLayout(HwBindingLayoutHandle handle) noexcept { mResourceRegistry.destroyBindingLayout(handle); }
 
   HwShaderModuleHandle createShaderModule(const ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept {
@@ -154,6 +158,10 @@ void Backend::destroyBuffer(HwBufferHandle handle) noexcept { mImpl->destroyBuff
 
 HwBindingLayoutHandle Backend::createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept {
   return mImpl->createBindingLayout(desc);
+}
+
+HwBindingGroupHandle Backend::createBindingGroup(const BindingGroupCreateDesc& desc) noexcept {
+  return mImpl->createBindingGroup(desc);
 }
 
 void Backend::destroyBindingLayout(HwBindingLayoutHandle handle) noexcept {

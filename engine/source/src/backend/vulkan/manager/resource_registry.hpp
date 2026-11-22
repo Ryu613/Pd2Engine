@@ -8,7 +8,9 @@
 #include "../vk1_pipeline.hpp"
 #include "../vk1_buffer.hpp"
 #include "../vk1_shader_module.hpp"
-#include "../vk1_binding_layout.hpp"
+#include "../vk1_descriptor_set_layout.hpp"
+#include "../vk1_descriptor_pool.hpp"
+#include "../vk1_descriptor_set.hpp"
 
 namespace vk1 {
 class ResourceRegistry {
@@ -31,6 +33,9 @@ class ResourceRegistry {
 
   pd::HwPipelineLayoutHandle createPipelineLayout(const pd::PipelineLayoutCreateDesc& desc) noexcept;
   void destroyPipelineLayout(pd::HwPipelineLayoutHandle handle) noexcept;
+
+  pd::HwBindingGroupHandle createBindingGroup(const pd::BindingGroupCreateDesc& desc) noexcept;
+  void destroyBindingGroup(pd::HwBindingGroupHandle handle) noexcept;
 
   pd::HwGraphicsPipelineHandle createGraphicsPipeline(const pd::GraphicsPipelineCreateDesc& desc) noexcept;
   void destroyGraphicsPipeline(pd::HwGraphicsPipelineHandle handle) noexcept;
@@ -72,12 +77,16 @@ class ResourceRegistry {
   template <typename Tag, typename T>
   using DataPool = pd::util::RobinMap<pd::HandleIdType, Slot<Tag, T>>;
 
-  DataPool<pd::BindingLayout_t, Vk1BindingLayout> mBindingLayouts;
+  DataPool<pd::BindingLayout_t, Vk1DescriptorSetLayout> mBindingLayouts;
+  DataPool<pd::BindingGroupPool_t, Vk1DescriptorPool> mBindingGroupPools;
+  DataPool<pd::BindingGroup_t, Vk1DescriptorSet> mBindingGroups;
   DataPool<pd::PipelineLayout_t, Vk1PipelineLayout> mPipelineLayouts;
   DataPool<pd::GraphicsPipeline_t, Vk1Pipeline> mGraphicsPipelines;
   DataPool<pd::Buffer_t, Vk1Buffer> mBuffers;
   DataPool<pd::Texture_t, Vk1Image> mImages;
   DataPool<pd::ShaderModule_t, Vk1ShaderModule> mShaderModules;
+
+  pd::HwBindingGroupPoolHandle createDescriptorPool(const pd::BindingGroupCreateDesc& desc);
 };
 
 template <typename Tag>
@@ -111,6 +120,10 @@ inline auto& ResourceRegistry::findPool() noexcept {
     return mGraphicsPipelines;
   } else if constexpr (std::is_same_v<Tag, pd::BindingLayout_t>) {
     return mBindingLayouts;
+  } else if constexpr (std::is_same_v<Tag, pd::BindingGroupPool_t>) {
+    return mBindingGroupPools;
+  } else if constexpr (std::is_same_v<Tag, pd::BindingGroup_t>) {
+    return mBindingGroups;
   } else if constexpr (std::is_same_v<Tag, pd::Buffer_t>) {
     return mBuffers;
   } else if constexpr (std::is_same_v<Tag, pd::ShaderModule_t>) {

@@ -41,6 +41,8 @@ class Vk1Device {
 
   VmaAllocator getAllocator() { return mAllocator; }
 
+  bool isBindless() const { return mContext.getConfig().enableBindless; }
+
   void createSwapchain(void* nativeWindowHandle, uint32_t width, uint32_t height);
   void destroySwapchain();
 
@@ -118,6 +120,12 @@ class Vk1Device {
 
   void init();
   void destroy();
+
+  /**
+   * @brief 规则: 独立显卡优先,否则选支持图形管线的gpu
+   * @note 当前独立显卡默认认为支持所需特性，严格来说不一定成立
+   *
+   */
   void pickPhysicalDevice();
   void initDeviceInfo();
   void createSurface(void* nativeWindowHandle);

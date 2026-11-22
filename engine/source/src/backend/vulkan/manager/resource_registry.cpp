@@ -98,7 +98,7 @@ pd::HwBindingLayoutHandle ResourceRegistry::createBindingLayout(const pd::Bindin
   checkResult(vkCreateDescriptorSetLayout(vkDevice, &createInfo, 0, &setLayout));
   assert(setLayout);
 
-  Slot<pd::BindingLayout_t, Vk1BindingLayout> slot{
+  Slot<pd::BindingLayout_t, Vk1DescriptorSetLayout> slot{
       .gen = 0,
       .resource =
           {
@@ -123,6 +123,9 @@ void ResourceRegistry::destroyBindingLayout(pd::HwBindingLayoutHandle handle) no
   }
   const auto& vkDevice = mDevice->getDevice();
   auto setLayout = getResource(handle);
+  if (setLayout == nullptr) {
+    return;
+  }
   assert(setLayout->handle);
 
   vkDestroyDescriptorSetLayout(vkDevice, setLayout->handle, 0);
@@ -195,6 +198,118 @@ void ResourceRegistry::destroyPipelineLayout(pd::HwPipelineLayoutHandle handle) 
 
   destroyResource(handle);
 }
+
+pd::HwBindingGroupHandle ResourceRegistry::createBindingGroup(const pd::BindingGroupCreateDesc& desc) noexcept {
+  assert(desc.layout);
+  // only support bindless for now
+  assert(mDevice->isBindless());
+  auto vkDevice = mDevice->getDevice();
+
+  pd::HwBindingGroupPoolHandle poolHandle;
+  if (mBindingGroups.empty()) {
+    poolHandle = createDescriptorPool(desc);
+  } else {
+    auto it = mBindingGroups.end();
+    poolHandle = {it->first, it->second.gen};
+  }
+  assert(poolHandle);
+  const Vk1DescriptorPool* pool = getResource(poolHandle);
+  const Vk1DescriptorSetLayout* layout = getResource(desc.layout);
+  assert(pool && layout);
+
+  auto allocateDsSet = [vkDevice](const Vk1DescriptorSetLayout& layout, const Vk1DescriptorPool& pool,
+                                  VkDescriptorSet& dsSet, uint32_t maxVariableDescriptorCounts) {
+    VkDescriptorSetAllocateInfo allocInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .descriptorPool = pool.handle,
+        .descriptorSetCount = 1,
+        .pSetLayouts = &layout.handle,
+    };
+
+    VkDescriptorSetVariableDescriptorCountAllocateInfo variableLengthInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+        .descriptorSetCount = 1,
+        .pDescriptorCounts = &maxVariableDescriptorCounts,
+    };
+    allocInfo.pNext = &variableLengthInfo;
+
+    return vkAllocateDescriptorSets(vkDevice, &allocInfo, &dsSet);
+  };
+
+  VkDescriptorSet dsSet = 0;
+  auto allocateResult = allocateDsSet(*layout, *pool, dsSet, desc.maxArrayLength);
+  if (allocateResult == VK_ERROR_OUT_OF_POOL_MEMORY || allocateResult == VK_ERROR_FRAGMENTED_POOL) {
+    poolHandle = createDescriptorPool(desc);
+    pool = getResource(poolHandle);
+    allocateResult = allocateDsSet(*layout, *pool, dsSet, desc.maxArrayLength);
+  }
+  checkResult(allocateResult);
+  assert(dsSet);
+
+  Slot<pd::BindingGroup_t, Vk1DescriptorSet> slot{
+      .gen = 0,
+      .resource =
+          {
+              .handle = dsSet,
+          },
+  };
+  auto newId = nextId<pd::BindingGroup_t>();
+  mBindingGroups.emplace(newId, slot);
+  setObjectName(vkDevice, VK_OBJECT_TYPE_DESCRIPTOR_SET, dsSet, desc.debugName);
+
+  // todo: update bindings
+  for (const auto& resource : desc.resources) {
+    // slot.resource.update(vkDevice, resource);
+  }
+
+  return {.data = {
+              .id = newId,
+              .gen = 0,
+          }};
+}
+
+pd::HwBindingGroupPoolHandle ResourceRegistry::createDescriptorPool(const pd::BindingGroupCreateDesc& desc) {
+  assert(mDevice->isBindless());
+  auto vkDevice = mDevice->getDevice();
+  std::vector<VkDescriptorPoolSize> poolSizes = {
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 512},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 16},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 512},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 128},
+      {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 128},
+      {VK_DESCRIPTOR_TYPE_SAMPLER, 8},
+      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 8},
+      {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 8},
+      {VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 8},
+  };
+
+  VkDescriptorPoolCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+      .maxSets = global::maxBindlessResources,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data(),
+  };
+  VkDescriptorPool pool = 0;
+  checkResult(vkCreateDescriptorPool(vkDevice, &createInfo, 0, &pool));
+  assert(pool);
+  Slot<pd::BindingGroupPool_t, Vk1DescriptorPool> slot{
+      .gen = 0,
+      .resource =
+          {
+              .handle = pool,
+          },
+  };
+  auto newId = nextId<pd::BindingGroupPool_t>();
+  mBindingGroupPools.emplace(newId, slot);
+  setObjectName(vkDevice, VK_OBJECT_TYPE_DESCRIPTOR_POOL, pool, desc.debugName);
+  return {.data = {
+              .id = newId,
+              .gen = 0,
+          }};
+}
+
+void ResourceRegistry::destroyBindingGroup(pd::HwBindingGroupHandle handle) noexcept {}
 
 pd::HwGraphicsPipelineHandle ResourceRegistry::createGraphicsPipeline(
     const pd::GraphicsPipelineCreateDesc& desc) noexcept {

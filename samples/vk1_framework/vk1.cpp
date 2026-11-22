@@ -172,7 +172,6 @@ int main() {
   auto vkSwapchain = device.getSwapchain();
 
   VkCommandPool cmdPool = device.createCommandPool();
-  assert(cmdPool);
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -244,7 +243,8 @@ int main() {
     //     imageBarrier(swapchainImages[imageIndex], 0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
     //                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     // // before rendering image, first do transition image layout
-    // vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    // vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+    // VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
     //                      VK_DEPENDENCY_BY_REGION_BIT, 0, 0, 0, 0, 1, &renderBeginBarrier);
 
     VkClearValue color{
@@ -306,7 +306,6 @@ int main() {
 
     vkCmdEndRenderPass(cmdBuffer);
 
-    
     // VkImageMemoryBarrier renderEndBarrier = imageBarrier(
     //     swapchainImages[imageIndex], VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
     //     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);

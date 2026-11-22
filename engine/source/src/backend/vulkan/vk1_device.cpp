@@ -41,6 +41,7 @@ void Vk1Device::init() {
       .pNext = &enableVk11Features,
       .descriptorIndexing = true,                         // descriptor indexing
       .shaderSampledImageArrayNonUniformIndexing = true,  // descriptor indexing
+      .descriptorBindingPartiallyBound = true,            // descriptor indexing
       .descriptorBindingVariableDescriptorCount = true,   // descriptor indexing
       .runtimeDescriptorArray = true,                     // descriptor indexing
       .bufferDeviceAddress = true,                        // BDA

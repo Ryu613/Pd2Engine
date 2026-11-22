@@ -4,8 +4,8 @@
 
 namespace vk1 {
 
-struct Vk1BindingLayout {
-  VkDescriptorSetLayout handle;
+struct Vk1DescriptorSetLayout {
+  VkDescriptorSetLayout handle = VK_NULL_HANDLE;
   std::vector<VkDescriptorSetLayoutBinding> bindings;
 };
 }  // namespace vk1
