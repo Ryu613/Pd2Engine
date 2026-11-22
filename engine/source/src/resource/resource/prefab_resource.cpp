@@ -13,13 +13,18 @@ Result<void> PrefabResource::doLoad(LoadContext& ctx) noexcept {
       return make_error<void>(ErrorCode::ResourceLoadFailed);
     }
   }
-  // todo: textures loading
+  for (auto& eachTex : mTextures) {
+    auto loadRes = eachTex.load();
+    if (!loadRes) {
+      LOG_ERROR("resource id: {} load failed", eachTex.handle().data.id);
+      return make_error<void>(ErrorCode::ResourceLoadFailed);
+    }
+  }
   return {};
 }
 Result<void> PrefabResource::doUnload(LoadContext& ctx) noexcept {
   LOG_INFO("unloading prefab resource: name={}", name());
   // unload不应该断掉引用，没有实际动作
-
   return {};
 }
 }  // namespace pd

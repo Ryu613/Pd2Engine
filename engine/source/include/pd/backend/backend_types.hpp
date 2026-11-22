@@ -93,6 +93,11 @@ struct ClearColorImageArgs {
 };
 
 // common types
+struct Extent {
+  u32 width = 0;
+  u32 height = 0;
+  u32 depth = 1;
+};
 struct FrameData {
   u32 frameIndex = u32_max;
   u32 swapchainImageIndex = u32_max;
@@ -165,6 +170,11 @@ struct BufferWriteDesc {
   u32 offset = 0;
 };
 
+struct TextureWriteDesc {
+  HwTextureHandle texture;
+  std::span<const std::byte> data;
+};
+
 struct FrameConstantsDesc {
   u32 frameIndex = u32_max;
   f32 deltaTime = 0.0f;
@@ -200,12 +210,6 @@ struct DepthStencilOptions {};
 struct MultisampleOptions {};
 
 struct DynamicStateOptions {};
-
-struct Extent {
-  u32 width = 0;
-  u32 height = 0;
-  u32 depth = 1;
-};
 
 struct GraphicsPipelineCreateDesc {
   std::string_view debugName;
@@ -253,7 +257,7 @@ struct TextureCreateDesc {
   uint32_t arrayLeyers = 1;
   TextureUsage usage = TextureUsage::ColorAttachment;
   uint32_t samples = 1;
-  void* pData = nullptr;
+  std::span<const std::byte> data;
   //   TextureLayout initialLayout = TextureLayout::Undefined;
 };
 

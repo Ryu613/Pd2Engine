@@ -46,6 +46,7 @@ class ResourceRegistry {
 
   pd::HwTextureHandle createTexture(const pd::TextureCreateDesc& desc) noexcept;
   void destroyTexture(pd::HwTextureHandle handle) noexcept;
+  void writeTexture(const pd::TextureWriteDesc& desc) noexcept;
 
   pd::HwShaderModuleHandle createShaderModule(const pd::ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
   void destroyShaderModule(pd::HwShaderModuleHandle handle) noexcept;

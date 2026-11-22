@@ -48,6 +48,9 @@ class Backend {
   // operations
   void writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept;
 
+  // full writes
+  void writeTexture(const TextureWriteDesc& desc) noexcept;
+
  private:
   class Impl;
   std::unique_ptr<Impl> mImpl;

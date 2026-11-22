@@ -174,13 +174,13 @@ TEST_CASE("test_gltf_register", "resource") {
 
     REQUIRE(prefabEntry.refCount == 1);
 
-    gltfRef.reset(); // gltfRef moved, not working(intended)
+    gltfRef.reset();  // gltfRef moved, not working(intended)
     REQUIRE(prefabEntry.refCount == 1);
     gltfRef2.reset();
     REQUIRE(prefabEntry.refCount == 0);
 
-    gltfRef.reset();    // not working(intended) 
-    loadRes = gltfRef.load(); // not working(intended)
+    gltfRef.reset();           // not working(intended)
+    loadRes = gltfRef.load();  // not working(intended)
   }
 
   SECTION("two prefab with same asset") {

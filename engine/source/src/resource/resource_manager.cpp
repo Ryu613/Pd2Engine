@@ -135,8 +135,30 @@ Result<ResourceRef<PrefabResource_t>> ResourceManager::registerResourceFromAsset
 
       prefabResource->addMesh({*this, newMeshResult.value()});
     }
+
+    // create texture resources
     for (const auto& texture : asset.textures()) {
-      // todo
+      auto sourceId = makeSourceId(ResourceSourceType::Asset, texture.id);
+      auto newTex = std::unique_ptr<TextureResource>(new TextureResource(sourceId, createInfo.variantId, texture.name));
+      newTex->mInfo.extent.width = texture.width;
+      newTex->mInfo.extent.height = texture.height;
+      newTex->mInfo.mipLevels = texture.mipLevels;
+      // asset mgr保证生命周期
+      newTex->mInfo.data = asset.images()[texture.imageIndex].bytes;
+
+      auto newTexResult = saveResource<TextureResource, TextureResource_t>(std::move(newTex));
+      if (!newTexResult) {
+        LOG_ERROR("texture resource create failed! \n{}", newTexResult.error().msg);
+        return make_error<ResourceRef<PrefabResource_t>>(newTexResult.error().code);
+      }
+      auto texResourceHandle = newTexResult.value();
+      textureCache.push_back(texResourceHandle);
+
+      auto* prefabResource = get<PrefabResource_t>(prefabHandleResult.value());
+      PD_ASSERT(prefabResource);
+      auto* textureResource = get<TextureResource_t>(texResourceHandle);
+      PD_ASSERT(textureResource);
+      prefabResource->addTextures({*this, texResourceHandle});
     }
   }
   // 先写入注册表

@@ -6,7 +6,13 @@
 namespace pd {
 class TextureResource : public Resource {
  public:
-  struct Info {};
+  struct Info {
+    TextureType type = TextureType::TextureType2D;
+    TextureFormat format = TextureFormat::RGBA8Unorm;
+    Extent extent{0, 0, 1};
+    u32 mipLevels = 1;
+    std::span<const std::byte> data;
+  };
 
   ~TextureResource() = default;
   DELETE_COPY(TextureResource);

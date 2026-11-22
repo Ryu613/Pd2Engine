@@ -81,8 +81,9 @@ pd::HwBindingLayoutHandle ResourceRegistry::createBindingLayout(const pd::Bindin
     std::vector<VkDescriptorBindingFlags> bindingFlags(bindings.size(), VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
 
     for (size_t i = 0; i < bindings.size(); ++i) {
-      bindingFlags[i] |=
-          VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
+      bindingFlags[i] |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT |
+                         VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT |
+                         VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
     }
 
     VkDescriptorSetLayoutBindingFlagsCreateInfo nextInfo{
@@ -569,6 +570,10 @@ pd::HwTextureHandle ResourceRegistry::createTexture(const pd::TextureCreateDesc&
   auto newId = nextId<pd::Texture_t>();
   mImages.emplace(newId, slot);
 
+  if (!desc.data.empty()) {
+    // uploadTexture(desc);
+  }
+
   return {{
       newId,
       0,
@@ -581,5 +586,38 @@ void ResourceRegistry::destroyTexture(pd::HwTextureHandle handle) noexcept {
   vmaDestroyImage(mDevice->getAllocator(), vk1Image->handle, vk1Image->allocation);
 
   destroyResource(handle);
+}
+
+void ResourceRegistry::writeTexture(const pd::TextureWriteDesc& desc) noexcept {
+  if (!desc.texture) {
+    return;
+  }
+  assert(!desc.data.empty());
+  auto* texture = getResource(desc.texture);
+  assert(texture);
+
+  // create staging buffer
+  auto allocator = mDevice->getAllocator();
+  VkBufferCreateInfo stagingBufferCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .size = desc.data.size(),
+      .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  };
+
+  VmaAllocationCreateInfo allocCreateInfo{
+      .flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT,
+      .usage = VMA_MEMORY_USAGE_CPU_TO_GPU,
+  };
+  VmaAllocationInfo allocInfo{};
+  VkBuffer stagingBuffer = 0;
+  VmaAllocation stagingAllocation;
+  checkResult(vmaCreateBuffer(allocator, &stagingBufferCreateInfo, &allocCreateInfo, &stagingBuffer, &stagingAllocation,
+                              &allocInfo));
+  assert(stagingBuffer);
+
+  void* dstData;
+  vmaMapMemory(allocator, stagingAllocation, &dstData);
+  std::memcpy(dstData, desc.data.data(), desc.data.size());
+  vmaUnmapMemory(allocator, stagingAllocation);
 }
 }  // namespace vk1

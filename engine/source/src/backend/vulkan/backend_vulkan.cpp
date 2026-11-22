@@ -87,6 +87,8 @@ class Backend::Impl {
 
   void destroyBuffer(HwBufferHandle handle) noexcept { mResourceRegistry.destroyBuffer(handle); }
 
+  void writeTexture(const TextureWriteDesc& desc) noexcept { mResourceRegistry.writeTexture(desc); }
+
   HwBindingLayoutHandle createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept {
     return mResourceRegistry.createBindingLayout(desc);
   }
@@ -104,8 +106,7 @@ class Backend::Impl {
   void destroyShaderModule(HwShaderModuleHandle handle) noexcept { mResourceRegistry.destroyShaderModule(handle); }
 
   HwTextureHandle createTexture(const TextureCreateDesc& textureCreateDesc) noexcept {
-    auto handle = mResourceRegistry.createTexture(textureCreateDesc);
-    return handle;
+    return mResourceRegistry.createTexture(textureCreateDesc);
   }
 
   void destroyTexture(HwTextureHandle handle) noexcept { mResourceRegistry.destroyTexture(handle); }
@@ -155,6 +156,8 @@ HwBufferHandle Backend::createBuffer(const BufferCreateDesc& bufferCreateDesc) n
 }
 void Backend::writeBuffer(const BufferWriteDesc& bufferWriteDesc) noexcept { mImpl->writeBuffer(bufferWriteDesc); }
 void Backend::destroyBuffer(HwBufferHandle handle) noexcept { mImpl->destroyBuffer(handle); }
+
+void Backend::writeTexture(const TextureWriteDesc& desc) noexcept { mImpl->writeTexture(desc); }
 
 HwBindingLayoutHandle Backend::createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept {
   return mImpl->createBindingLayout(desc);

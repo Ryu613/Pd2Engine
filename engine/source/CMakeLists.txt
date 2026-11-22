@@ -125,7 +125,9 @@ target_sources(engine_lib
         src/backend/vulkan/vk1_swapchain.cpp
         src/backend/vulkan/vk1_buffer.hpp
         src/backend/vulkan/vk1_image.hpp
-        src/backend/vulkan/vk1_binding_layout.hpp
+        src/backend/vulkan/vk1_descriptor_set_layout.hpp
+        src/backend/vulkan/vk1_descriptor_pool.hpp
+        src/backend/vulkan/vk1_descriptor_set.hpp
         src/backend/vulkan/vk1_pipeline_layout.hpp
         src/backend/vulkan/vk1_pipeline.hpp
         # backend middleware
@@ -149,7 +151,9 @@ target_sources(vk1_lib
         src/backend/vulkan/vk1_swapchain.hpp
         src/backend/vulkan/vk1_buffer.hpp
         src/backend/vulkan/vk1_image.hpp
-        src/backend/vulkan/vk1_binding_layout.hpp
+        src/backend/vulkan/vk1_descriptor_set_layout.hpp
+        src/backend/vulkan/vk1_descriptor_pool.hpp
+        src/backend/vulkan/vk1_descriptor_set.hpp
         src/backend/vulkan/vk1_pipeline_layout.hpp
         src/backend/vulkan/vk1_pipeline.hpp
     PRIVATE
