@@ -1,5 +1,5 @@
 #pragma once
 
 namespace vk1 {
-class UploadManager {};
+class StagingManager {};
 }  // namespace vk1
