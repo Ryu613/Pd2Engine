@@ -10,6 +10,7 @@ namespace vk1 {
 class Vk1Device {
  public:
   struct Info {
+    uint32_t physicalDeviceIndex = global::invalidIndex;
     std::vector<const char*> enabledExtensions;
   };
   struct QueueInfo {
@@ -35,9 +36,11 @@ class Vk1Device {
 
   VkDevice getDevice() { return mDevice; }
   VkPhysicalDevice getPhysicalDevice() { return mPhysicalDevice; }
+  const Vk1PhysicalDevice& getVk1PhysicalDevice() { return mContext.getPhysicalDevices()[mInfo.physicalDeviceIndex]; }
   VkSurfaceKHR getSurface() { return mSurface; }
   const QueueInfo& getQueueInfo() const { return mQueueInfo; }
   VkSwapchainKHR getSwapchain() { return mSwapchain.getSwapchain(); }
+  const Vk1Context& getContext() const noexcept { return mContext; }
 
   VmaAllocator getAllocator() { return mAllocator; }
 
@@ -85,6 +88,10 @@ class Vk1Device {
 
   VkPipeline createTestPipeline(VkPipelineLayout layout);
   void destroyPipeline(VkPipeline pipeline);
+
+  void addImageBarrier(const Vk1Image& image, VkCommandBuffer cmdBuffer, const ImageState& oldState,
+                       const ImageState& newState, uint32_t baseMipLevel = 0, uint32_t mipLevelCount = 1,
+                       bool isDepth = false);
 
   void waitFences(VkFence fence);
   void resetFences(VkFence fence);

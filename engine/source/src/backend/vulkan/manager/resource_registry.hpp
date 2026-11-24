@@ -46,7 +46,7 @@ class ResourceRegistry {
 
   pd::HwTextureHandle createTexture(const pd::TextureCreateDesc& desc) noexcept;
   void destroyTexture(pd::HwTextureHandle handle) noexcept;
-  void writeTexture(const pd::TextureWriteDesc& desc) noexcept;
+  //   void writeTexture(const pd::TextureWriteDesc& desc) noexcept;
 
   pd::HwShaderModuleHandle createShaderModule(const pd::ShaderModuleCreateDesc& shaderModuleCreateDesc) noexcept;
   void destroyShaderModule(pd::HwShaderModuleHandle handle) noexcept;
@@ -141,9 +141,9 @@ inline auto* ResourceRegistry::getResource(Handle<Tag> handle) noexcept {
   auto it = dataPool.find(handle.data.id);
   if (it != dataPool.end()) {
     // todo: gen equality
-    return &(it->second.resource);
+    return &(it.value().resource);
   }
-  using ResourcePtr = decltype(&(it->second.resource));
+  using ResourcePtr = decltype(&(it.value().resource));
   return static_cast<ResourcePtr>(nullptr);
 }
 

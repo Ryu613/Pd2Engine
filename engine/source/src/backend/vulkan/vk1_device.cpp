@@ -144,7 +144,8 @@ void Vk1Device::pickPhysicalDevice() {
     }
     return std::make_pair(false, -1);
   };
-  for (const auto& eachGpu : gpus) {
+  for (int i = 0; i < gpus.size(); ++i) {
+    auto& eachGpu = gpus[i];
     // prefer discrete gpu
     if (eachGpu.props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
       if (auto [support, familyIndex] =
@@ -153,6 +154,7 @@ void Vk1Device::pickPhysicalDevice() {
         mPhysicalDevice = eachGpu.physicalDevice;
         mQueueInfo.graphicsQueueFamilyIndex = familyIndex;
         mQueueInfo.presentQueueFamilyIndex = familyIndex;
+        mInfo.physicalDeviceIndex = i;
         return;
       }
     }
@@ -163,6 +165,7 @@ void Vk1Device::pickPhysicalDevice() {
       mPhysicalDevice = eachGpu.physicalDevice;
       mQueueInfo.graphicsQueueFamilyIndex = familyIndex;
       mQueueInfo.presentQueueFamilyIndex = familyIndex;
+      mInfo.physicalDeviceIndex = i;
       return;
     }
   }
@@ -515,6 +518,38 @@ VkDescriptorPool Vk1Device::createDescriptorPool() {
   vkCreateDescriptorPool(mDevice, &createInfo, 0, &desPool);
   assert(desPool);
   return desPool;
+}
+
+void Vk1Device::addImageBarrier(const Vk1Image& image, VkCommandBuffer cmdBuffer, const ImageState& oldState,
+                                const ImageState& newState, uint32_t baseMipLevel, uint32_t mipLevelCount,
+                                bool isDepth) {
+  VkImageMemoryBarrier2 barrier{
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+      .srcStageMask = oldState.pipelineStageMask,
+      .srcAccessMask = oldState.accessMask,
+      .dstStageMask = newState.pipelineStageMask,
+      .dstAccessMask = newState.accessMask,
+      .oldLayout = oldState.imageLayout,
+      .newLayout = newState.imageLayout,
+      .image = image.handle,
+      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .subresourceRange =
+          {
+              .baseMipLevel = baseMipLevel,
+              .levelCount = mipLevelCount,
+              .baseArrayLayer = 0,
+              .layerCount = 1,
+          },
+  };
+  barrier.subresourceRange.aspectMask = isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+
+  VkDependencyInfo depInfo{
+      .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &barrier,
+  };
+  vkCmdPipelineBarrier2(cmdBuffer, &depInfo);
 }
 
 void Vk1Device::initDeviceInfo() {

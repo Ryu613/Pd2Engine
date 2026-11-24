@@ -13,6 +13,7 @@
 #include <cassert>
 #include <memory>
 #include <algorithm>
+#include <span>
 
 #ifdef ENABLE_LOG
 #include <print>
@@ -24,8 +25,6 @@
 #endif
 
 namespace vk1 {
-
-
 
 namespace global {
 inline constexpr uint32_t invalidIndex = UINT32_MAX;
@@ -39,6 +38,8 @@ struct ImageState {
   VkPipelineStageFlags2 pipelineStageMask = VK_PIPELINE_STAGE_2_NONE;
   VkAccessFlags2 accessMask = VK_ACCESS_2_NONE;
   VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+  bool operator==(const ImageState&) const = default;
 };
 
 enum RequestMode : uint8_t {

@@ -36,6 +36,8 @@ class Vk1Context {
 
   const Config& getConfig() const { return mConfig; }
 
+  const std::vector<Vk1PhysicalDevice>& getPhysicalDevices() const { return mPhysicalDevices; }
+
   void setDebugUtilsMessenger();
 
   const std::vector<Vk1PhysicalDevice>& enumeratePhysicalDevices();

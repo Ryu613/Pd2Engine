@@ -2,6 +2,7 @@
 
 #include "vk1_initializer.hpp"
 #include "manager/frame_manager.hpp"
+#include "manager/staging_manager.hpp"
 #include "manager/resource_registry.hpp"
 
 namespace pd {
@@ -39,6 +40,7 @@ class Backend::Impl {
   Result<void> destroy() noexcept {
     // destroy frame data
     mFrameManager.destroy();
+    // todo: destroy staging resources
     // destroy resources
     mResourceRegistry.destroy();
     // destroy swapchain
@@ -87,7 +89,7 @@ class Backend::Impl {
 
   void destroyBuffer(HwBufferHandle handle) noexcept { mResourceRegistry.destroyBuffer(handle); }
 
-  void writeTexture(const TextureWriteDesc& desc) noexcept { mResourceRegistry.writeTexture(desc); }
+  void writeTexture(const TextureWriteDesc& desc) noexcept { mStagingManager.uploadImage(desc.texture, desc.data); }
 
   HwBindingLayoutHandle createBindingLayout(const BindingLayoutCreateDesc& desc) noexcept {
     return mResourceRegistry.createBindingLayout(desc);
@@ -106,7 +108,11 @@ class Backend::Impl {
   void destroyShaderModule(HwShaderModuleHandle handle) noexcept { mResourceRegistry.destroyShaderModule(handle); }
 
   HwTextureHandle createTexture(const TextureCreateDesc& textureCreateDesc) noexcept {
-    return mResourceRegistry.createTexture(textureCreateDesc);
+    auto texture = mResourceRegistry.createTexture(textureCreateDesc);
+    if (!textureCreateDesc.data.empty()) {
+      mStagingManager.uploadImage(texture, textureCreateDesc.data);
+    }
+    return texture;
   }
 
   void destroyTexture(HwTextureHandle handle) noexcept { mResourceRegistry.destroyTexture(handle); }
@@ -115,6 +121,7 @@ class Backend::Impl {
   BackendConfig mConfig{};
   vk1::Vk1Device mVulkanDevice;
   vk1::ResourceRegistry mResourceRegistry;
+  vk1::StagingManager mStagingManager;
   vk1::FrameManager mFrameManager;
 };
 

@@ -48,10 +48,12 @@ inline VkBufferUsageFlags ToVkBufferUsage(pd::BufferUsage usage) noexcept {
       return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     case UniformBuffer:
       return VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    case TransferSrc:
+      return VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     default:
       PD_ASSERT_MSG(false, "buffer usage type error!");
   }
-  return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+  return VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
 }
 inline VkSharingMode ToVkSharingMode(pd::SharingMode sharingMode) noexcept {
   switch (sharingMode) {
@@ -95,7 +97,7 @@ inline VkCullModeFlags toVkCullMode(pd::CullMode cullMode) noexcept {
       return VK_CULL_MODE_BACK_BIT;
   }
   PD_ASSERT_MSG(false, "cull mode error!");
-  return {};
+  return VK_CULL_MODE_NONE;
 }
 
 inline VkFrontFace toVkFrontFace(pd::FrontFace frontFace) noexcept {
@@ -107,7 +109,7 @@ inline VkFrontFace toVkFrontFace(pd::FrontFace frontFace) noexcept {
       return VK_FRONT_FACE_COUNTER_CLOCKWISE;
   }
   PD_ASSERT_MSG(false, "cull mode error!");
-  return {};
+  return VK_FRONT_FACE_MAX_ENUM;
 }
 
 inline VkImageUsageFlags toVkImageUsage(pd::TextureUsage usage) noexcept {

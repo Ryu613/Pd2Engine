@@ -70,6 +70,7 @@ enum class BufferUsage : u8 {
   VertexBuffer,
   IndexBuffer,
   UniformBuffer,
+  TransferSrc,
 
   Unknown = u8_max,
 };
