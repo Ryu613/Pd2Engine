@@ -106,3 +106,102 @@ end
 
 . 暂不做异步，热重载
 . 暂不做材质定义配置文件，由用户手动定义
+
+== staging管理方案
+
+=== 快速QA
+
+[quanda]
+为什么要区分不同的显存?::
+====
+为了使GPU在不同用途下得到最优性能，故区分了内存的访问方式，physical device的内存类型，通过VkPhysicalDeviceMemoryProperties获取,参考
+link:https://docs.vulkan.org/refpages/latest/refpages/source/VkMemoryPropertyFlagBits.html[vulkan spec]
+内存属性可以同时支持，也就是多个flag以“与”关系存在
+
+[cols="1,1a"]
+|===
+|类型 |含义 |用途 | 参考
+
+|VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+|
+|GPU访问性能通常较好
+
+|VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+|CPU可以映射访问
+|
+
+|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+|CPU 写入后不需要显式 Flush
+|
+
+|VK_MEMORY_PROPERTY_HOST_CACHED_BIT
+|CPU 读取性能通常较好
+|
+
+|VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT
+|
+|
+
+|VK_MEMORY_PROPERTY_PROTECTED_BIT
+|vk1.1提供
+|
+
+|VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD
+|VK_AMD_device_coherent_memory提供
+|
+. 介绍: link:https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/vk_amd_device_coherent_memory.html[VK_AMD_device_coherent_memory]
+. 用途: 在pass或draw call之间写面包屑标记，用于调试(gpu崩溃，卡死)
+
+|VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD
+|Cell in column 2, row 4
+|
+
+|VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV
+|Cell in column 2, row 4
+|
+
+|===
+====
+
+为什么要分image layout?::
+什么是staging buffer?::
+为什么需要staging buffer?::
+staging buffer的使用场合?::
+不同场合如何使用staging buffer?::
+最简实现是什么?::
+staging buffer不同于其他buffer的特征点?::
+staging buffer的本质?::
+staging buffer的内部原理?::
+为什么要专门管理?::
+如何管理staging buffer?::
+引擎项目中一般是怎么管理和使用的?::
+
+[plantuml]
+....
+@startmindmap
+* debian
+** ubuntu
+@endmindmap
+....
+
+staging buffer, 在上传纹理时，指定一个可被cpu访问的显存区,把数据写入到其中，再用cmd buffer执行指令 copy buffer to image上传到独享显存中，关键实现点在于staging buffer如何被管理，管理的目的是提高性能，因为频繁的分配和销毁staging buffer是有损性能的
+
+对于教程示例级的项目，此实现点一般是采取临时创建，传输完毕即销毁的简化做法，而实际引擎或框架中，按责任区分，分为：
+
+. 外部负责: 这种做法把staging buffer的生命周期管理的责任给到外部，由使用者承担staging buffer的创销和分配责任，这种设计一般是把自己本身定位于一个纯净的vulkan或其他gapi的封装，只负责提供易用api,不处理具体资源的管理, 比如kdgpu
+. 内部负责: 这种做法是把staging buffer由内部管理，外部使用者无需知道staging的内部细节，这种设计一般是把自己定位为一个务实风格的rhi，或者框架，打算把rhi或gapi相关具体的实现细节尽可能隐藏在内部，比如lightweightvk, filament
+
+作为cpu侧数据传到gpu侧独享显存中的中转内存，一般由GPU侧可被CPU访问的一部分显存区担任，目前有几种做法:
+
+
+=== 调研实现方法
+
+==== raptor engine
+
+==== sigraph2026_vk_tutorial
+
+==== nvrhi
+
+==== kdgpu
+
+==== filament
