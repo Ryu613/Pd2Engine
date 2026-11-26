@@ -73,8 +73,19 @@ void StagingManager::uploadImage(pd::HwTextureHandle handle, std::span<const std
       .accessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT,
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
   };
-  const ImageState transferSrc{};
-  const ImageState shaderRead{};
+  const ImageState transferSrc{
+      .imageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      .pipelineStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+      .accessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+  };
+
+  const ImageState shaderRead{
+      .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      .pipelineStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+      .accessMask = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+  };
 
   // image transition mip 0
   image.transition(mCmdBuffer, transferDst);
