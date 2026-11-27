@@ -31,6 +31,7 @@ inline constexpr uint32_t invalidIndex = UINT32_MAX;
 inline constexpr size_t maxInflightFrames = 2;
 inline constexpr uint32_t maxDescriptorPoolSize = 128;
 inline constexpr uint32_t maxBindlessResources = 1024;
+inline constexpr uint64_t defaultStagingBufferSize = 32 * 1024 * 1024;  // 32M
 }  // namespace global
 
 struct ImageState {

@@ -133,8 +133,10 @@ target_sources(engine_lib
         # backend middleware
         src/backend/vulkan/manager/frame_manager.hpp
         src/backend/vulkan/manager/frame_manager.cpp
+        src/backend/vulkan/manager/Resource_registry.hpp
         src/backend/vulkan/manager/Resource_registry.cpp
-        src/backend/vulkan/manager/Resource_registry.cpp
+        src/backend/vulkan/manager/staging_manager.hpp
+        src/backend/vulkan/manager/staging_manager.cpp
 )
 
 target_compile_definitions(engine_lib PRIVATE BACKEND_VULKAN)

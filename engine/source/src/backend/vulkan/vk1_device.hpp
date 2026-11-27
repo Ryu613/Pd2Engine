@@ -57,7 +57,7 @@ class Vk1Device {
   VkFence createFence();
   void destroyFence(VkFence fence);
 
-  VkCommandPool createCommandPool();
+  VkCommandPool createCommandPool(bool resetCmdBuffer = false);
   void destroyCommandPool(VkCommandPool pool);
 
   Vk1Image createImage(VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usageFlags);

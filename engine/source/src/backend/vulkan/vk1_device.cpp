@@ -235,12 +235,12 @@ void Vk1Device::destroyFence(VkFence fence) {
   }
 }
 
-VkCommandPool Vk1Device::createCommandPool() {
+VkCommandPool Vk1Device::createCommandPool(bool resetCmdBuffer) {
   VkCommandPoolCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      // .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = mQueueInfo.graphicsQueueFamilyIndex,
   };
+  createInfo.flags = resetCmdBuffer ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0;
   VkCommandPool commandPool = 0;
   vkCreateCommandPool(mDevice, &createInfo, 0, &commandPool);
   assert(commandPool);
@@ -525,15 +525,15 @@ void Vk1Device::addImageBarrier(const Vk1Image& image, VkCommandBuffer cmdBuffer
                                 bool isDepth) {
   VkImageMemoryBarrier2 barrier{
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-      .srcStageMask = oldState.pipelineStageMask,
+      .srcStageMask = helper::getBarrierStage(oldState.accessMask),
       .srcAccessMask = oldState.accessMask,
-      .dstStageMask = newState.pipelineStageMask,
+      .dstStageMask = helper::getBarrierStage(newState.accessMask),
       .dstAccessMask = newState.accessMask,
       .oldLayout = oldState.imageLayout,
       .newLayout = newState.imageLayout,
-      .image = image.handle,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .image = image.handle,
       .subresourceRange =
           {
               .baseMipLevel = baseMipLevel,

@@ -20,6 +20,7 @@ class Backend::Impl {
   Impl()
       : mVulkanDevice(createVulkanDevice()),
         mResourceRegistry(mVulkanDevice),
+        mStagingManager(mVulkanDevice, mResourceRegistry),
         mFrameManager(mVulkanDevice, mResourceRegistry) {}
 
   ~Impl() {}

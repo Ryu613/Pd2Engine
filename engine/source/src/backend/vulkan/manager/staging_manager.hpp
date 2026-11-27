@@ -8,8 +8,7 @@ class StagingManager {
  public:
   explicit StagingManager(Vk1Device& device, ResourceRegistry& registry);
   ~StagingManager();
-  DELETE_COPY(StagingManager);
-  DEFAULT_MOVABLE(StagingManager);
+  DELETE_COPY_MOVE(StagingManager);
 
   /**
    * @brief 图片上传
@@ -34,7 +33,6 @@ class StagingManager {
   ResourceRegistry& mRegistry;
   Vk1Buffer mStagingBuffer;
   VkDeviceSize mMaxBufferSize;
-  VkDeviceSize mMinBufferSize;
   std::vector<BufferRegion> mRegions;
   VkFence mFence = VK_NULL_HANDLE;
   VkCommandPool mCmdPool = VK_NULL_HANDLE;
